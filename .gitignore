@@ -1,0 +1,45 @@
+# ─── Dependencies ─────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Environment variables / secrets ──────────────────────────
+# Never commit real credentials. Keep a committed .env.example instead.
+.env
+.env.*
+!.env.example
+
+# ─── Next.js / build output ───────────────────────────────────
+.next/
+out/
+build/
+dist/
+
+# ─── Vercel ───────────────────────────────────────────────────
+.vercel/
+
+# ─── Logs ─────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── Caches ───────────────────────────────────────────────────
+.turbo/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Editors / OS ─────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ─── v0 sandbox internal files ────────────────────────────────
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
