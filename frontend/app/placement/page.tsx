@@ -134,6 +134,27 @@ export default function PlacementPage() {
     [updateCompany],
   );
 
+  const handleNotesChange = useCallback(
+    (id: number, notes: string) => {
+      updateCompany(id, (c) => ({ ...c, notes }));
+    },
+    [updateCompany],
+  );
+
+  const handleSkillsChange = useCallback(
+    (id: number, skills: string[]) => {
+      updateCompany(id, (c) => ({ ...c, skills }));
+    },
+    [updateCompany],
+  );
+
+  const handleRegisteredChange = useCallback(
+    (id: number, registered: boolean) => {
+      updateCompany(id, (c) => ({ ...c, registered }));
+    },
+    [updateCompany],
+  );
+
   const handleDelete = useCallback(
     (id: number) => {
       setCompanies((prev) => prev.filter((c) => c.id !== id));
@@ -209,6 +230,9 @@ export default function PlacementPage() {
         onStatusChange={handleStatusChange}
         onDeadlineChange={handleDeadlineChange}
         onOptedInChange={handleOptedInChange}
+        onNotesChange={handleNotesChange}
+        onSkillsChange={handleSkillsChange}
+        onRegisteredChange={handleRegisteredChange}
         onDelete={handleDelete}
       />
 

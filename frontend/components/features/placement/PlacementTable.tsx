@@ -11,6 +11,9 @@ interface PlacementTableProps {
   onStatusChange: (id: number, stage: PipelineStage, state: PipelineState) => void;
   onDeadlineChange: (id: number, date: string, time: string) => void;
   onOptedInChange: (id: number, optedIn: boolean) => void;
+  onNotesChange: (id: number, notes: string) => void;
+  onSkillsChange: (id: number, skills: string[]) => void;
+  onRegisteredChange: (id: number, registered: boolean) => void;
   onDelete: (id: number) => void;
 }
 
@@ -25,6 +28,9 @@ export function PlacementTable({
   onStatusChange,
   onDeadlineChange,
   onOptedInChange,
+  onNotesChange,
+  onSkillsChange,
+  onRegisteredChange,
   onDelete,
 }: PlacementTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -75,6 +81,9 @@ export function PlacementTable({
                 onStatusChange={(stage, state) => onStatusChange(company.id, stage, state)}
                 onDeadlineChange={(date, time) => onDeadlineChange(company.id, date, time)}
                 onOptedInChange={(optedIn) => onOptedInChange(company.id, optedIn)}
+                onNotesChange={(notes) => onNotesChange(company.id, notes)}
+                onSkillsChange={(skills) => onSkillsChange(company.id, skills)}
+                onRegisteredChange={(reg) => onRegisteredChange(company.id, reg)}
                 onDelete={() => onDelete(company.id)}
               />
             ))}

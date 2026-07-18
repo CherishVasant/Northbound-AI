@@ -16,6 +16,9 @@ interface PlacementRowProps {
   onStatusChange: (stage: PipelineStage, state: PipelineState) => void;
   onDeadlineChange: (date: string, time: string) => void;
   onOptedInChange: (optedIn: boolean) => void;
+  onNotesChange: (notes: string) => void;
+  onSkillsChange: (skills: string[]) => void;
+  onRegisteredChange: (registered: boolean) => void;
   onDelete: () => void;
 }
 
@@ -27,6 +30,9 @@ export function PlacementRow({
   onStatusChange,
   onDeadlineChange,
   onOptedInChange,
+  onNotesChange,
+  onSkillsChange,
+  onRegisteredChange,
   onDelete,
 }: PlacementRowProps) {
   // Expanded rows keep the hover background so the pair reads as one unit.
@@ -113,7 +119,12 @@ export function PlacementRow({
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
           <td colSpan={9} className="p-0">
-            <CompanyDetailPanel company={company} />
+            <CompanyDetailPanel
+              company={company}
+              onNotesChange={onNotesChange}
+              onSkillsChange={onSkillsChange}
+              onRegisteredChange={onRegisteredChange}
+            />
           </td>
         </tr>
       )}
