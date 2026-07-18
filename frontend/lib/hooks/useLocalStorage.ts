@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getApiUrl } from '@/lib/api'
 
 // Global tracking objects for sync status and timeouts
 if (typeof window !== 'undefined') {
@@ -93,8 +94,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         updateGlobalSyncStatus(key, 'saving')
 
         timeouts[key] = setTimeout(() => {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-          fetch(`${backendUrl}/api/sync/${username}`, {
+          fetch(getApiUrl(`/api/sync/${username}`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key, value: valueToStore })

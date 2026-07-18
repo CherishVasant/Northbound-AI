@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User, Lock, Mail, ShieldCheck, Loader2 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 export function SyncManager() {
   const [isMounted, setIsMounted] = useState(false);
@@ -62,8 +63,7 @@ export function SyncManager() {
     setErrorMsg('');
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-      const res = await fetch(`${backendUrl}/api/sync/${targetUsername}`);
+      const res = await fetch(getApiUrl(`/api/sync/${targetUsername}`));
 
       if (!res.ok) {
         throw new Error('Failed to load profile data from sync server.');
@@ -108,8 +108,7 @@ export function SyncManager() {
     if (!isSyncedThisSession) {
       const autoSync = async () => {
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-          const res = await fetch(`${backendUrl}/api/sync/${username}`);
+          const res = await fetch(getApiUrl(`/api/sync/${username}`));
           if (res.ok) {
             const syncData = await res.json();
             Object.entries(syncData).forEach(([key, value]) => {
@@ -140,8 +139,7 @@ export function SyncManager() {
     setErrorMsg('');
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
+      const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,8 +178,7 @@ export function SyncManager() {
     setErrorMsg('');
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/auth/register`, {
+      const response = await fetch(getApiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
