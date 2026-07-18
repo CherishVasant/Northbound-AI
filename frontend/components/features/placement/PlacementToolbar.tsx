@@ -1,128 +1,60 @@
 'use client';
 
-import { useRef } from 'react';
-import { Search, Plus, Archive } from 'lucide-react';
-import { FilterPopover, FilterState } from './FilterPopover';
-import { SortMenu } from './SortMenu';
-import { SortField, SortDirection } from '@/lib/constants/placement';
-import { PlacementCustomOptions } from '@/lib/utils/storage';
+import { Search } from 'lucide-react';
+import { OPTED_FILTERS, type OptedFilter } from '@/lib/constants/placement';
 
 interface PlacementToolbarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  onAddCompany: () => void;
-  showArchived: boolean;
-  onToggleArchived: () => void;
-  filters: FilterState;
-  onFilterChange: (f: FilterState) => void;
-  sortField: SortField;
-  sortDirection: SortDirection;
-  onSortChange: (field: SortField, dir: SortDirection) => void;
-  customOptions: PlacementCustomOptions;
-  totalVisible: number;
-  totalAll: number;
+  optedFilter: OptedFilter;
+  onOptedFilterChange: (f: OptedFilter) => void;
 }
 
 export function PlacementToolbar({
   searchQuery,
   onSearchChange,
-  onAddCompany,
-  showArchived,
-  onToggleArchived,
-  filters,
-  onFilterChange,
-  sortField,
-  sortDirection,
-  onSortChange,
-  customOptions,
-  totalVisible,
-  totalAll,
+  optedFilter,
+  onOptedFilterChange,
 }: PlacementToolbarProps) {
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  const allJobRoles = [
-    'SDE', 'Frontend Developer', 'AI Engineer', 'Data Analyst',
-    ...customOptions.jobRoles,
-  ];
-  const allLocations = [
-    'Chennai', 'Bangalore', 'Hyderabad', 'Pune', 'Mumbai', 'Delhi',
-    ...customOptions.locations,
-  ];
-  const allSkills = [
-    'DSA', 'Java', 'Python', 'C++', 'SQL', 'DBMS', 'OS', 'CN', 'OOP',
-    'JavaScript', 'React', 'Node.js', 'ML', 'DL', 'NLP', 'LLM',
-    'AWS', 'Docker', 'Git', 'Linux',
-    ...customOptions.skills,
-  ];
-
   return (
-    <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b border-border bg-background/80 sticky top-0 z-30 backdrop-blur-sm">
-      {/* Search */}
-      <div className="relative flex-1 min-w-[180px] max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+    <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
+      <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <input
-          ref={searchRef}
-          type="text"
+          type="search"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search companies…"
-          className="w-full h-8 pl-8 pr-3 text-xs bg-background pill-soft focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Search companies or roles..."
+          aria-label="Search companies or roles"
+          className="pill-soft w-full bg-card py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground"
         />
-        {searchQuery && (
-          <button
-            onClick={() => onSearchChange('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            ×
-          </button>
-        )}
       </div>
 
-      {/* Filter */}
-      <FilterPopover
-        filters={filters}
-        onChange={onFilterChange}
-        jobRoleOptions={allJobRoles}
-        locationOptions={allLocations}
-        skillOptions={allSkills}
-      />
-
-      {/* Sort */}
-      <SortMenu
-        field={sortField}
-        direction={sortDirection}
-        onChange={onSortChange}
-      />
-
-      {/* Archive toggle */}
-      <button
-        onClick={onToggleArchived}
-        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium pill-soft pill-soft-interactive transition-colors ${
-          showArchived
-            ? 'bg-muted text-foreground ring-1 ring-primary/50'
-            : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-        }`}
+      {/* Segmented filter */}
+      <div
+        role="tablist"
+        aria-label="Filter by opted-in state"
+        className="pill-soft flex items-center gap-0.5 bg-card p-0.5"
       >
-        <Archive className="w-3.5 h-3.5" />
-        {showArchived ? 'Archived Shown' : 'Archived'}
-      </button>
-
-      {/* Result count */}
-      <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">
-        {totalVisible} of {totalAll}
-      </span>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Add Company */}
-      <button
-        onClick={onAddCompany}
-        className="flex items-center gap-1.5 h-8 px-4 text-xs font-semibold pill-soft pill-soft-interactive bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-      >
-        <Plus className="w-3.5 h-3.5" />
-        Add Company
-      </button>
+        {OPTED_FILTERS.map((f) => {
+          const active = optedFilter === f.value;
+          return (
+            <button
+              key={f.value}
+              role="tab"
+              aria-selected={active}
+              onClick={() => onOptedFilterChange(f.value)}
+              className={`rounded-[8px] px-2.5 py-1 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                active
+                  ? 'bg-[var(--nav-active-bg)] text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

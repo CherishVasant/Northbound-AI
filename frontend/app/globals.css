@@ -132,6 +132,25 @@
   --module-certs-bg: color-mix(in srgb, var(--pink) 18%, transparent);
   /* Active nav/sidebar item: a tint that sits in the surface, not a box on it. */
   --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
+
+  /* Placement pipeline — stage identity colors. Light-mode values are darkened
+     for contrast against white surfaces; the dark block carries the values the
+     design was authored against. */
+  --stage-resume: #64748b;
+  --stage-coding: #0891b2;
+  --stage-gd: #db2777;
+  --stage-tech: #ea580c;
+  --stage-hr: #4f46e5;
+  --stage-offer: #0d9488;
+
+  /* Placement pipeline — state colors (independent of stage). */
+  --state-preparing: #7c3aed;
+  --state-waiting: #b45309;
+  --state-done: #2563eb;
+  --state-rejected: #dc2626;
+  /* Offer + Done reads as "Offer Received". */
+  --state-offer: #0d9488;
+
   --radius-card: 16px;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 10px rgba(0, 0, 0, 0.03);
   --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.07);
@@ -202,6 +221,21 @@ html[data-theme='dark'],
   --module-certs: var(--pink);
   --module-certs-bg: color-mix(in srgb, var(--pink) 18%, transparent);
   --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
+
+  /* Stage + state colors as authored for the dark design. */
+  --stage-resume: #94a3b8;
+  --stage-coding: #22d3ee;
+  --stage-gd: #f472b6;
+  --stage-tech: #fb923c;
+  --stage-hr: #a5b4fc;
+  --stage-offer: #2dd4a7;
+
+  --state-preparing: #a78bfa;
+  --state-waiting: #f0b344;
+  --state-done: #5b9dfb;
+  --state-rejected: #f2596b;
+  --state-offer: #2dd4a7;
+
   /* --radius-card is theme-independent; inherited from :root. */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 14px rgba(0, 0, 0, 0.32);
   --shadow-card-hover: 0 4px 8px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.42);

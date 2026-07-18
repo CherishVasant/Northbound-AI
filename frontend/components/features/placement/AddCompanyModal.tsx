@@ -1,0 +1,198 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
+import { ToggleSwitch } from './ToggleSwitch';
+
+export interface NewCompanyDraft {
+  name: string;
+  role: string;
+  package: number;
+  location: string;
+  deadlineDate: string;
+  deadlineTime: string;
+  optedIn: boolean;
+  reason: string;
+}
+
+interface AddCompanyModalProps {
+  onCreate: (draft: NewCompanyDraft) => void;
+  onClose: () => void;
+}
+
+const inputClass =
+  'pill-soft w-full bg-secondary/40 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground';
+const labelClass = 'text-[10px] font-bold uppercase tracking-wider text-muted-foreground';
+
+export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [pkg, setPkg] = useState('');
+  const [location, setLocation] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [deadlineTime, setDeadlineTime] = useState('');
+  const [optedIn, setOptedIn] = useState(true);
+  const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onCreate({
+      name: name.trim(),
+      role: role.trim(),
+      package: Number(pkg) || 0,
+      location: location.trim(),
+      deadlineDate,
+      deadlineTime,
+      optedIn,
+      reason: optedIn ? '' : reason.trim(),
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-company-title"
+        className="overlay-soft w-full max-w-md bg-card"
+      >
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
+          <h2 id="add-company-title" className="text-sm font-bold text-foreground">
+            Add Company
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 px-5 py-4">
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor="ac-name">
+              Company name <span className="text-destructive">*</span>
+            </label>
+            <input
+              id="ac-name"
+              autoFocus
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={inputClass}
+              placeholder="e.g. Groww"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className={labelClass} htmlFor="ac-role">Role</label>
+              <input
+                id="ac-role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className={inputClass}
+                placeholder="e.g. SDE"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className={labelClass} htmlFor="ac-package">Package (LPA)</label>
+              <input
+                id="ac-package"
+                type="number"
+                min="0"
+                step="0.1"
+                value={pkg}
+                onChange={(e) => setPkg(e.target.value)}
+                className={`${inputClass} font-mono`}
+                placeholder="12.5"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor="ac-location">Location</label>
+            <input
+              id="ac-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className={inputClass}
+              placeholder="e.g. Bangalore"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className={labelClass} htmlFor="ac-date">Deadline date</label>
+              <input
+                id="ac-date"
+                type="date"
+                value={deadlineDate}
+                onChange={(e) => setDeadlineDate(e.target.value)}
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className={labelClass} htmlFor="ac-time">Deadline time</label>
+              <input
+                id="ac-time"
+                type="time"
+                value={deadlineTime}
+                onChange={(e) => setDeadlineTime(e.target.value)}
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between py-1">
+            <span className={labelClass}>Opted in</span>
+            <ToggleSwitch checked={optedIn} onChange={setOptedIn} label="Opted in" />
+          </div>
+
+          {/* Mutually exclusive with the deadline — only meaningful when skipping. */}
+          {!optedIn && (
+            <div className="flex flex-col gap-1">
+              <label className={labelClass} htmlFor="ac-reason">Reason for not opting in</label>
+              <input
+                id="ac-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className={inputClass}
+                placeholder="e.g. Low package, location mismatch"
+              />
+            </div>
+          )}
+
+          <div className="mt-1 flex justify-end gap-2 border-t border-border pt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="pill-soft pill-soft-interactive bg-secondary/50 px-3 py-1.5 text-xs font-semibold text-foreground"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!name.trim()}
+              className="pill-soft pill-soft-interactive bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              Add Company
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

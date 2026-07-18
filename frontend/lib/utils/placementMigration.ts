@@ -1,0 +1,171 @@
+import type { PlacementCompany, StageEntry } from '@/lib/utils/storage'
+import {
+  FIRST_STAGE,
+  PIPELINE_STAGES,
+  PIPELINE_STATES,
+  type PipelineStage,
+  type PipelineState,
+} from '@/lib/constants/placement'
+
+/**
+ * Converts pre-redesign placement records into the current shape.
+ *
+ * The old model spread progress across `currentStage` / `stageStatus` /
+ * `nextEvent` / `finalResult` / `priority`; the new one keeps a single ordered
+ * `history` log whose last entry IS the current status. Existing records are
+ * rewritten in place on load, so nothing is lost and nothing needs a DB script.
+ *
+ * Must stay idempotent — it runs on every load.
+ */
+
+const LEGACY_STAGE_MAP: Record<string, PipelineStage> = {
+  Application: 'Resume/CGPA',
+  'Waiting for Shortlist': 'Resume/CGPA',
+  'Aptitude Test': 'Online Coding Round',
+  'Culture Test': 'Online Coding Round',
+  'Online Assessment': 'Online Coding Round',
+  Hackathon: 'Online Coding Round',
+  'Group Discussion': 'Group Discussion',
+  'Technical Interview': 'Technical Interview',
+  'HR Interview': 'HR Interview',
+  Offer: 'Offer',
+  Completed: 'Offer',
+}
+
+const LEGACY_STATUS_MAP: Record<string, PipelineState> = {
+  'Not Applied': 'Preparing',
+  Scheduled: 'Preparing',
+  Completed: 'Done',
+  'Awaiting Result': 'Waiting',
+  Cleared: 'Done',
+  Rejected: 'Rejected',
+  Cancelled: 'Rejected',
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+/** Splits a stored ISO datetime into the date + time pair the inputs use. */
+function splitDeadline(iso: unknown): { deadlineDate: string; deadlineTime: string } {
+  if (typeof iso !== 'string' || !iso.trim()) return { deadlineDate: '', deadlineTime: '' }
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return { deadlineDate: '', deadlineTime: '' }
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  // Midnight almost always means "date only, no time was ever set".
+  return { deadlineDate: date, deadlineTime: time === '00:00' ? '' : time }
+}
+
+function isAlreadyMigrated(rec: any): boolean {
+  return (
+    rec &&
+    typeof rec.name === 'string' &&
+    Array.isArray(rec.history) &&
+    typeof rec.optedIn === 'boolean' &&
+    !('company' in rec)
+  )
+}
+
+/** Rebuilds a plausible pipeline log from the old flat fields. */
+function historyFromLegacy(rec: any): StageEntry[] {
+  if (!rec.optedIn) return []
+
+  const stage = LEGACY_STAGE_MAP[rec.currentStage] ?? FIRST_STAGE
+  let status: PipelineState = LEGACY_STATUS_MAP[rec.stageStatus] ?? 'Preparing'
+
+  // finalResult was authoritative when set, so let it win over stageStatus.
+  if (rec.finalResult === 'Rejected' || rec.finalResult === 'Withdrawn') status = 'Rejected'
+  if (rec.finalResult === 'Selected') {
+    return [{ stage: 'Offer', status: 'Done', date: todayISO() }]
+  }
+
+  const date =
+    typeof rec.createdAt === 'string' && rec.createdAt.length >= 10
+      ? rec.createdAt.slice(0, 10)
+      : todayISO()
+
+  return [{ stage, status, date }]
+}
+
+function coerceEntry(e: any): StageEntry | null {
+  if (!e || typeof e !== 'object') return null
+  const stage = PIPELINE_STAGES.includes(e.stage) ? (e.stage as PipelineStage) : null
+  const status = PIPELINE_STATES.includes(e.status) ? (e.status as PipelineState) : null
+  if (!stage || !status) return null
+  return { stage, status, date: typeof e.date === 'string' ? e.date : todayISO() }
+}
+
+export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
+  if (!Array.isArray(raw)) return []
+
+  let nextId = 1
+  const usedIds = new Set<number>()
+  for (const rec of raw as any[]) {
+    if (typeof rec?.id === 'number' && Number.isFinite(rec.id)) usedIds.add(rec.id)
+  }
+  const takeId = () => {
+    while (usedIds.has(nextId)) nextId++
+    usedIds.add(nextId)
+    return nextId
+  }
+
+  return (raw as any[]).map((rec) => {
+    if (isAlreadyMigrated(rec)) {
+      // Still normalise history and id — a record can be new-shape but carry a
+      // string id from an interrupted migration.
+      const id = typeof rec.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId()
+      return {
+        ...rec,
+        id,
+        history: (rec.history as any[]).map(coerceEntry).filter(Boolean) as StageEntry[],
+      } as PlacementCompany
+    }
+
+    const { deadlineDate, deadlineTime } = splitDeadline(rec?.applicationDeadline)
+
+    return {
+      id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
+      name: String(rec?.company ?? rec?.name ?? ''),
+      role: String(rec?.jobRole ?? rec?.role ?? ''),
+      package: Number(rec?.packageCTC ?? rec?.package ?? 0) || 0,
+      location: String(rec?.location ?? ''),
+      optedIn: Boolean(rec?.optedIn),
+      registered: Boolean(rec?.registrationCompleted ?? rec?.registered),
+      deadlineDate,
+      deadlineTime,
+      reason: String(rec?.reason ?? ''),
+      skills: Array.isArray(rec?.skillsRequired)
+        ? rec.skillsRequired.map(String)
+        : Array.isArray(rec?.skills)
+          ? rec.skills.map(String)
+          : [],
+      // Old notes were { content, lastEdited }; the new model is plain text.
+      notes: typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? ''),
+      history: Array.isArray(rec?.history) && rec.history.length
+        ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
+        : historyFromLegacy(rec),
+    }
+  })
+}
+
+/** True when migration would change the stored array (avoids pointless writes). */
+export function needsMigration(raw: unknown): boolean {
+  if (!Array.isArray(raw)) return false
+  return (raw as any[]).some((rec) => !isAlreadyMigrated(rec) || typeof rec?.id !== 'number')
+}
+
+export function nextCompanyId(companies: PlacementCompany[]): number {
+  return companies.reduce((max, c) => (c.id > max ? c.id : max), 0) + 1
+}
+
+export function makeStageEntry(
+  stage: PipelineStage,
+  status: PipelineState,
+  date = todayISO(),
+): StageEntry {
+  return { stage, status, date }
+}
+
+export { todayISO }

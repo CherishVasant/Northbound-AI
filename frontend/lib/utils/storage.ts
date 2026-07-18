@@ -383,14 +383,7 @@ export function setStoredData<T>(key: string, value: T): void {
 
 // ─── Placement Tracker Types ─────────────────────────────────────────────────
 
-import type {
-  CurrentStage,
-  StageStatus,
-  NextEvent,
-  Priority,
-  PreparationStatus,
-  FinalResult,
-} from '@/lib/constants/placement';
+import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 
 export interface PlacementNotes {
   content: string;
@@ -398,32 +391,38 @@ export interface PlacementNotes {
   lastEdited: string | null;
 }
 
+/**
+ * One entry in a company's pipeline log. `history` is ordered oldest-first and
+ * its LAST entry is the current status — there is deliberately no separate
+ * `currentStage`/`stageStatus` field, so the log is the single source of truth.
+ */
+export interface StageEntry {
+  stage: PipelineStage;
+  status: PipelineState;
+  /** ISO date (yyyy-mm-dd) */
+  date: string;
+}
+
 export interface PlacementCompany {
-  /** crypto.randomUUID() — never an array index */
-  id: string;
-  company: string;
-  jobRole: string;
-  skillsRequired: string[];
-  /** Numeric for correct sorting; null when not set */
-  packageCTC: number | null;
-  optedIn: boolean;
-  registrationCompleted: boolean;
-  /** ISO string — serialised as Date in MongoDB */
-  applicationDeadline: string | null;
-  currentStage: CurrentStage;
-  stageStatus: StageStatus;
-  nextEvent: NextEvent | '';
-  /** ISO string — serialised as Date in MongoDB */
-  nextEventDateTime: string | null;
-  priority: Priority;
-  preparationStatus: PreparationStatus;
-  finalResult: FinalResult;
-  reason: string;
-  notes: PlacementNotes;
+  /** Monotonic numeric id (see nextCompanyId) */
+  id: number;
+  name: string;
+  role: string;
+  /** LPA; 0 when unset */
+  package: number;
   location: string;
-  archived: boolean;
-  /** ISO string — creation timestamp */
-  createdAt: string;
+  optedIn: boolean;
+  registered: boolean;
+  /** yyyy-mm-dd, '' when unset */
+  deadlineDate: string;
+  /** HH:mm (24h), '' when unset */
+  deadlineTime: string;
+  /** Only meaningful when optedIn === false */
+  reason: string;
+  skills: string[];
+  notes: string;
+  /** Ordered oldest-first; last entry is the current status */
+  history: StageEntry[];
 }
 
 export interface PlacementCustomOptions {

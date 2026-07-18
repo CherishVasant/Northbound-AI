@@ -115,33 +115,56 @@ const CertificationSchema = new Schema({
   priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
 })
 
-const PlacementNotesSchema = new Schema({
-  content: { type: String, default: '' },
-  lastEdited: { type: Date, default: null },
-})
+/** One entry in a company's pipeline log; the last entry is the current status. */
+const StageEntrySchema = new Schema(
+  {
+    stage: { type: String, default: '' },
+    status: { type: String, default: '' },
+    date: { type: String, default: '' },
+  },
+  { _id: false },
+)
 
-const PlacementCompanySchema = new Schema({
-  id: { type: String, required: true },
-  company: { type: String, default: '' },
-  jobRole: { type: String, default: '' },
-  skillsRequired: { type: [String], default: [] },
-  packageCTC: { type: Number, default: null },
-  optedIn: { type: Boolean, default: false },
-  registrationCompleted: { type: Boolean, default: false },
-  applicationDeadline: { type: Date, default: null },
-  currentStage: { type: String, default: 'Application' },
-  stageStatus: { type: String, default: 'Not Applied' },
-  nextEvent: { type: String, default: '' },
-  nextEventDateTime: { type: Date, default: null },
-  priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
-  preparationStatus: { type: String, default: 'Not Started' },
-  finalResult: { type: String, default: 'Pending' },
-  reason: { type: String, default: '' },
-  notes: { type: PlacementNotesSchema, default: () => ({}) },
-  location: { type: String, default: '' },
-  archived: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-})
+const PlacementCompanySchema = new Schema(
+  {
+    // Mixed, not Number: pre-migration records carry string UUID ids, and a
+    // Number type would fail to cast them on read. Tighten to Number once no
+    // legacy records remain.
+    id: { type: Schema.Types.Mixed, required: true },
+    name: { type: String, default: '' },
+    role: { type: String, default: '' },
+    package: { type: Number, default: 0 },
+    location: { type: String, default: '' },
+    optedIn: { type: Boolean, default: false },
+    registered: { type: Boolean, default: false },
+    deadlineDate: { type: String, default: '' },
+    deadlineTime: { type: String, default: '' },
+    reason: { type: String, default: '' },
+    skills: { type: [String], default: [] },
+    // Mixed: legacy records stored { content, lastEdited }; the current model is
+    // plain text. Casting an object to String would yield "[object Object]" and
+    // silently destroy the note.
+    notes: { type: Schema.Types.Mixed, default: '' },
+    history: { type: [StageEntrySchema], default: [] },
+
+    // ── Legacy fields, retained so migratePlacementCompanies() can still read
+    // them. Mongoose strips unknown paths on read, so removing these before
+    // every record is migrated would blank out existing companies. They stop
+    // being written the first time the client saves.
+    company: { type: String },
+    jobRole: { type: String },
+    skillsRequired: { type: [String] },
+    packageCTC: { type: Number },
+    registrationCompleted: { type: Boolean },
+    applicationDeadline: { type: Date },
+    currentStage: { type: String },
+    stageStatus: { type: String },
+    finalResult: { type: String },
+    archived: { type: Boolean },
+    createdAt: { type: Date },
+  },
+  { _id: false },
+)
 
 const PlacementCustomOptionsSchema = new Schema({
   jobRoles: { type: [String], default: [] },

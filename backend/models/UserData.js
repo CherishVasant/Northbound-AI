@@ -101,37 +101,45 @@ const CertificationSchema = new mongoose.Schema({
   priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' }
 });
 
-const PlacementNotesSchema = new mongoose.Schema({
-  content:    { type: String, default: '' },
-  lastEdited: { type: Date, default: null }
-});
+// Mirrors frontend/lib/models/UserData.ts — keep the two in sync.
+const StageEntrySchema = new mongoose.Schema({
+  stage:  { type: String, default: '' },
+  status: { type: String, default: '' },
+  date:   { type: String, default: '' }
+}, { _id: false });
 
 const PlacementCompanySchema = new mongoose.Schema({
-  id:                    { type: String, required: true },
-  company:               { type: String, default: '' },
-  jobRole:               { type: String, default: '' },
-  skillsRequired:        { type: [String], default: [] },
-  packageCTC:            { type: Number, default: null },
-  optedIn:               { type: Boolean, default: false },
-  registrationCompleted: { type: Boolean, default: false },
-  applicationDeadline:   { type: Date, default: null },
-  currentStage:          { type: String, default: 'Application' },
-  stageStatus:           { type: String, default: 'Not Applied' },
-  nextEvent:             { type: String, default: '' },
-  nextEventDateTime:     { type: Date, default: null },
-  priority: {
-    type: String,
-    enum: ['High', 'Medium', 'Low'],
-    default: 'Medium'
-  },
-  preparationStatus:     { type: String, default: 'Not Started' },
-  finalResult:           { type: String, default: 'Pending' },
-  reason:                { type: String, default: '' },
-  notes:                 { type: PlacementNotesSchema, default: () => ({}) },
-  location:              { type: String, default: '' },
-  archived:              { type: Boolean, default: false },
-  createdAt:             { type: Date, default: Date.now }
-});
+  // Mixed, not Number: legacy records carry string UUID ids that a Number type
+  // would fail to cast on read.
+  id:            { type: mongoose.Schema.Types.Mixed, required: true },
+  name:          { type: String, default: '' },
+  role:          { type: String, default: '' },
+  package:       { type: Number, default: 0 },
+  location:      { type: String, default: '' },
+  optedIn:       { type: Boolean, default: false },
+  registered:    { type: Boolean, default: false },
+  deadlineDate:  { type: String, default: '' },
+  deadlineTime:  { type: String, default: '' },
+  reason:        { type: String, default: '' },
+  skills:        { type: [String], default: [] },
+  // Mixed: legacy notes were { content, lastEdited }; casting that object to
+  // String would store "[object Object]" and destroy the note.
+  notes:         { type: mongoose.Schema.Types.Mixed, default: '' },
+  history:       { type: [StageEntrySchema], default: [] },
+
+  // Legacy fields kept readable so the client migration can still see them.
+  company:               { type: String },
+  jobRole:               { type: String },
+  skillsRequired:        { type: [String] },
+  packageCTC:            { type: Number },
+  registrationCompleted: { type: Boolean },
+  applicationDeadline:   { type: Date },
+  currentStage:          { type: String },
+  stageStatus:           { type: String },
+  finalResult:           { type: String },
+  archived:              { type: Boolean },
+  createdAt:             { type: Date }
+}, { _id: false });
 
 const PlacementCustomOptionsSchema = new mongoose.Schema({
   jobRoles:  { type: [String], default: [] },
