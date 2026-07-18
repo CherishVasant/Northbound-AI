@@ -68,10 +68,13 @@
 
 :root {
   color-scheme: light;
-  --bg: #FBFAFC;
+  /* Card is pure white; bg sits clearly below it so the low-alpha card
+     shadows have something to separate against. */
+  --bg: #F5F4F7;
   --surface: #FFFFFF;
   --surface-2: #F3F1F5;
-  --border: #E7E4EB;
+  /* Hairline, not an outline. Low-alpha ink so dividers recede. */
+  --border: rgba(35, 34, 39, 0.08);
   --text: #232227;
   --text-dim: #77747E;
   --mint: #34D399;
@@ -93,7 +96,6 @@
   --accent: var(--lavender);
   --accent-foreground: var(--bg);
   --destructive: #ef4444;
-  --border: var(--border);
   --input: var(--surface-2);
   --ring: var(--sky);
   --chart-1: var(--mint);
@@ -128,6 +130,14 @@
   --module-aptitude-bg: color-mix(in srgb, var(--mint) 18%, transparent);
   --module-certs: var(--pink);
   --module-certs-bg: color-mix(in srgb, var(--pink) 18%, transparent);
+  /* Active nav/sidebar item: a tint that sits in the surface, not a box on it. */
+  --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  --radius-card: 16px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 10px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.07);
+  --shadow-pill: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 6px rgba(0, 0, 0, 0.03);
+  --shadow-pill-hover: 0 1px 3px rgba(0, 0, 0, 0.07), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-overlay: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.1);
 }
 
 html[data-theme='dark'],
@@ -136,7 +146,7 @@ html[data-theme='dark'],
   --bg: #141419;
   --surface: #1C1D24;
   --surface-2: #26272F;
-  --border: #2E2F38;
+  --border: rgba(255, 255, 255, 0.08);
   --text: #F1F1F4;
   --text-dim: #96979F;
   --mint: #6EE7B7;
@@ -158,7 +168,6 @@ html[data-theme='dark'],
   --accent: var(--lavender);
   --accent-foreground: var(--bg);
   --destructive: #f87171;
-  --border: var(--border);
   --input: var(--surface-2);
   --ring: var(--sky);
   --chart-1: var(--mint);
@@ -192,6 +201,13 @@ html[data-theme='dark'],
   --module-aptitude-bg: color-mix(in srgb, var(--mint) 18%, transparent);
   --module-certs: var(--pink);
   --module-certs-bg: color-mix(in srgb, var(--pink) 18%, transparent);
+  --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  /* --radius-card is theme-independent; inherited from :root. */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 14px rgba(0, 0, 0, 0.32);
+  --shadow-card-hover: 0 4px 8px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.42);
+  --shadow-pill: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 6px rgba(0, 0, 0, 0.25);
+  --shadow-pill-hover: 0 2px 4px rgba(0, 0, 0, 0.42), 0 6px 16px rgba(0, 0, 0, 0.32);
+  --shadow-overlay: 0 8px 16px rgba(0, 0, 0, 0.5), 0 24px 56px rgba(0, 0, 0, 0.55);
 }
 
 @layer base {
@@ -222,6 +238,46 @@ html[data-theme='dark'],
 
   .aurora-progress {
     background-image: linear-gradient(90deg, var(--mint) 0%, var(--sky) 30%, var(--lavender) 70%, var(--pink) 100%);
+  }
+
+  /* Soft elevation system — cards read as floating surfaces, not outlined boxes.
+     These intentionally set `border: none` so they can be dropped onto an
+     existing `border border-border` container without hunting every class. */
+  .card-soft {
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 250ms ease, transform 250ms ease;
+  }
+
+  .card-soft-interactive:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Nav pills, user chip, icon buttons: same language, tighter radius. */
+  .pill-soft {
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--shadow-pill);
+    transition: box-shadow 200ms ease, background-color 200ms ease, color 200ms ease;
+  }
+
+  .pill-soft-interactive:hover {
+    box-shadow: var(--shadow-pill-hover);
+  }
+
+  /* Popovers, menus, modals — floats above cards. */
+  .overlay-soft {
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  /* Borders are gone, so keyboard focus must not rely on them. */
+  .pill-soft:focus-visible,
+  .card-soft:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 

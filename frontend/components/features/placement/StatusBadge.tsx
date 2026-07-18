@@ -42,7 +42,7 @@ export function StageStatusBadge({ value, onChange }: StageStatusBadgeProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl overflow-hidden min-w-[140px] animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-popover overlay-soft overflow-hidden min-w-[140px] animate-in fade-in slide-in-from-top-1 duration-150">
           {STAGE_STATUSES.map((s) => (
             <button
               key={s}
@@ -89,7 +89,7 @@ export function FinalResultBadge({ value, onChange }: FinalResultBadgeProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl overflow-hidden min-w-[130px] animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-popover overlay-soft overflow-hidden min-w-[130px] animate-in fade-in slide-in-from-top-1 duration-150">
           {FINAL_RESULTS.map((r) => (
             <button
               key={r}

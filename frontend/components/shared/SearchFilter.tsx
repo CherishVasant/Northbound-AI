@@ -38,7 +38,7 @@ export function SearchFilter({
           placeholder="Search..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full pl-10 pr-4 py-2 pill-soft bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -50,7 +50,7 @@ export function SearchFilter({
               key={key}
               value={filter.value}
               onChange={(e) => filter.onChange(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="px-3 py-2 pill-soft pill-soft-interactive bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">{filter.label}</option>
               {filter.options.map((option) => (

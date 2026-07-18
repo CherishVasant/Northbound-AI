@@ -46,7 +46,7 @@ export function SortMenu({ field, direction, onChange }: SortMenuProps) {
       {/* Sort field picker */}
       <button
         onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium pill-soft pill-soft-interactive hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronsUpDown className="w-3.5 h-3.5" />
         Sort: {SORT_FIELD_LABELS[field]}
@@ -55,14 +55,14 @@ export function SortMenu({ field, direction, onChange }: SortMenuProps) {
       {/* Direction toggle */}
       <button
         onClick={toggleDirection}
-        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center justify-center w-8 h-8 pill-soft pill-soft-interactive hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
         title={direction === 'asc' ? 'Ascending' : 'Descending'}
       >
         <DirIcon className="w-3.5 h-3.5" />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 z-50 bg-popover border border-border rounded-xl shadow-2xl w-48 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-full left-0 mt-2 z-50 bg-popover overlay-soft w-48 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
           <p className="px-3 pt-2.5 pb-1 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
             Sort by
           </p>

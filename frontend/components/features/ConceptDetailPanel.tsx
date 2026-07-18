@@ -7,6 +7,7 @@ import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, ConceptTopic, ConceptSubTopic } from '@/lib/utils/storage';
 import { SEED_CONCEPTS } from '@/lib/utils/mockData';
 import { Button } from '@/components/ui/button';
+import { getApiUrl } from '@/lib/api';
 
 // Offline algorithm seeds for popular concepts (Java implementations)
 const OFFLINE_CONCEPTS_FALLBACK: Record<string, { code: string; notes: string }> = {
@@ -259,8 +260,7 @@ Topic Name: ${topic.topicName}
 Section Name: ${topic.sectionTitle}`;
       }
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/ai`, {
+      const response = await fetch(getApiUrl('/api/ai'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, systemPrompt }),
@@ -336,7 +336,7 @@ Section Name: ${topic.sectionTitle}`;
   if (!topic) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/20 min-h-[60vh]">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-primary mb-4 shadow-sm border border-border/30">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-primary mb-4 shadow-[var(--shadow-pill)]">
           <Bookmark className="w-8 h-8 animate-pulse" />
         </div>
         <h3 className="text-sm font-bold text-foreground">Select a DSA Concept</h3>
@@ -394,7 +394,7 @@ Section Name: ${topic.sectionTitle}`;
           <select
             value={topic.status}
             onChange={(e) => handleStatusChange(e.target.value as ConceptTopic['status'])}
-            className={`px-3 py-1.5 rounded-lg border border-input text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary ${
+            className={`px-3 py-1.5 pill-soft text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary ${
               topic.status === 'Mastered' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' :
               topic.status === 'In Progress' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400' :
               'bg-secondary text-muted-foreground'
@@ -418,7 +418,7 @@ Section Name: ${topic.sectionTitle}`;
               <button
                 key={st.id}
                 onClick={() => handleScrollToSection(st.id)}
-                className="px-3 py-1 rounded-full border border-border bg-card text-[11px] text-foreground font-semibold hover:border-primary hover:text-primary transition-all shadow-sm whitespace-nowrap"
+                className="px-3 py-1 pill-soft pill-soft-interactive bg-card text-[11px] text-foreground font-semibold hover:text-primary whitespace-nowrap"
               >
                 {st.name}
               </button>
@@ -431,7 +431,7 @@ Section Name: ${topic.sectionTitle}`;
       <div className="flex-1 overflow-y-auto p-6 space-y-8 w-full">
 
         {/* Copilot Assistant Trigger */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-primary/5 border border-primary/10 rounded-2xl gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-primary/5 card-soft gap-4">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
               <Bot className="w-5 h-5" />
@@ -468,7 +468,7 @@ Section Name: ${topic.sectionTitle}`;
               <div
                 key={st.id}
                 id={st.id}
-                className="scroll-mt-24 border border-border/80 bg-card rounded-2xl overflow-hidden shadow-sm space-y-5 p-6 relative transition-all hover:shadow-md animate-in fade-in duration-300"
+                className="scroll-mt-24 card-soft card-soft-interactive bg-card overflow-hidden space-y-5 p-6 relative animate-in fade-in duration-300"
               >
                 {/* Section Sub-Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/40 pb-4 gap-3">
@@ -496,7 +496,7 @@ Section Name: ${topic.sectionTitle}`;
                   {/* Left block: Monospace Java implementation editor (8 columns) */}
                   <div className="lg:col-span-8 space-y-0 flex flex-col justify-end">
                     {/* Mock IDE File Tab Header Bar */}
-                    <div className="flex justify-between items-center bg-secondary/35 border border-border border-b-0 rounded-t-2xl px-4 py-2 text-[10px] font-bold text-muted-foreground shrink-0">
+                    <div className="flex justify-between items-center bg-secondary/35 rounded-t-2xl px-4 py-2 text-[10px] font-bold text-muted-foreground shrink-0">
                       <div className="flex items-center gap-1.5">
                         <Code className="w-3.5 h-3.5 text-primary" />
                         <span>Solution.java</span>
@@ -506,7 +506,7 @@ Section Name: ${topic.sectionTitle}`;
                           onClick={() => handleTryItClick(st.codeSnippet)}
                           variant="outline"
                           size="sm"
-                          className="h-6 text-[9px] gap-1 px-2.5 font-bold hover:bg-primary/5 text-primary border-primary/20 hover:border-primary/45 transition-all shadow-sm bg-background cursor-pointer"
+                          className="h-6 text-[9px] gap-1 px-2.5 font-bold hover:bg-primary/5 text-primary transition-all bg-background cursor-pointer"
                         >
                           <Play className="w-2.5 h-2.5 fill-current text-primary" />
                           Run & Test Code
@@ -515,7 +515,7 @@ Section Name: ${topic.sectionTitle}`;
                     </div>
 
                     {/* Editor Textarea */}
-                    <div className="flex font-mono text-sm border border-border bg-secondary/15 rounded-b-2xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/40 h-[340px]">
+                    <div className="flex font-mono text-sm bg-secondary/15 rounded-b-2xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/40 h-[340px]">
                       {/* Lines numbers sidebar */}
                       <div className="bg-secondary/35 select-none text-right py-3.5 px-3 border-r border-border text-[10px] text-muted-foreground/35 w-12 leading-[21px] shrink-0 font-medium">
                         {lineNumbers.map((n) => (
@@ -542,13 +542,13 @@ Section Name: ${topic.sectionTitle}`;
                       <textarea
                         value={st.notes || ''}
                         onChange={(e) => handleSubTopicChange(st.id, 'notes', e.target.value)}
-                        className="w-full flex-1 min-h-[160px] px-3.5 py-3 rounded-2xl border border-input bg-card text-foreground text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        className="w-full flex-1 min-h-[160px] px-3.5 py-3 rounded-2xl bg-secondary/15 text-foreground text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40"
                         placeholder="Key steps, indices, binary splits or partition parameters..."
                       />
                     </div>
 
                     {/* Pros and Cons lists side-by-side (non-truncated!) */}
-                    <div className="grid grid-cols-2 gap-3 p-3.5 border border-border bg-secondary/10 rounded-2xl shrink-0">
+                    <div className="grid grid-cols-2 gap-3 p-3.5 bg-secondary/10 rounded-2xl shrink-0">
                       <div className="space-y-1.5">
                         <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
                           <CheckCircle className="w-3 h-3 text-emerald-500" />
@@ -583,7 +583,7 @@ Section Name: ${topic.sectionTitle}`;
 
                 {/* Subtopic specific reference links moved below notes inside subtopic card */}
                 {st.resourceLinks && st.resourceLinks.length > 0 && (
-                  <div className="mt-4 p-4 bg-secondary/10 border border-border/40 rounded-2xl space-y-2">
+                  <div className="mt-4 p-4 bg-secondary/10 rounded-2xl space-y-2">
                     <h4 className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                       Reference Lectures & Guides
                     </h4>
@@ -602,7 +602,7 @@ Section Name: ${topic.sectionTitle}`;
                             href={link}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-primary/5 hover:border-primary text-xs font-semibold text-foreground transition-all shadow-sm"
+                            className="flex items-center gap-1.5 px-3 py-1.5 pill-soft pill-soft-interactive bg-background hover:bg-primary/5 text-xs font-semibold text-foreground"
                           >
                             <ExternalLink className="w-3.5 h-3.5 text-primary" />
                             {name}
@@ -623,7 +623,7 @@ Section Name: ${topic.sectionTitle}`;
       {/* --- TRY IT CLIPBOARD REDIRECTION DIALOG --- */}
       {showTryItModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-sm overflow-hidden border border-border bg-card rounded-2xl shadow-2xl p-6 space-y-4">
+          <div className="w-full max-w-sm overflow-hidden overlay-soft bg-card p-6 space-y-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
                 <Terminal className="w-5 h-5" />
@@ -636,7 +636,7 @@ Section Name: ${topic.sectionTitle}`;
               </div>
             </div>
 
-            <div className="p-3 bg-secondary/30 border border-border/50 rounded-xl space-y-1.5 text-[11px] text-muted-foreground leading-relaxed">
+            <div className="p-3 bg-secondary/30 rounded-xl space-y-1.5 text-[11px] text-muted-foreground leading-relaxed">
               <p className="font-semibold text-foreground">Next Steps:</p>
               <ol className="list-decimal list-inside space-y-1">
                 <li>Click the <strong>Open Compiler</strong> button.</li>

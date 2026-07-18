@@ -34,7 +34,7 @@ export function PriorityBadge({ value, onChange }: PriorityBadgeProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl overflow-hidden min-w-[100px] animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-popover overlay-soft overflow-hidden min-w-[100px] animate-in fade-in slide-in-from-top-1 duration-150">
           {PRIORITIES.map((p) => (
             <button
               key={p}

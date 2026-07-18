@@ -9,10 +9,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { AIMessage, DSAProblem, STORAGE_KEYS, generateId } from '@/lib/utils/storage'
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage'
-import { 
-  SEED_HR_QUESTIONS, SEED_CONCEPTS, SEED_PROJECTS, SEED_CERTIFICATIONS, 
-  SEED_APTITUDE_TOPICS 
+import {
+  SEED_HR_QUESTIONS, SEED_CONCEPTS, SEED_PROJECTS, SEED_CERTIFICATIONS,
+  SEED_APTITUDE_TOPICS
 } from '@/lib/utils/mockData'
+import { getApiUrl } from '@/lib/api'
 
 interface AIAssistantProps {
   isOpen: boolean
@@ -106,7 +107,7 @@ function CodeBlock({ language, content }: { language: string; content: string })
   }
 
   return (
-    <div className="border border-border/80 rounded-xl overflow-hidden my-3 shadow-sm bg-secondary/5">
+    <div className="card-soft overflow-hidden my-3 bg-secondary/5">
       <div className="bg-secondary/40 px-3 py-1.5 border-b border-border/60 flex items-center justify-between text-[10px] text-muted-foreground font-bold">
         <span className="uppercase">{language}</span>
         <button
@@ -516,8 +517,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
 
       const systemPrompt = `You are PrepTrack AI, a helpful placement preparation assistant. Help the user understand algorithms, solve problems, analyze time/space complexities, write clean code, project specs, and HR answers. Keep your answers concise, structured, and informative. Use markdown formatting. \n\n${pageContextPrompt}`
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-      const response = await fetch(`${backendUrl}/api/ai`, {
+      const response = await fetch(getApiUrl('/api/ai'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -625,8 +625,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
 }`;
       const promptText = `Analyze and generate details for the DSA Problem: "${apName}". Link: "${apLink}". Additional details/statement: "${apStatement}".`;
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-      const response = await fetch(`${backendUrl}/api/ai`, {
+      const response = await fetch(getApiUrl('/api/ai'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -721,7 +720,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
         return <strong key={index} className="font-extrabold text-foreground">{part.slice(2, -2)}</strong>;
       }
       if (part.startsWith('`') && part.endsWith('`')) {
-        return <code key={index} className="bg-secondary/65 px-1 py-0.5 rounded font-mono text-[10.5px] border border-border/40 text-primary">{part.slice(1, -1)}</code>;
+        return <code key={index} className="bg-secondary/65 px-1 py-0.5 rounded font-mono text-[10.5px] text-primary">{part.slice(1, -1)}</code>;
       }
       if (part.startsWith('*') && part.endsWith('*')) {
         return <em key={index} className="italic">{part.slice(1, -1)}</em>;
@@ -834,7 +833,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
   if (!isOpen) return null
 
   return (
-    <div className="fixed right-0 top-0 h-screen w-[420px] bg-card border-l border-border shadow-2xl flex flex-col z-40 animate-in slide-in-from-right-96">
+    <div className="fixed right-0 top-0 h-screen w-[420px] bg-card overlay-soft flex flex-col z-40 animate-in slide-in-from-right-96">
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/20 shrink-0">
@@ -910,7 +909,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
                     className={`max-w-[90%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground font-medium rounded-tr-none'
-                        : 'bg-card border border-border text-foreground rounded-tl-none markdown'
+                        : 'bg-card text-foreground rounded-tl-none markdown'
                     }`}
                   >
                     {message.role === 'user' ? (
@@ -923,7 +922,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-card border border-border rounded-xl rounded-tl-none px-3.5 py-2.5 shadow-sm">
+                  <div className="bg-card rounded-xl rounded-tl-none px-3.5 py-2.5 shadow-sm">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   </div>
                 </div>
@@ -955,7 +954,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
                     placeholder={fillConfig.placeholder1}
                     value={apName}
                     onChange={(e) => setApName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 pill-soft bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
               )}
@@ -968,7 +967,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
                     placeholder={fillConfig.placeholder2}
                     value={apLink}
                     onChange={(e) => setApLink(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 pill-soft bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
               )}
@@ -981,7 +980,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
                     value={apStatement}
                     onChange={(e) => setApStatement(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[11px]"
+                    className="w-full px-3 py-2 pill-soft bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[11px]"
                   />
                 </div>
               )}
@@ -1018,7 +1017,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder={currentProblem ? `Ask about ${currentProblem.problemName}...` : "Ask co-pilot agent anything..."}
-              className="flex-1 px-3 py-2 rounded-lg bg-secondary/80 border border-border text-foreground placeholder-muted-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-3 py-2 pill-soft bg-secondary/80 text-foreground placeholder-muted-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={isLoading}
             />
             <Button

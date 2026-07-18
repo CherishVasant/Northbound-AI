@@ -49,7 +49,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: Building2,
       color: 'text-foreground',
       bg: 'bg-muted/50',
-      border: 'border-border',
     },
     {
       label: 'Active',
@@ -57,7 +56,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: Users,
       color: 'text-blue-600 dark:text-blue-400',
       bg: 'bg-blue-50 dark:bg-blue-950/20',
-      border: 'border-blue-200 dark:border-blue-900/40',
     },
     {
       label: 'Waiting',
@@ -65,7 +63,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: Clock,
       color: 'text-violet-600 dark:text-violet-400',
       bg: 'bg-violet-50 dark:bg-violet-950/20',
-      border: 'border-violet-200 dark:border-violet-900/40',
     },
     {
       label: 'Interviews',
@@ -73,7 +70,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: Users,
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-950/20',
-      border: 'border-amber-200 dark:border-amber-900/40',
     },
     {
       label: 'Offers',
@@ -81,7 +77,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: Trophy,
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-50 dark:bg-emerald-950/20',
-      border: 'border-emerald-200 dark:border-emerald-900/40',
     },
     {
       label: 'Rejected',
@@ -89,7 +84,6 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: XCircle,
       color: 'text-red-600 dark:text-red-400',
       bg: 'bg-red-50 dark:bg-red-950/20',
-      border: 'border-red-200 dark:border-red-900/40',
     },
     {
       label: 'Due Today',
@@ -97,16 +91,15 @@ export function PlacementSummaryStrip({ companies }: PlacementSummaryStripProps)
       icon: CalendarClock,
       color: stats.deadlinesToday > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-muted-foreground',
       bg: stats.deadlinesToday > 0 ? 'bg-orange-50 dark:bg-orange-950/20' : 'bg-muted/50',
-      border: stats.deadlinesToday > 0 ? 'border-orange-200 dark:border-orange-900/40' : 'border-border',
     },
   ];
 
   return (
     <div className="flex flex-wrap gap-2 px-6 py-3 border-b border-border bg-background/50">
-      {items.map(({ label, value, icon: Icon, color, bg, border }) => (
+      {items.map(({ label, value, icon: Icon, color, bg }) => (
         <div
           key={label}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${bg} ${border} transition-colors`}
+          className={`flex items-center gap-2 px-3 py-1.5 pill-soft ${bg}`}
         >
           <Icon className={`w-3.5 h-3.5 ${color}`} />
           <span className={`text-lg font-bold leading-none ${color}`}>{value}</span>

@@ -150,7 +150,10 @@ export function SyncManager() {
         }),
       });
 
-      const data = await parseResponseBody<{ error?: string; username?: string } | string>(response, 'Unexpected server response.');
+      const data = await parseResponseBody<{ error?: string; username?: string } | string>(
+        response,
+        `Unexpected server response (HTTP ${response.status}).`
+      );
       const parsedData = typeof data === 'string' ? { error: data } : (data ?? {});
       if (!response.ok) {
         throw new Error(parsedData.error || 'Authentication failed.');
@@ -194,7 +197,10 @@ export function SyncManager() {
         }),
       });
 
-      const data = await parseResponseBody<{ error?: string; username?: string } | string>(response, 'Unexpected server response.');
+      const data = await parseResponseBody<{ error?: string; username?: string } | string>(
+        response,
+        `Unexpected server response (HTTP ${response.status}).`
+      );
       const parsedData = typeof data === 'string' ? { error: data } : (data ?? {});
       if (!response.ok) {
         throw new Error(parsedData.error || 'Registration failed.');
@@ -216,7 +222,7 @@ export function SyncManager() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-md overflow-hidden border border-border bg-card rounded-2xl shadow-2xl relative p-8 space-y-6">
+      <div className="w-full max-w-md overflow-hidden overlay-soft bg-card relative p-8 space-y-6">
         
         {/* Header */}
         <div className="text-center space-y-2">
@@ -230,7 +236,7 @@ export function SyncManager() {
         </div>
 
         {/* Tab Selectors */}
-        <div className="grid grid-cols-2 p-1 bg-secondary/50 rounded-xl border border-border">
+        <div className="grid grid-cols-2 p-1 bg-secondary/50 pill-soft">
           <button
             onClick={() => {
               setActiveTab('login');
@@ -272,7 +278,7 @@ export function SyncManager() {
                   onChange={(e) => setLoginInput(e.target.value)}
                   disabled={isSyncing}
                   required
-                  className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                  className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
                 />
               </div>
 
@@ -285,7 +291,7 @@ export function SyncManager() {
                   onChange={(e) => setLoginPassword(e.target.value)}
                   disabled={isSyncing}
                   required
-                  className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                  className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
                 />
               </div>
             </div>
@@ -310,7 +316,7 @@ export function SyncManager() {
                 onChange={(e) => setRegUsername(e.target.value)}
                 disabled={isSyncing}
                 required
-                className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
               />
             </div>
 
@@ -322,7 +328,7 @@ export function SyncManager() {
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
                 disabled={isSyncing}
-                className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
               />
             </div>
 
@@ -335,7 +341,7 @@ export function SyncManager() {
                 onChange={(e) => setRegPassword(e.target.value)}
                 disabled={isSyncing}
                 required
-                className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
               />
             </div>
 
@@ -348,7 +354,7 @@ export function SyncManager() {
                 onChange={(e) => setRegConfirmPassword(e.target.value)}
                 disabled={isSyncing}
                 required
-                className="w-full h-10 pl-9 pr-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
               />
             </div>
 

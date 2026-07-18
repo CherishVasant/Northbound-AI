@@ -109,7 +109,7 @@ export function ConceptsSidebar({ collapseTrigger }: { collapseTrigger?: React.R
             placeholder="Search concepts, patterns..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            className="w-full pl-9 pr-4 py-1.5 pill-soft bg-background text-foreground text-xs placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
         </div>
         {collapseTrigger}

@@ -26,7 +26,7 @@ export function SyllabusTracker({ subjects, onUpdateTopic, onUpdateSubtopic }: S
   return (
     <div className="space-y-4">
       {subjects.map(subject => (
-        <div key={subject.id} className="border border-border rounded-lg bg-card overflow-hidden">
+        <div key={subject.id} className="card-soft bg-card overflow-hidden">
           {/* Subject Header */}
           <button
             onClick={() => toggleSubject(subject.id)}

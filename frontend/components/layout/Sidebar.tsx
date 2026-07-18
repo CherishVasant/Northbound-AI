@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ConceptsSidebar } from '@/components/features/ConceptsSidebar';
-import { NorthboundBrand } from '@/components/shared/NorthboundBrand';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -92,7 +91,7 @@ export function Sidebar() {
   const collapseButton = (
     <button
       onClick={toggleCollapse}
-      className="h-8 w-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors shrink-0 cursor-pointer"
+      className="h-8 w-8 pill-soft pill-soft-interactive flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 shrink-0 cursor-pointer"
       title="Collapse sidebar"
     >
       <ChevronLeft className="w-4 h-4" />
@@ -104,7 +103,7 @@ export function Sidebar() {
     return (
       <button
         onClick={toggleCollapse}
-        className="fixed top-[72px] left-4 z-50 h-8 w-8 rounded-lg border-2 border-primary bg-background text-primary hover:bg-secondary flex items-center justify-center cursor-pointer shadow-md hover:scale-105 transition-all animate-in fade-in"
+        className="fixed top-[72px] left-4 z-50 h-8 w-8 pill-soft pill-soft-interactive ring-1 ring-primary/50 bg-background text-primary hover:bg-secondary flex items-center justify-center cursor-pointer hover:scale-105 animate-in fade-in"
         title="Expand sidebar"
       >
         <ChevronRight className="w-4 h-4" />
@@ -168,7 +167,7 @@ export function Sidebar() {
                     href={item.href}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs ${
                       item.isActive
-                        ? 'bg-primary/10 text-primary font-bold'
+                        ? 'bg-[var(--nav-active-bg)] text-primary font-bold'
                         : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground font-semibold'
                     }`}
                   >
@@ -197,16 +196,16 @@ export function Sidebar() {
 
     return (
       <div className="p-6 overflow-y-auto flex-1 flex flex-col min-h-0 space-y-6">
-        <div className="space-y-3 border-b border-border/70 pb-4">
-          <NorthboundBrand compact className="w-full" />
-          <div className="flex items-center justify-between shrink-0">
-            <p className="text-xs font-extrabold text-foreground uppercase tracking-wider">
-              {pathname.startsWith('/dsa') ? 'LeetCode Tracker' :
-               pathname.startsWith('/subjects') ? 'Core Subjects' :
-               pathname.startsWith('/prep') ? 'Prep & More' : 'Navigation'}
-            </p>
-            {collapseButton}
-          </div>
+        {/* Single header row. The brand pill lives in the navbar only — a second
+            copy here duplicated it directly below itself and, because the sidebar
+            scrolls independently, sat pinned against the scrolling table. */}
+        <div className="flex items-center justify-between shrink-0 border-b border-border/70 pb-4">
+          <p className="text-xs font-extrabold text-foreground uppercase tracking-wider">
+            {pathname.startsWith('/dsa') ? 'LeetCode Tracker' :
+             pathname.startsWith('/subjects') ? 'Core Subjects' :
+             pathname.startsWith('/prep') ? 'Prep & More' : 'Navigation'}
+          </p>
+          {collapseButton}
         </div>
 
         {/* Sections */}

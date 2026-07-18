@@ -126,15 +126,15 @@ function SubjectsPageContent() {
         
         {/* Progress Metrics row */}
         <div className="grid gap-4 grid-cols-3">
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Syllabus Topics</p>
             <p className="text-2xl font-extrabold text-foreground mt-1">{totalTopics}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm border-emerald-500/10">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Completed Topics</p>
             <p className="text-2xl font-extrabold text-emerald-600 mt-1">{completedTopics}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Remaining Topics</p>
             <p className="text-2xl font-extrabold text-orange-600 mt-1">{totalTopics - completedTopics}</p>
           </div>
@@ -157,7 +157,7 @@ function SubjectsPageContent() {
               <div
                 key={activeSubject.id}
                 id={`subject-${activeSubject.id}`}
-                className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow scroll-mt-20"
+                className="bg-card card-soft overflow-hidden scroll-mt-20"
               >
                 {/* Subject Header (Not collapsible) */}
                 <div
@@ -190,7 +190,7 @@ function SubjectsPageContent() {
 
                 {/* Checklist Table (Always Visible) */}
                 <div className="bg-secondary/5 p-6 space-y-4">
-                    <div className="overflow-x-auto border border-border rounded-lg bg-card shadow-sm">
+                    <div className="overflow-x-auto rounded-lg bg-card">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
                           <tr className="border-b border-border bg-secondary/40 text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">
@@ -278,7 +278,7 @@ function SubjectsPageContent() {
       {/* Edit Topic Modal */}
       {editingTopic !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+          <div className="bg-card overlay-soft w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95">
             
             {/* Modal Header */}
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/30">
@@ -302,7 +302,7 @@ function SubjectsPageContent() {
                   id="edit-topic-name"
                   value={editingTopic.topic.name}
                   disabled
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-secondary/30 text-muted-foreground cursor-not-allowed"
+                  className="w-full px-3 py-1.5 pill-soft bg-secondary/30 text-muted-foreground cursor-not-allowed"
                 />
               </div>
 
@@ -313,7 +313,7 @@ function SubjectsPageContent() {
                   id="edit-topic-link"
                   value={editingTopic.topic.resourceLink}
                   disabled
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-secondary/30 text-muted-foreground cursor-not-allowed"
+                  className="w-full px-3 py-1.5 pill-soft bg-secondary/30 text-muted-foreground cursor-not-allowed"
                 />
               </div>
 
@@ -322,7 +322,7 @@ function SubjectsPageContent() {
                 <textarea
                   id="edit-topic-notes"
                   defaultValue={editingTopic.topic.notes}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   rows={4}
                   placeholder="Summarize key definitions, exceptions, and formulas..."
                 />

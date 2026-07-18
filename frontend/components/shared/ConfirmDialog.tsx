@@ -32,7 +32,7 @@ export function ConfirmDialog({
       />
 
       {/* Dialog */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg p-6 shadow-lg max-w-sm w-full z-50">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overlay-soft bg-card p-6 max-w-sm w-full z-50">
         <h2 className="text-lg font-semibold text-card-foreground mb-2">{title}</h2>
         <p className="text-sm text-muted-foreground mb-6">{description}</p>
 

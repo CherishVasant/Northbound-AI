@@ -252,7 +252,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-4">
           
           {/* Readiness Gauge Card */}
-          <div className="lg:col-span-1 bg-card border border-border rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
+          <div className="lg:col-span-1 group relative overflow-hidden card-soft card-soft-interactive bg-card p-6 flex flex-col items-center justify-center">
             <ReadinessGauge score={overallReadiness} label="Placement Readiness" size="md" />
             <p className="text-xs text-muted-foreground mt-4 text-center">
               Composite score of all completed items across the modules.
@@ -261,7 +261,7 @@ export default function DashboardPage() {
 
           {/* Quick Module Stats */}
           <div className="lg:col-span-3 grid gap-4 sm:grid-cols-3">
-            <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="card-soft card-soft-interactive bg-card p-5 flex flex-col justify-between">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total Tracker Items</p>
                 <p className="text-4xl font-extrabold text-foreground mt-2">{totalItems}</p>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground mt-4">Syllabus topics, problems, and credentials.</p>
             </div>
             
-            <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between border-emerald-500/20">
+            <div className="card-soft card-soft-interactive bg-card p-5 flex flex-col justify-between">
               <div>
                 <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Completed Tasks</p>
                 <p className="text-4xl font-extrabold text-emerald-600 mt-2">{totalCompleted}</p>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="card-soft card-soft-interactive bg-card p-5 flex flex-col justify-between">
               <div>
                 <p className="text-xs font-semibold text-orange-600 uppercase tracking-wide">In Progress</p>
                 <p className="text-4xl font-extrabold text-orange-600 mt-2">{totalItems - totalCompleted}</p>
@@ -367,14 +367,14 @@ export default function DashboardPage() {
           <div className="lg:col-span-7 space-y-6">
             
             {/* Continue Learning */}
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="card-soft bg-card p-6">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <PlayCircle className="w-5 h-5 text-primary" />
                 Continue Learning
               </h2>
               
               {continueProblem ? (
-                <div className="border border-border rounded-lg p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="card-soft p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
@@ -408,7 +408,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Dynamic Activity Log */}
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="card-soft bg-card p-6">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-violet-500" />
                 Recent Activity
@@ -450,7 +450,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-5 space-y-6">
             
             {/* Upcoming Certification Deadlines */}
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="card-soft bg-card p-6">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-orange-500" />
                 Upcoming Deadlines
@@ -461,7 +461,7 @@ export default function DashboardPage() {
                   {upcomingCertifications.map((cert) => {
                     const isOverdue = cert.daysLeft < 0
                     return (
-                      <div key={cert.id} className="border border-border rounded-lg p-3 bg-secondary/5 flex items-center justify-between gap-3 text-sm">
+                      <div key={cert.id} className="card-soft p-3 bg-secondary/5 flex items-center justify-between gap-3 text-sm">
                         <div className="truncate min-w-0">
                           <h4 className="font-bold text-foreground truncate">{cert.name}</h4>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">{cert.provider}</p>
@@ -486,7 +486,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent DSA Problems */}
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="card-soft bg-card p-6">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-pink-500" />
                 Recent DSA Additions
@@ -524,7 +524,7 @@ export default function DashboardPage() {
             <h3 className="text-sm font-semibold text-foreground">SaaS Tracker Options</h3>
             <p className="text-xs text-muted-foreground">Manage your preparation local storage database settings.</p>
           </div>
-          <Button onClick={handleResetData} variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10 shrink-0 gap-1.5">
+          <Button onClick={handleResetData} variant="outline" size="sm" className="text-destructive hover:bg-destructive/10 shrink-0 gap-1.5">
             <RotateCcw className="w-3.5 h-3.5" />
             Reset Storage to Defaults
           </Button>

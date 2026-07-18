@@ -251,7 +251,7 @@ function PrepResourcesContent() {
 
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card card-soft p-4">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -260,13 +260,13 @@ function PrepResourcesContent() {
                 placeholder="Search aptitude topics..."
                 value={aptSearch}
                 onChange={(e) => setAptSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <select
               value={aptCategory}
               onChange={(e) => setAptCategory(e.target.value)}
-              className="w-full sm:w-44 px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
+              className="w-full sm:w-44 px-3 py-1.5 pill-soft pill-soft-interactive bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
             >
               <option value="">All Categories</option>
               <option value="Quantitative">Quantitative</option>
@@ -279,7 +279,7 @@ function PrepResourcesContent() {
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-card card-soft overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
@@ -342,7 +342,7 @@ function PrepResourcesContent() {
                           value={topic.solved || ''}
                           onChange={(e) => handleUpdateAptitudeSolved(topic.id, e.target.value)}
                           placeholder="__ / __"
-                          className="w-20 text-center border border-input rounded py-1 px-1.5 bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-bold placeholder:text-muted-foreground/30"
+                          className="w-20 text-center pill-soft py-1 px-1.5 bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-bold placeholder:text-muted-foreground/30"
                         />
                       </td>
                       <td className="py-3 px-4 text-muted-foreground font-medium truncate max-w-xs">
@@ -376,13 +376,13 @@ function PrepResourcesContent() {
 
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-card card-soft p-4">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filter by focus category</span>
             <select
               value={hrSelectedTag}
               onChange={(e) => setHrSelectedTag(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary w-48 font-semibold cursor-pointer"
+              className="px-3 py-1.5 pill-soft pill-soft-interactive bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary w-48 font-semibold cursor-pointer"
             >
               <option value="">All Questions</option>
               {allTags.map((tag) => (
@@ -400,7 +400,7 @@ function PrepResourcesContent() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
             {filteredHR.map((q) => (
-              <div key={q.id} className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200">
+              <div key={q.id} className="bg-card card-soft card-soft-interactive p-5 flex flex-col justify-between">
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-start gap-2.5 min-w-0">
@@ -425,7 +425,7 @@ function PrepResourcesContent() {
                   {q.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {q.tags.map((tag: string) => (
-                        <span key={tag} className="text-[9px] font-extrabold uppercase bg-secondary/80 text-secondary-foreground border border-border px-2 py-0.5 rounded-full">
+                        <span key={tag} className="text-[9px] font-extrabold uppercase bg-secondary/80 text-secondary-foreground px-2 py-0.5 rounded-full">
                           {tag}
                         </span>
                       ))}
@@ -433,7 +433,7 @@ function PrepResourcesContent() {
                   )}
 
                   {q.draftAnswer ? (
-                    <div className="bg-secondary/15 border border-border/40 rounded-lg p-3 text-xs leading-relaxed text-foreground">
+                    <div className="bg-secondary/15 rounded-lg p-3 text-xs leading-relaxed text-foreground">
                       <div className="text-[10px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wider flex items-center gap-1">
                         <MessageSquare className="w-3 h-3 text-primary" />
                         My Response (STAR Structure)
@@ -470,7 +470,7 @@ function PrepResourcesContent() {
               { title: 'CareerCup', desc: 'A massive repository of technical and behavioral interview questions asked in top-tier tech placements.', link: 'https://www.careercup.com/', label: 'View CareerCup' },
               { title: 'Levels.fyi Prep Guide', desc: 'Read salary breakdowns, interview formats, negotiation tips, and behavioral metrics guides.', link: 'https://www.levels.fyi/blog/', label: 'View Levels.fyi' }
             ].map((res) => (
-              <a key={res.title} href={res.link} target="_blank" rel="noopener noreferrer" className="bg-card border border-border rounded-xl p-4 shadow-sm hover:border-primary hover:shadow transition-all group flex flex-col justify-between">
+              <a key={res.title} href={res.link} target="_blank" rel="noopener noreferrer" className="bg-card card-soft card-soft-interactive p-4 group flex flex-col justify-between">
                 <div>
                   <h4 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors flex items-center justify-between">
                     {res.title}
@@ -497,7 +497,7 @@ function PrepResourcesContent() {
 
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card card-soft p-4">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -506,13 +506,13 @@ function PrepResourcesContent() {
                 placeholder="Search certifications..."
                 value={certSearch}
                 onChange={(e) => setCertSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <select
               value={certStatusFilter}
               onChange={(e) => setCertStatusFilter(e.target.value)}
-              className="w-full sm:w-44 px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
+              className="w-full sm:w-44 px-3 py-1.5 pill-soft pill-soft-interactive bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
             >
               <option value="">All Statuses</option>
               <option value="Not Started">Not Started</option>
@@ -528,14 +528,14 @@ function PrepResourcesContent() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCerts.length === 0 ? (
-            <div className="col-span-full py-8 text-center bg-card border border-border rounded-xl">
+            <div className="col-span-full py-8 text-center bg-card card-soft">
               <EmptyState title="No certifications found" description="Click 'Add certification' to start logging." />
             </div>
           ) : (
             filteredCerts.map((cert) => {
               const alert = getDeadlineAlert(cert)
               return (
-                <div key={cert.id} className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div key={cert.id} className="bg-card card-soft card-soft-interactive p-5 flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -549,7 +549,7 @@ function PrepResourcesContent() {
                     </div>
 
                     {cert.notes && (
-                      <p className="text-xs text-muted-foreground bg-secondary/10 p-3 rounded-lg border border-border/30 max-h-24 overflow-y-auto leading-relaxed">
+                      <p className="text-xs text-muted-foreground bg-secondary/10 p-3 rounded-lg max-h-24 overflow-y-auto leading-relaxed">
                         {cert.notes}
                       </p>
                     )}
@@ -611,7 +611,7 @@ function PrepResourcesContent() {
 
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card card-soft p-4">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -620,13 +620,13 @@ function PrepResourcesContent() {
                 placeholder="Search projects or tech stack..."
                 value={projectSearchQuery}
                 onChange={(e) => setProjectSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <select
               value={projectFilterStatus}
               onChange={(e) => setProjectFilterStatus(e.target.value)}
-              className="w-full sm:w-44 px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
+              className="w-full sm:w-44 px-3 py-1.5 pill-soft pill-soft-interactive bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold cursor-pointer"
             >
               <option value="">All Statuses</option>
               <option value="Planned">Planned</option>
@@ -644,7 +644,7 @@ function PrepResourcesContent() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredProjects.map((project) => (
-              <div key={project.id} className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200">
+              <div key={project.id} className="bg-card card-soft card-soft-interactive p-5 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -661,7 +661,7 @@ function PrepResourcesContent() {
                   {project.techStack.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {project.techStack.slice(0, 5).map((tech: string) => (
-                        <span key={tech} className="text-[9px] font-extrabold uppercase bg-secondary/80 text-secondary-foreground border border-border px-2 py-0.5 rounded-full">
+                        <span key={tech} className="text-[9px] font-extrabold uppercase bg-secondary/80 text-secondary-foreground px-2 py-0.5 rounded-full">
                           {tech}
                         </span>
                       ))}
@@ -672,7 +672,7 @@ function PrepResourcesContent() {
                   )}
 
                   {project.notes && (
-                    <p className="text-xs text-muted-foreground bg-secondary/10 p-3 rounded-lg border border-border/30 max-h-20 overflow-y-auto leading-relaxed">
+                    <p className="text-xs text-muted-foreground bg-secondary/10 p-3 rounded-lg max-h-20 overflow-y-auto leading-relaxed">
                       {project.notes}
                     </p>
                   )}
@@ -698,7 +698,7 @@ function PrepResourcesContent() {
                     onChange={(e) => {
                       setProjects(projects.map(p => p.id === project.id ? { ...p, status: e.target.value as any } : p))
                     }}
-                    className="px-2 py-1 rounded-lg border border-input bg-background text-foreground text-[10px] font-semibold cursor-pointer focus:ring-2 focus:ring-primary"
+                    className="px-2 py-1 pill-soft pill-soft-interactive bg-background text-foreground text-[10px] font-semibold cursor-pointer focus:ring-2 focus:ring-primary"
                   >
                     <option value="Planned">Planned</option>
                     <option value="In Progress">In Progress</option>
@@ -749,7 +749,7 @@ function PrepResourcesContent() {
       {/* Aptitude Notes Modal */}
       {editingAptTopic !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+          <div className="bg-card overlay-soft w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95">
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/35">
               <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">Edit Formulas & Notes</h3>
               <button onClick={() => setEditingAptTopic(null)} className="p-1 rounded hover:bg-secondary text-muted-foreground"><X className="w-4 h-4" /></button>
@@ -757,11 +757,11 @@ function PrepResourcesContent() {
             <div className="p-5 space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">Topic</label>
-                <input type="text" value={editingAptTopic.name} disabled className="w-full px-3 py-1.5 rounded-lg border bg-secondary/30 text-muted-foreground cursor-not-allowed font-semibold" />
+                <input type="text" value={editingAptTopic.name} disabled className="w-full px-3 py-1.5 pill-soft bg-secondary/30 text-muted-foreground cursor-not-allowed font-semibold" />
               </div>
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">Personal Notes / Formulas</label>
-                <textarea id="edit-topic-notes" defaultValue={editingAptTopic.notes || ''} className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground text-xs focus:ring-2 focus:ring-primary leading-relaxed" rows={5} placeholder="Record shortcuts..." />
+                <textarea id="edit-topic-notes" defaultValue={editingAptTopic.notes || ''} className="w-full px-3 py-2 pill-soft bg-background text-foreground text-xs focus:ring-2 focus:ring-primary leading-relaxed" rows={5} placeholder="Record shortcuts..." />
               </div>
             </div>
             <div className="p-4 border-t border-border bg-secondary/20 flex gap-2 justify-end">
@@ -778,7 +778,7 @@ function PrepResourcesContent() {
       {/* HR Edit Answer Modal */}
       {editingHRId !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+          <div className="bg-card overlay-soft w-full max-w-xl overflow-hidden flex flex-col animate-in zoom-in-95">
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/35">
               <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">Refine STAR Answer</h3>
               <button onClick={() => setEditingHRId(null)} className="p-1 rounded hover:bg-secondary text-muted-foreground"><X className="w-4 h-4" /></button>
@@ -786,11 +786,11 @@ function PrepResourcesContent() {
             <div className="p-5 space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">Behavioral Question</label>
-                <textarea value={hrFormData.question || ''} disabled className="w-full px-3 py-2 rounded-lg border bg-secondary/30 text-muted-foreground cursor-not-allowed leading-relaxed font-semibold" rows={2} />
+                <textarea value={hrFormData.question || ''} disabled className="w-full px-3 py-2 pill-soft bg-secondary/30 text-muted-foreground cursor-not-allowed leading-relaxed font-semibold" rows={2} />
               </div>
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">My Response (STAR Structure)</label>
-                <textarea value={hrFormData.draftAnswer || ''} onChange={(e) => setHrFormData({ ...hrFormData, draftAnswer: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-xs leading-relaxed focus:ring-2 focus:ring-primary" rows={7} placeholder="Situation: Set the context...\nTask: What was the goal?\nAction: What did you do?\nResult: What was the outcome?" />
+                <textarea value={hrFormData.draftAnswer || ''} onChange={(e) => setHrFormData({ ...hrFormData, draftAnswer: e.target.value })} className="w-full px-3 py-2.5 pill-soft bg-background text-foreground text-xs leading-relaxed focus:ring-2 focus:ring-primary" rows={7} placeholder="Situation: Set the context...\nTask: What was the goal?\nAction: What did you do?\nResult: What was the outcome?" />
               </div>
             </div>
             <div className="p-4 border-t border-border bg-secondary/20 flex gap-2 justify-end">
@@ -804,7 +804,7 @@ function PrepResourcesContent() {
       {/* Certifications Add/Edit Modal */}
       {editingCertId !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+          <div className="bg-card overlay-soft w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95">
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/35">
               <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
                 {editingCertId === 'new' ? 'Add Certification' : 'Edit Certification'}
@@ -815,17 +815,17 @@ function PrepResourcesContent() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label className="font-bold text-muted-foreground uppercase text-[9px]">Certification Name</label>
-                  <input type="text" value={certFormData.name || ''} onChange={(e) => setCertFormData({ ...certFormData, name: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="AWS Solution Architect" />
+                  <input type="text" value={certFormData.name || ''} onChange={(e) => setCertFormData({ ...certFormData, name: e.target.value })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="AWS Solution Architect" />
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-muted-foreground uppercase text-[9px]">Provider</label>
-                  <input type="text" value={certFormData.provider || ''} onChange={(e) => setCertFormData({ ...certFormData, provider: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="Amazon Web Services" />
+                  <input type="text" value={certFormData.provider || ''} onChange={(e) => setCertFormData({ ...certFormData, provider: e.target.value })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="Amazon Web Services" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label className="font-bold text-muted-foreground uppercase text-[9px]">Status</label>
-                  <select value={certFormData.status || 'Not Started'} onChange={(e) => setCertFormData({ ...certFormData, status: e.target.value as any })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary">
+                  <select value={certFormData.status || 'Not Started'} onChange={(e) => setCertFormData({ ...certFormData, status: e.target.value as any })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary">
                     <option value="Not Started">Not Started</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
@@ -834,22 +834,22 @@ function PrepResourcesContent() {
                 {certFormData.status === 'Completed' ? (
                   <div className="space-y-1">
                     <label className="font-bold text-muted-foreground uppercase text-[9px]">Earned Date</label>
-                    <input type="date" value={certFormData.earnedDate || ''} onChange={(e) => setCertFormData({ ...certFormData, earnedDate: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary" />
+                    <input type="date" value={certFormData.earnedDate || ''} onChange={(e) => setCertFormData({ ...certFormData, earnedDate: e.target.value })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary" />
                   </div>
                 ) : (
                   <div className="space-y-1">
                     <label className="font-bold text-muted-foreground uppercase text-[9px]">Target Deadline</label>
-                    <input type="date" value={certFormData.deadline || ''} onChange={(e) => setCertFormData({ ...certFormData, deadline: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary" />
+                    <input type="date" value={certFormData.deadline || ''} onChange={(e) => setCertFormData({ ...certFormData, deadline: e.target.value })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary" />
                   </div>
                 )}
               </div>
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">Credentials Info / Exam Syllabus Link</label>
-                <input type="text" value={certFormData.link || ''} onChange={(e) => setCertFormData({ ...certFormData, link: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="Official syllabus page" />
+                <input type="text" value={certFormData.link || ''} onChange={(e) => setCertFormData({ ...certFormData, link: e.target.value })} className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary" placeholder="Official syllabus page" />
               </div>
               <div className="space-y-1">
                 <label className="font-bold text-muted-foreground uppercase text-[9px]">My Study Notes / Details</label>
-                <textarea value={certFormData.notes || ''} onChange={(e) => setCertFormData({ ...certFormData, notes: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary leading-relaxed" rows={4} placeholder="Study guidelines..." />
+                <textarea value={certFormData.notes || ''} onChange={(e) => setCertFormData({ ...certFormData, notes: e.target.value })} className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:ring-2 focus:ring-primary leading-relaxed" rows={4} placeholder="Study guidelines..." />
               </div>
             </div>
             <div className="p-4 border-t border-border bg-secondary/20 flex gap-2 justify-end">

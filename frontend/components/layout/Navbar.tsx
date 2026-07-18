@@ -75,7 +75,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-[var(--shadow-pill)]">
       <div className="flex h-16 items-center justify-between px-6">
         
         {/* Left: Brand Logo & Horizontal Nav */}
@@ -93,9 +93,9 @@ export function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-[10px] text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-primary/10 text-primary font-semibold'
+                      ? 'bg-[var(--nav-active-bg)] text-primary font-semibold'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
@@ -110,8 +110,8 @@ export function Navbar() {
         {/* Right: Actions (Sync Status, Profile & AI Toggle) */}
         <div className="flex items-center gap-3">
           {username && (
-            <div className="flex items-center gap-2 bg-accent/40 border border-border/50 px-2.5 py-1 rounded-lg shrink-0">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary/30 to-accent/30 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary shadow-sm shrink-0">
+            <div className="flex items-center gap-2 bg-accent/40 pill-soft px-2.5 py-1 shrink-0">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary/30 to-accent/30 flex items-center justify-center font-bold text-xs text-primary shadow-sm shrink-0">
                 {getInitials(username)}
               </div>
               <span className="text-xs font-semibold capitalize text-foreground max-w-[80px] truncate hidden sm:inline-block">
@@ -150,7 +150,7 @@ export function Navbar() {
 
           <button
             onClick={toggleTheme}
-            className="rounded-lg border border-border bg-background/70 p-2 text-muted-foreground transition-all hover:bg-secondary/80 hover:text-foreground"
+            className="pill-soft pill-soft-interactive bg-background/70 p-2 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
@@ -159,7 +159,7 @@ export function Navbar() {
           {/* AI Toggle Action */}
           <button
             onClick={handleToggleAI}
-            className="p-2 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all flex items-center justify-center relative shadow-sm shrink-0"
+            className="p-2 pill-soft pill-soft-interactive hover:bg-primary/5 text-muted-foreground hover:text-primary flex items-center justify-center relative shrink-0"
             title="Open AI Copilot Panel"
           >
             <Bot className="w-4 h-4" />
@@ -172,7 +172,7 @@ export function Navbar() {
           {/* Mobile menu trigger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg border border-border hover:bg-accent md:hidden text-muted-foreground hover:text-foreground"
+            className="p-2 pill-soft pill-soft-interactive hover:bg-accent md:hidden text-muted-foreground hover:text-foreground"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -181,7 +181,7 @@ export function Navbar() {
 
       {/* Mobile Navigation Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background py-4 px-6 animate-in slide-in-from-top-4 duration-200">
+        <div className="md:hidden bg-background py-4 px-6 shadow-[var(--shadow-overlay)] animate-in slide-in-from-top-4 duration-200">
           <nav className="flex flex-col space-y-2">
             {navItems.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));

@@ -279,10 +279,10 @@ export function DSATable({
                   {isCodeExpanded ? 'Collapse Code' : 'Expand Code'}
                 </Button>
                 {isCodeExpanded && (
-                  <div className="relative mt-1 border border-border bg-secondary/80 rounded-lg p-2 font-mono text-[10px] text-foreground max-w-sm max-h-48 overflow-auto whitespace-pre">
+                  <div className="relative mt-1 card-soft bg-secondary/80 p-2 font-mono text-[10px] text-foreground max-w-sm max-h-48 overflow-auto whitespace-pre">
                     <button
                       onClick={() => handleCopyCode(problem.id, problemCode)}
-                      className="absolute top-1 right-1 p-1 bg-background border border-border rounded text-muted-foreground hover:text-foreground"
+                      className="absolute top-1 right-1 p-1 bg-background pill-soft pill-soft-interactive text-muted-foreground hover:text-foreground"
                     >
                       {copiedId === problem.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                     </button>
@@ -341,7 +341,7 @@ export function DSATable({
   return (
     <div className="space-y-4">
       {/* Controls: Search, Filters, Grouping, Add */}
-      <div className="flex flex-col gap-4 bg-card border border-border rounded-xl p-4 shadow-sm">
+      <div className="flex flex-col gap-4 card-soft bg-card p-4">
         
         {/* Top line: Search and Add */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -355,7 +355,7 @@ export function DSATable({
                 setSearchQuery(e.target.value)
                 setCurrentPage(1)
               }}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-10 pr-4 py-2 pill-soft bg-background text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div className="flex gap-2">
@@ -386,7 +386,7 @@ export function DSATable({
                 setFilterTopic(e.target.value)
                 setCurrentPage(1)
               }}
-              className="px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Topics</option>
               {TOPICS_LIST.map((topic) => (
@@ -404,7 +404,7 @@ export function DSATable({
                 setFilterPattern(e.target.value)
                 setCurrentPage(1)
               }}
-              className="px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Patterns</option>
               {uniquePatterns.map((pattern) => (
@@ -422,7 +422,7 @@ export function DSATable({
                 setFilterDifficulty(e.target.value)
                 setCurrentPage(1)
               }}
-              className="px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Difficulties</option>
               <option value="Easy">Easy</option>
@@ -440,7 +440,7 @@ export function DSATable({
                 setFilterStatus(e.target.value)
                 setCurrentPage(1)
               }}
-              className="px-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Statuses</option>
               <option value="Not Started">Not Started</option>
@@ -454,7 +454,7 @@ export function DSATable({
       </div>
 
       {/* Database Table Container */}
-      <div className="border border-border rounded-xl bg-card overflow-hidden shadow-sm">
+      <div className="card-soft bg-card overflow-hidden">
         
         {/* If Grouping is active */}
         {groupByTopic ? (
@@ -548,7 +548,7 @@ export function DSATable({
 
       {/* Pagination Controls (flat view only) */}
       {!groupByTopic && totalPages > 1 && (
-        <div className="flex items-center justify-between text-xs bg-card border border-border rounded-xl p-3.5 shadow-sm">
+        <div className="flex items-center justify-between text-xs card-soft bg-card p-3.5">
           <p className="text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
             <span className="font-semibold text-foreground">{Math.min(currentPage * ITEMS_PER_PAGE, filteredProblems.length)}</span> of{' '}
@@ -596,12 +596,12 @@ export function DSATable({
       {/* Expand Cell Modal */}
       {expandedCellText && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-xl rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95">
+          <div className="overlay-soft bg-card w-full max-w-xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95">
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/30">
               <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">{expandedCellText.title}</h3>
               <button 
                 onClick={() => setExpandedCellText(null)}
-                className="text-xs bg-background border border-border px-2 py-1 rounded hover:bg-secondary font-semibold"
+                className="text-xs bg-background pill-soft pill-soft-interactive px-2 py-1 hover:bg-secondary font-semibold"
               >
                 Close
               </button>

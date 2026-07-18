@@ -171,6 +171,9 @@ const UserDataSchema = new mongoose.Schema({
   email: { type: String, default: '', index: true },
   password: { type: String },
   salt: { type: String },
+  // PBKDF2 work factor for `password`. Absent on pre-upgrade accounts, which
+  // used 1000 — see LEGACY_ITERATIONS in routes/auth.js.
+  iterations: { type: Number },
   dsaProblems: { type: [DSAProblemSchema], default: [] },
   subjects: { type: [SubjectSchema], default: [] },
   projects: { type: [ProjectSchema], default: [] },

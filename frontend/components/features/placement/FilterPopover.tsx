@@ -79,7 +79,7 @@ export function FilterPopover({
     <select
       value={(filters[key] as string) || ''}
       onChange={(e) => set(key, e.target.value)}
-      className="w-full h-7 text-xs px-2 bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
+      className="w-full h-7 text-xs px-2 bg-background pill-soft focus:outline-none focus:ring-1 focus:ring-primary"
     >
       <option value="">All</option>
       {options.map((o) => (
@@ -92,10 +92,10 @@ export function FilterPopover({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-colors ${
+        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium pill-soft pill-soft-interactive transition-colors ${
           activeCount > 0
-            ? 'bg-primary/10 border-primary/30 text-primary'
-            : 'border-border hover:bg-accent text-muted-foreground hover:text-foreground'
+            ? 'bg-primary/10 text-primary ring-1 ring-primary/50'
+            : 'hover:bg-accent text-muted-foreground hover:text-foreground'
         }`}
       >
         <Filter className="w-3.5 h-3.5" />
@@ -108,7 +108,7 @@ export function FilterPopover({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 z-50 bg-popover border border-border rounded-xl shadow-2xl w-72 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-full left-0 mt-2 z-50 bg-popover overlay-soft w-72 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-foreground">Filters</span>
             {activeCount > 0 && (
@@ -167,10 +167,10 @@ export function FilterPopover({
                   <button
                     key={skill}
                     onClick={() => toggleSkill(skill)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors ${
+                    className={`px-2 py-0.5 pill-soft pill-soft-interactive text-[10px] font-semibold transition-colors ${
                       active
-                        ? 'bg-primary/15 text-primary border-primary/30'
-                        : 'bg-muted text-muted-foreground border-border hover:border-primary/30 hover:text-primary'
+                        ? 'bg-primary/15 text-primary ring-1 ring-primary/50'
+                        : 'bg-muted text-muted-foreground hover:text-primary'
                     }`}
                   >
                     {skill}

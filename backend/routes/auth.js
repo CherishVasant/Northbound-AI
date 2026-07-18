@@ -4,8 +4,19 @@ const crypto = require('crypto');
 const UserData = require('../models/UserData');
 
 // PBKDF2 Password Hashing Helpers
-function hashPassword(password, salt) {
-  return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+// Kept in sync with frontend/lib/auth.ts so both can verify the same records.
+const CURRENT_ITERATIONS = 210000; // OWASP guidance for PBKDF2-HMAC-SHA512
+const LEGACY_ITERATIONS = 1000;    // what this file used before; no `iterations` field stored
+
+function hashPassword(password, salt, iterations = CURRENT_ITERATIONS) {
+  return crypto.pbkdf2Sync(password, salt, iterations, 64, 'sha512').toString('hex');
+}
+
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a), 'utf8');
+  const bufB = Buffer.from(String(b), 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
 }
 
 function generateSalt() {
@@ -26,11 +37,11 @@ router.post('/register', async (req, res) => {
 
     const mongoose = require('mongoose');
     if (mongoose.connection.readyState !== 1) {
-      console.warn('[Auth Warning] Database offline. Bypassing registration.');
-      return res.status(201).json({
-        success: true,
-        message: 'Database offline bypass registration successful.',
-        username: formattedUsername
+      // Previously this returned success without persisting anything, handing
+      // out an account that silently vanished. Fail closed instead.
+      console.error('[Auth] Database offline; refusing registration.');
+      return res.status(503).json({
+        error: 'Cannot reach the database right now. Please try again shortly.'
       });
     }
 
@@ -50,7 +61,7 @@ router.post('/register', async (req, res) => {
 
     // Generate Salt & Hash Password
     const salt = generateSalt();
-    const hashedPassword = hashPassword(password, salt);
+    const hashedPassword = hashPassword(password, salt, CURRENT_ITERATIONS);
 
     // Create UserData entry
     const newUser = new UserData({
@@ -58,6 +69,7 @@ router.post('/register', async (req, res) => {
       email: formattedEmail,
       password: hashedPassword,
       salt: salt,
+      iterations: CURRENT_ITERATIONS,
       dsaProblems: [],
       subjects: [],
       projects: [],
@@ -93,12 +105,12 @@ router.post('/login', async (req, res) => {
 
     const mongoose = require('mongoose');
     if (mongoose.connection.readyState !== 1) {
-      console.warn('[Auth Warning] Database offline. Bypassing login.');
-      return res.json({
-        success: true,
-        message: 'Database offline bypass login successful.',
-        username: searchKey,
-        email: ''
+      // SECURITY: this previously returned success for ANY username/password
+      // whenever the database was unreachable — an authentication bypass on a
+      // publicly reachable deployment. Never authenticate without verifying.
+      console.error('[Auth] Database offline; refusing login.');
+      return res.status(503).json({
+        error: 'Cannot reach the database right now. Please try again shortly.'
       });
     }
 
@@ -114,10 +126,25 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username/email or password.' });
     }
 
-    // Validate Password
-    const computedHash = hashPassword(password, user.salt);
-    if (computedHash !== user.password) {
+    // Validate Password. Accounts created before the iteration bump have no
+    // `iterations` field and must be verified at the legacy cost.
+    const usedIterations = user.iterations || LEGACY_ITERATIONS;
+    const computedHash = hashPassword(password, user.salt, usedIterations);
+    if (!safeEqual(computedHash, user.password)) {
       return res.status(401).json({ error: 'Invalid username/email or password.' });
+    }
+
+    // Transparently upgrade legacy hashes now that we hold the plaintext.
+    if (usedIterations < CURRENT_ITERATIONS) {
+      try {
+        const newSalt = generateSalt();
+        user.salt = newSalt;
+        user.password = hashPassword(password, newSalt, CURRENT_ITERATIONS);
+        user.iterations = CURRENT_ITERATIONS;
+        await user.save({ validateBeforeSave: false });
+      } catch (rehashErr) {
+        console.error('[Auth] Password rehash failed:', rehashErr);
+      }
     }
 
     res.json({

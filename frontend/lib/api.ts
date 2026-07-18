@@ -1,16 +1,20 @@
+/**
+ * All API endpoints are Next.js Route Handlers served from this same origin
+ * (see app/api/**), so requests are always relative.
+ *
+ * There is deliberately no configurable base URL any more: the previous
+ * `NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'` default is exactly what
+ * broke authentication in production, because on a deployed host `localhost`
+ * is the server's own sandbox (or, in client code, the visitor's machine).
+ */
 export function getApiUrl(path: string) {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim()
-
-  if (backendUrl) {
-    const sanitizedBase = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl
-    return `${sanitizedBase}${normalizedPath}`
-  }
-
-  return normalizedPath
+  return path.startsWith('/') ? path : `/${path}`
 }
 
-export async function parseResponseBody<T = unknown>(response: Response, fallback: T | null = null): Promise<T | null> {
+export async function parseResponseBody<T = unknown>(
+  response: Response,
+  fallback: T | null = null,
+): Promise<T | null> {
   const rawText = await response.text()
   if (!rawText.trim()) return fallback
 

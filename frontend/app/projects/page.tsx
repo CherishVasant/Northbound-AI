@@ -150,26 +150,26 @@ function ProjectsPageContent() {
         
         {/* Stats Grid */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Portfolio</p>
             <p className="text-2xl font-extrabold text-foreground mt-1">{totalProjects}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm border-emerald-500/10">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Completed</p>
             <p className="text-2xl font-extrabold text-emerald-600 mt-1">{done}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">In Progress</p>
             <p className="text-2xl font-extrabold text-orange-600 mt-1">{inProgress}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="bg-card card-soft p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Planned</p>
             <p className="text-2xl font-extrabold text-muted-foreground mt-1">{planned}</p>
           </div>
         </div>
 
         {/* Search / Filter Row */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-card card-soft p-4">
           <SearchFilter
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
@@ -201,7 +201,7 @@ function ProjectsPageContent() {
             {filtered.map((project) => (
               <div
                 key={project.id}
-                className="bg-card border border-border rounded-xl p-5 hover:border-primary transition-all flex flex-col justify-between shadow-sm hover:shadow-md relative overflow-hidden group"
+                className="bg-card card-soft card-soft-interactive p-5 flex flex-col justify-between relative overflow-hidden group"
               >
                 
                 <div>
@@ -264,7 +264,7 @@ function ProjectsPageContent() {
                       {project.techStack.map((tech) => (
                         <span
                           key={tech}
-                          className="text-[9px] font-bold bg-secondary text-secondary-foreground border border-border px-2 py-0.5 rounded-full"
+                          className="text-[9px] font-bold bg-secondary text-secondary-foreground pill-soft px-2 py-0.5"
                         >
                           {tech}
                         </span>
@@ -274,7 +274,7 @@ function ProjectsPageContent() {
 
                   {/* Notes panel */}
                   {project.notes && (
-                    <div className="bg-secondary/10 border border-border/40 rounded-lg p-2.5 mb-4 text-[10px] leading-relaxed text-muted-foreground italic">
+                    <div className="bg-secondary/10 card-soft p-2.5 mb-4 text-[10px] leading-relaxed text-muted-foreground italic">
                       <strong>Takeaways:</strong> {project.notes}
                     </div>
                   )}
@@ -346,7 +346,7 @@ function ProjectsPageContent() {
       {/* Add / Edit Project Dialog */}
       {editingId !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+          <div className="bg-card overlay-soft w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95">
             
             {/* Modal Header */}
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/30">
@@ -370,7 +370,7 @@ function ProjectsPageContent() {
                   type="text"
                   value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   placeholder="e.g. PrepTrack Dashboard"
                 />
               </div>
@@ -380,7 +380,7 @@ function ProjectsPageContent() {
                 <select
                   value={formData.status || 'Planned'}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                 >
                   {statuses.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -394,7 +394,7 @@ function ProjectsPageContent() {
                   type="text"
                   value={typeof formData.techStack === 'string' ? formData.techStack : formData.techStack?.join(', ') || ''}
                   onChange={(e) => setFormData({ ...formData, techStack: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   placeholder="e.g. Next.js, React, Redis"
                 />
               </div>
@@ -404,7 +404,7 @@ function ProjectsPageContent() {
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   rows={2}
                   placeholder="Provide a description of the project..."
                 />
@@ -417,7 +417,7 @@ function ProjectsPageContent() {
                     type="date"
                     value={formData.startDate || ''}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   />
                 </div>
                 <div className="space-y-1">
@@ -426,7 +426,7 @@ function ProjectsPageContent() {
                     type="date"
                     value={formData.endDate || ''}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   />
                 </div>
               </div>
@@ -438,7 +438,7 @@ function ProjectsPageContent() {
                     type="text"
                     value={formData.githubLink || ''}
                     onChange={(e) => setFormData({ ...formData, githubLink: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                     placeholder="https://github.com..."
                   />
                 </div>
@@ -448,7 +448,7 @@ function ProjectsPageContent() {
                     type="text"
                     value={formData.liveDemo || ''}
                     onChange={(e) => setFormData({ ...formData, liveDemo: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                     placeholder="https://..."
                   />
                 </div>
@@ -459,7 +459,7 @@ function ProjectsPageContent() {
                 <textarea
                   value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground"
+                  className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
                   rows={2.5}
                   placeholder="Lessons learned, architecture designs..."
                 />

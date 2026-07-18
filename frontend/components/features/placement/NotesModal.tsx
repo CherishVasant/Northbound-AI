@@ -82,7 +82,7 @@ export function NotesModal({ company, onSave, onClose }: NotesModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-2xl h-[80vh] flex flex-col bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-2xl h-[80vh] flex flex-col bg-card overlay-soft overflow-hidden animate-in zoom-in-95 duration-200">
 
         {/* Header */}
         <div className="flex items-start justify-between px-5 py-4 border-b border-border shrink-0">
@@ -137,7 +137,7 @@ export function NotesModal({ company, onSave, onClose }: NotesModalProps) {
           </span>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground pill-soft pill-soft-interactive hover:bg-primary/90 transition-colors"
           >
             Done
           </button>

@@ -28,7 +28,7 @@ export function StatCard({
   return (
     <div
       onClick={onClick}
-      className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 transition-all hover:shadow-lg hover:border-primary cursor-pointer"
+      className="group relative overflow-hidden card-soft card-soft-interactive bg-card p-6 cursor-pointer"
     >
       {/* Background accent */}
       <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full ${accentBg} opacity-10 transition-transform group-hover:scale-150`} />

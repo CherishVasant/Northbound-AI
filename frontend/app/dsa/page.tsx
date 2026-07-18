@@ -353,7 +353,7 @@ function LeetCodeTrackerContent() {
 
       <div className="p-6 max-w-7xl mx-auto space-y-6 w-full flex-1">
         {/* Link to Striver's 191 Sheet */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card border border-border rounded-xl p-4 shadow-sm gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between card-soft bg-card p-4 gap-3 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
               <Award className="w-5 h-5 text-primary" />
@@ -369,7 +369,7 @@ function LeetCodeTrackerContent() {
             href="https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-secondary text-xs font-bold text-primary transition-all shadow-sm cursor-pointer bg-background"
+            className="flex items-center gap-1.5 px-3 py-1.5 pill-soft pill-soft-interactive hover:bg-secondary text-xs font-bold text-primary transition-all cursor-pointer bg-background"
           >
             Open Striver's Sheet
             <ExternalLink className="w-3.5 h-3.5" />
@@ -378,19 +378,19 @@ function LeetCodeTrackerContent() {
 
         {/* Quick Metrics Bar */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="card-soft bg-card p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Striver Sheet</p>
             <p className="text-2xl font-extrabold text-foreground mt-1">{totalProblemsCount}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm border-emerald-500/10">
+          <div className="card-soft bg-card p-4">
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Mastered (O(1) Recog.)</p>
             <p className="text-2xl font-extrabold text-emerald-600 mt-1">{masteredCount}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm border-orange-500/10">
+          <div className="card-soft bg-card p-4">
             <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Interview Ready</p>
             <p className="text-2xl font-extrabold text-orange-600 mt-1">{interviewReadyCount}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <div className="card-soft bg-card p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Not Solved</p>
             <p className="text-2xl font-extrabold text-muted-foreground mt-1">
               {problems.filter((p) => p.status === 'Not Started').length}
@@ -399,7 +399,7 @@ function LeetCodeTrackerContent() {
         </div>
 
         {/* Global Controls & Filters */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between card-soft bg-card p-4">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -408,12 +408,12 @@ function LeetCodeTrackerContent() {
                 placeholder="Search LeetCode problems, patterns, approaches..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-input bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-1.5 pill-soft bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="text-xs flex items-center font-medium gap-2 text-muted-foreground">
-              {filterDifficulty && <span className="bg-secondary px-2.5 py-0.5 rounded-full border border-border font-bold">Diff: {filterDifficulty}</span>}
-              {filterStatus && <span className="bg-secondary px-2.5 py-0.5 rounded-full border border-border font-bold">Status: {filterStatus}</span>}
+              {filterDifficulty && <span className="bg-secondary px-2.5 py-0.5 pill-soft font-bold">Diff: {filterDifficulty}</span>}
+              {filterStatus && <span className="bg-secondary px-2.5 py-0.5 pill-soft font-bold">Status: {filterStatus}</span>}
             </div>
           </div>
           <div className="flex gap-2">
@@ -425,7 +425,7 @@ function LeetCodeTrackerContent() {
         </div>
 
         {/* AI Co-pilot banner */}
-        <div className="flex justify-between items-center bg-card border border-border rounded-xl p-3 px-4 shadow-sm">
+        <div className="flex justify-between items-center card-soft bg-card p-3 px-4">
           <div className="flex items-center gap-2">
             <div className="p-1 rounded bg-violet-500/10 text-violet-500">
               <Zap className="w-4 h-4" />
@@ -457,7 +457,7 @@ function LeetCodeTrackerContent() {
               <div 
                 key={section.id} 
                 id={`section-${section.id}`} 
-                className="bg-card border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-20"
+                className="card-soft bg-card overflow-hidden scroll-mt-20"
               >
                 {/* Card Title */}
                 <div className="p-4 border-b border-border bg-secondary/15 flex items-center justify-between">
@@ -622,7 +622,7 @@ function LeetCodeTrackerContent() {
                                       <div className="space-y-3">
                                         <div>
                                           <span className="text-[9px] font-extrabold uppercase text-muted-foreground tracking-wider block">Optimal Approach</span>
-                                          <p className="mt-0.5 leading-relaxed text-foreground font-medium bg-background/55 p-2 rounded border border-border/40">
+                                          <p className="mt-0.5 leading-relaxed text-foreground font-medium bg-background/55 p-2 card-soft">
                                             {prob.approach || 'No optimal approach guide logged yet. Edit row to input.'}
                                           </p>
                                         </div>
@@ -642,7 +642,7 @@ function LeetCodeTrackerContent() {
 
                                       {/* Middle block: complexity metrics */}
                                       <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-2.5 bg-background p-2 rounded-lg border border-border/60">
+                                        <div className="grid grid-cols-2 gap-2.5 bg-background p-2 card-soft">
                                           <div>
                                             <span className="text-[8px] font-extrabold uppercase text-muted-foreground tracking-wider block">Time Complexity</span>
                                             <code className="text-xs font-bold font-mono text-foreground">{prob.timeComplexity || 'O(N)'}</code>
@@ -682,7 +682,7 @@ function LeetCodeTrackerContent() {
                                           )}
                                         </div>
                                         {prob.code ? (
-                                          <pre className="p-2 border border-border bg-background rounded-lg text-[9px] font-mono overflow-auto max-h-48 whitespace-pre leading-normal text-foreground">
+                                          <pre className="p-2 card-soft bg-background text-[9px] font-mono overflow-auto max-h-48 whitespace-pre leading-normal text-foreground">
                                             {prob.code}
                                           </pre>
                                         ) : (
@@ -714,7 +714,7 @@ function LeetCodeTrackerContent() {
 
           {/* Render custom problems that don't map to any of the 16 Striver categories */}
           {groupedProblems['Other']?.length > 0 && (
-            <div id="section-other" className="bg-card border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-20">
+            <div id="section-other" className="card-soft bg-card overflow-hidden scroll-mt-20">
               <div className="p-4 border-b border-border bg-secondary/15 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-extrabold uppercase bg-amber-500/10 text-amber-600 px-2.5 py-0.5 rounded-full">
@@ -853,7 +853,7 @@ function LeetCodeTrackerContent() {
                                   <div className="space-y-3">
                                     <div>
                                       <span className="text-[9px] font-extrabold uppercase text-muted-foreground tracking-wider block">Optimal Approach</span>
-                                      <p className="mt-0.5 leading-relaxed text-foreground font-medium bg-background/55 p-2 rounded border border-border/40">
+                                      <p className="mt-0.5 leading-relaxed text-foreground font-medium bg-background/55 p-2 card-soft">
                                         {prob.approach || 'No optimal approach guide logged yet. Edit row to input.'}
                                       </p>
                                     </div>
@@ -866,7 +866,7 @@ function LeetCodeTrackerContent() {
                                   </div>
 
                                   <div className="space-y-3">
-                                    <div className="grid grid-cols-2 gap-2.5 bg-background p-2 rounded-lg border border-border/60">
+                                    <div className="grid grid-cols-2 gap-2.5 bg-background p-2 card-soft">
                                       <div>
                                         <span className="text-[8px] font-extrabold uppercase text-muted-foreground tracking-wider block">Time Complexity</span>
                                         <code className="text-xs font-bold font-mono text-foreground">{prob.timeComplexity || 'O(N)'}</code>
@@ -899,7 +899,7 @@ function LeetCodeTrackerContent() {
                                       )}
                                     </div>
                                     {prob.code ? (
-                                      <pre className="p-2 border border-border bg-background rounded-lg text-[9px] font-mono overflow-auto max-h-48 whitespace-pre leading-normal text-foreground">
+                                      <pre className="p-2 card-soft bg-background text-[9px] font-mono overflow-auto max-h-48 whitespace-pre leading-normal text-foreground">
                                         {prob.code}
                                       </pre>
                                     ) : (
@@ -926,7 +926,7 @@ function LeetCodeTrackerContent() {
       {/* Add / Edit Problem Modal */}
       {editingId !== null && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95">
+          <div className="overlay-soft bg-card w-full max-w-xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95">
             {/* Header */}
             <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/35">
               <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
@@ -949,7 +949,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.problemName || ''}
                     onChange={(e) => setFormData({ ...formData, problemName: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="e.g. 3Sum"
                   />
                 </div>
@@ -959,7 +959,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.link || ''}
                     onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="LeetCode / GFG URL"
                   />
                 </div>
@@ -971,7 +971,7 @@ function LeetCodeTrackerContent() {
                   <select
                     value={formData.topic || 'Arrays'}
                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {STRIVER_SECTIONS.map((sec) => (
                       <option key={sec.topicName} value={sec.topicName}>{sec.label}</option>
@@ -984,7 +984,7 @@ function LeetCodeTrackerContent() {
                   <select
                     value={formData.difficulty || 'Medium'}
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="Easy">Easy</option>
                     <option value="Medium">Medium</option>
@@ -996,7 +996,7 @@ function LeetCodeTrackerContent() {
                   <select
                     value={formData.status || 'Not Started'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="Not Started">Not Started</option>
                     <option value="Interview Ready">Interview Ready</option>
@@ -1012,7 +1012,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.pattern || ''}
                     onChange={(e) => setFormData({ ...formData, pattern: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="e.g. Sliding Window"
                   />
                 </div>
@@ -1022,7 +1022,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.recognitionTrigger || ''}
                     onChange={(e) => setFormData({ ...formData, recognitionTrigger: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="e.g. subsegment constraints, contiguous unique values"
                   />
                 </div>
@@ -1035,7 +1035,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.timeComplexity || 'O(N)'}
                     onChange={(e) => setFormData({ ...formData, timeComplexity: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1044,7 +1044,7 @@ function LeetCodeTrackerContent() {
                     type="text"
                     value={formData.spaceComplexity || 'O(1)'}
                     onChange={(e) => setFormData({ ...formData, spaceComplexity: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+                    className="w-full px-3 py-1.5 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono"
                   />
                 </div>
               </div>
@@ -1054,7 +1054,7 @@ function LeetCodeTrackerContent() {
                 <textarea
                   value={formData.approach || ''}
                   onChange={(e) => setFormData({ ...formData, approach: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary leading-relaxed"
+                  className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary leading-relaxed"
                   rows={3}
                   placeholder="Record step-by-step logic summary..."
                 />
@@ -1066,7 +1066,7 @@ function LeetCodeTrackerContent() {
                   <textarea
                     value={formData.constraints || ''}
                     onChange={(e) => setFormData({ ...formData, constraints: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[10px]"
+                    className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[10px]"
                     rows={3}
                     placeholder="e.g. N <= 10^5, values contain negatives"
                   />
@@ -1076,7 +1076,7 @@ function LeetCodeTrackerContent() {
                   <textarea
                     value={formData.pitfalls || ''}
                     onChange={(e) => setFormData({ ...formData, pitfalls: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     rows={3}
                     placeholder="e.g. integer overflow, empty/null list references"
                   />
@@ -1088,7 +1088,7 @@ function LeetCodeTrackerContent() {
                 <textarea
                   value={formData.code || ''}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[10px]"
+                  className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono text-[10px]"
                   rows={6}
                   placeholder="class Solution:\n    def solve(self):"
                 />
@@ -1099,7 +1099,7 @@ function LeetCodeTrackerContent() {
                 <textarea
                   value={formData.personalNotes || ''}
                   onChange={(e) => setFormData({ ...formData, personalNotes: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary leading-relaxed"
+                  className="w-full px-3 py-2 pill-soft bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary leading-relaxed"
                   rows={2}
                   placeholder="Personal learnings, references to other problems, etc."
                 />

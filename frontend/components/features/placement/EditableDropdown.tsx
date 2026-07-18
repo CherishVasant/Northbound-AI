@@ -77,7 +77,7 @@ export function EditableDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl w-48 max-h-56 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-popover overlay-soft overflow-hidden w-48 max-h-56 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Search */}
           <div className="p-1.5 border-b border-border shrink-0">
             <input
@@ -86,7 +86,7 @@ export function EditableDropdown({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search…"
-              className="w-full px-2 py-1 text-xs bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-2 py-1 text-xs bg-background pill-soft focus:outline-none focus:ring-1 focus:ring-primary"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   if (showAddOption) handleAddCustom();

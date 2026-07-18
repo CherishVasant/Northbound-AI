@@ -66,7 +66,7 @@ export function PlacementToolbar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search companies…"
-          className="w-full h-8 pl-8 pr-3 text-xs bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow"
+          className="w-full h-8 pl-8 pr-3 text-xs bg-background pill-soft focus:outline-none focus:ring-2 focus:ring-primary"
         />
         {searchQuery && (
           <button
@@ -97,10 +97,10 @@ export function PlacementToolbar({
       {/* Archive toggle */}
       <button
         onClick={onToggleArchived}
-        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-colors ${
+        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium pill-soft pill-soft-interactive transition-colors ${
           showArchived
-            ? 'bg-muted border-border text-foreground'
-            : 'border-border hover:bg-accent text-muted-foreground hover:text-foreground'
+            ? 'bg-muted text-foreground ring-1 ring-primary/50'
+            : 'hover:bg-accent text-muted-foreground hover:text-foreground'
         }`}
       >
         <Archive className="w-3.5 h-3.5" />
@@ -118,7 +118,7 @@ export function PlacementToolbar({
       {/* Add Company */}
       <button
         onClick={onAddCompany}
-        className="flex items-center gap-1.5 h-8 px-4 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+        className="flex items-center gap-1.5 h-8 px-4 text-xs font-semibold pill-soft pill-soft-interactive bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
       >
         <Plus className="w-3.5 h-3.5" />
         Add Company
