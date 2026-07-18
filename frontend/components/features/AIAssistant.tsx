@@ -1035,7 +1035,7 @@ Identify modules with low completion percentages, suggest specific focus areas, 
   )
 }
 
-export function AIAssistant(props: AIAssistantProps) {
+function AIAssistantContent(props: AIAssistantProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -1053,9 +1053,13 @@ export function AIAssistant(props: AIAssistantProps) {
 
   const agentKey = getAgentKey()
 
+  return <AIAssistantInner key={agentKey} agentKey={agentKey} {...props} />
+}
+
+export function AIAssistant(props: AIAssistantProps) {
   return (
     <Suspense fallback={null}>
-      <AIAssistantInner key={agentKey} agentKey={agentKey} {...props} />
+      <AIAssistantContent {...props} />
     </Suspense>
   )
 }
