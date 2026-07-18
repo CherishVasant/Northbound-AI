@@ -9,3 +9,14 @@ export function getApiUrl(path: string) {
 
   return normalizedPath
 }
+
+export async function parseResponseBody<T = unknown>(response: Response, fallback: T | null = null): Promise<T | null> {
+  const rawText = await response.text()
+  if (!rawText.trim()) return fallback
+
+  try {
+    return JSON.parse(rawText) as T
+  } catch {
+    return fallback ?? (rawText as T)
+  }
+}

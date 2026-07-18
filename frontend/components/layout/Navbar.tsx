@@ -1,9 +1,10 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutGrid, BarChart3, Book, BookOpen, Code2, Briefcase, Award, Bot, Menu, X, Cloud, RefreshCw, AlertCircle, LogOut, HelpCircle, Building2 } from 'lucide-react';
+import { LayoutGrid, BarChart3, Book, BookOpen, Code2, Briefcase, Award, Bot, Menu, X, Cloud, RefreshCw, AlertCircle, LogOut, HelpCircle, Building2, MoonStar, SunMedium } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { NorthboundBrand } from '@/components/shared/NorthboundBrand';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -20,8 +21,19 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
+    const storedTheme = window.localStorage.getItem('northbound-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const nextTheme = storedTheme === 'dark' || storedTheme === 'light'
+      ? storedTheme
+      : (prefersDark ? 'dark' : 'light');
+
+    setTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+
     // Initial username load
     setUsername(window.localStorage.getItem('preptrack_username'));
 
@@ -54,20 +66,24 @@ export function Navbar() {
     window.dispatchEvent(new CustomEvent('preptrack_toggle_ai'));
   };
 
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    window.localStorage.setItem('northbound-theme', nextTheme);
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-6">
         
         {/* Left: Brand Logo & Horizontal Nav */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent shadow-md">
-              <span className="text-sm font-bold text-primary-foreground">P</span>
-            </div>
-            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent hidden sm:inline-block">
-              PrepTrack
-            </span>
-          </Link>
+          <NorthboundBrand className="hidden sm:flex" />
+          <div className="sm:hidden">
+            <NorthboundBrand compact />
+          </div>
 
           {/* Desktop Navigation links */}
           <nav className="hidden md:flex items-center space-x-1">
@@ -131,6 +147,14 @@ export function Navbar() {
               </button>
             </div>
           )}
+
+          <button
+            onClick={toggleTheme}
+            className="rounded-lg border border-border bg-background/70 p-2 text-muted-foreground transition-all hover:bg-secondary/80 hover:text-foreground"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+          </button>
 
           {/* AI Toggle Action */}
           <button

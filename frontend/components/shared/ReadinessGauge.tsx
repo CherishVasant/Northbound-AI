@@ -17,12 +17,7 @@ export function ReadinessGauge({
   const strokeDashoffset = circumference - (percentage / 100) * circumference
   const radius = size === 'sm' ? 30 : size === 'lg' ? 60 : 45
 
-  const getColor = (percent: number) => {
-    if (percent >= 80) return 'url(#successGradient)'
-    if (percent >= 60) return 'url(#warningGradient)'
-    if (percent >= 40) return 'url(#cautionGradient)'
-    return 'url(#alertGradient)'
-  }
+  const getColor = () => 'url(#auroraGradient)'
 
   const getLabel = (percent: number) => {
     if (percent >= 90) return 'Excellent'
@@ -42,21 +37,11 @@ export function ReadinessGauge({
       <div className={`relative ${sizeClass}`}>
         <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
           <defs>
-            <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgb(34, 197, 94)" />
-              <stop offset="100%" stopColor="rgb(21, 128, 61)" />
-            </linearGradient>
-            <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgb(251, 146, 60)" />
-              <stop offset="100%" stopColor="rgb(194, 65, 12)" />
-            </linearGradient>
-            <linearGradient id="cautionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgb(234, 179, 8)" />
-              <stop offset="100%" stopColor="rgb(161, 98, 7)" />
-            </linearGradient>
-            <linearGradient id="alertGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgb(239, 68, 68)" />
-              <stop offset="100%" stopColor="rgb(153, 27, 27)" />
+            <linearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="var(--mint)" />
+              <stop offset="35%" stopColor="var(--sky)" />
+              <stop offset="70%" stopColor="var(--lavender)" />
+              <stop offset="100%" stopColor="var(--pink)" />
             </linearGradient>
           </defs>
           {/* Background circle */}
@@ -67,7 +52,7 @@ export function ReadinessGauge({
             cy="60"
             r="45"
             fill="none"
-            stroke={getColor(percentage)}
+            stroke={getColor()}
             strokeWidth="4"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}

@@ -1,38 +1,26 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import { Navbar } from '@/components/layout/Navbar'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { SyncManager } from '@/components/shared/SyncManager'
 import { Suspense } from 'react'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] })
+const jetBrainsMono = JetBrains_Mono({ variable: '--font-jetbrains-mono', subsets: ['latin'] })
+const spaceGrotesk = Space_Grotesk({ variable: '--font-space-grotesk', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PrepTrack - Placement Preparation Tracker',
+  title: 'Northbound - Placement Preparation Tracker',
   description: 'Track your placement exam preparation with DSA problems, subjects, projects, and certifications',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: {
+      url: '/icon.svg',
+      type: 'image/svg+xml',
+    },
+    apple: '/icon.svg',
   },
 }
 
@@ -50,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
+    <html lang="en" className={`${inter.variable} ${jetBrainsMono.variable} ${spaceGrotesk.variable} bg-background`} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <SyncManager />
         <div className="flex flex-col h-screen bg-background">

@@ -28,6 +28,15 @@ export function ProgressBar({
     lg: 'text-base',
   }[size]
 
+  const fillStyle = {
+    width: `${percentage}%`,
+    background: accentColor.startsWith('--') ? `var(${accentColor})` : accentColor,
+  }
+
+  if (accentColor === '--color-primary') {
+    fillStyle.background = 'linear-gradient(90deg, var(--mint) 0%, var(--sky) 30%, var(--lavender) 70%, var(--pink) 100%)'
+  }
+
   return (
     <div className="space-y-1">
       {(label || showPercentage) && (
@@ -39,7 +48,7 @@ export function ProgressBar({
       <div className={`${heightClass} bg-muted rounded-full overflow-hidden`}>
         <div
           className="h-full rounded-full transition-all duration-300"
-          style={{ width: `${percentage}%`, backgroundColor: `var(${accentColor})` }}
+          style={fillStyle}
         />
       </div>
     </div>

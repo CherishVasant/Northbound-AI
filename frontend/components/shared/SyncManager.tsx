@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User, Lock, Mail, ShieldCheck, Loader2 } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, parseResponseBody } from '@/lib/api';
 
 export function SyncManager() {
   const [isMounted, setIsMounted] = useState(false);
@@ -69,7 +69,8 @@ export function SyncManager() {
         throw new Error('Failed to load profile data from sync server.');
       }
 
-      const syncData = await res.json();
+      const syncPayload = await parseResponseBody<Record<string, unknown> | string>(res, {});
+      const syncData = typeof syncPayload === 'object' && syncPayload !== null ? syncPayload : {};
 
       // Write synced collections directly into localStorage
       Object.entries(syncData).forEach(([key, value]) => {
@@ -110,7 +111,8 @@ export function SyncManager() {
         try {
           const res = await fetch(getApiUrl(`/api/sync/${username}`));
           if (res.ok) {
-            const syncData = await res.json();
+            const syncPayload = await parseResponseBody<Record<string, unknown> | string>(res, {});
+            const syncData = typeof syncPayload === 'object' && syncPayload !== null ? syncPayload : {};
             Object.entries(syncData).forEach(([key, value]) => {
               window.localStorage.setItem(key, JSON.stringify(value));
               window.dispatchEvent(
@@ -148,13 +150,17 @@ export function SyncManager() {
         }),
       });
 
-      const data = await response.json();
+      const data = await parseResponseBody<{ error?: string; username?: string } | string>(response, 'Unexpected server response.');
+      const parsedData = typeof data === 'string' ? { error: data } : (data ?? {});
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed.');
+        throw new Error(parsedData.error || 'Authentication failed.');
       }
 
       // Logged in successfully, load user data collections
-      await syncProfileData(data.username);
+      if (!parsedData.username) {
+        throw new Error('Authentication succeeded but no username was returned.');
+      }
+      await syncProfileData(parsedData.username);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Login request failed.');
@@ -188,13 +194,17 @@ export function SyncManager() {
         }),
       });
 
-      const data = await response.json();
+      const data = await parseResponseBody<{ error?: string; username?: string } | string>(response, 'Unexpected server response.');
+      const parsedData = typeof data === 'string' ? { error: data } : (data ?? {});
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed.');
+        throw new Error(parsedData.error || 'Registration failed.');
       }
 
       // Automatically sign in upon registration
-      await syncProfileData(data.username);
+      if (!parsedData.username) {
+        throw new Error('Registration succeeded but no username was returned.');
+      }
+      await syncProfileData(parsedData.username);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Registration request failed.');
@@ -213,7 +223,7 @@ export function SyncManager() {
           <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground shadow-lg">
             <ShieldCheck className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">PrepTrack Study Hub</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Northbound Study Hub</h2>
           <p className="text-xs text-muted-foreground">
             Sign in to load your study statistics and resume your preparation.
           </p>

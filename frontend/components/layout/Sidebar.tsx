@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ConceptsSidebar } from '@/components/features/ConceptsSidebar';
+import { NorthboundBrand } from '@/components/shared/NorthboundBrand';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -196,14 +197,16 @@ export function Sidebar() {
 
     return (
       <div className="p-6 overflow-y-auto flex-1 flex flex-col min-h-0 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between shrink-0">
-          <p className="text-xs font-extrabold text-foreground uppercase tracking-wider">
-            {pathname.startsWith('/dsa') ? 'LeetCode Tracker' :
-             pathname.startsWith('/subjects') ? 'Core Subjects' :
-             pathname.startsWith('/prep') ? 'Prep & More' : 'Navigation'}
-          </p>
-          {collapseButton}
+        <div className="space-y-3 border-b border-border/70 pb-4">
+          <NorthboundBrand compact className="w-full" />
+          <div className="flex items-center justify-between shrink-0">
+            <p className="text-xs font-extrabold text-foreground uppercase tracking-wider">
+              {pathname.startsWith('/dsa') ? 'LeetCode Tracker' :
+               pathname.startsWith('/subjects') ? 'Core Subjects' :
+               pathname.startsWith('/prep') ? 'Prep & More' : 'Navigation'}
+            </p>
+            {collapseButton}
+          </div>
         </div>
 
         {/* Sections */}
