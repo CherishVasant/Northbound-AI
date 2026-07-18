@@ -55,22 +55,35 @@ export function PlacementRow({
           </button>
         </td>
 
-        <td className="w-10 py-2.5 pr-2 align-middle font-mono text-[11px] text-muted-foreground">
+        <td
+          onClick={onToggleExpand}
+          className="w-10 cursor-pointer py-2.5 pr-2 align-middle font-mono text-[11px] text-muted-foreground"
+        >
           {index + 1}
         </td>
 
-        <td className="py-2.5 pr-3 align-middle">
+        <td
+          onClick={onToggleExpand}
+          title={expanded ? 'Hide details' : 'Show details, skills and notes'}
+          className="cursor-pointer py-2.5 pr-3 align-middle"
+        >
           <span className="text-sm font-semibold text-foreground">
             {company.name?.trim() || <span className="text-muted-foreground">Untitled</span>}
           </span>
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}
-        <td className="py-2.5 pr-3 align-middle">
+        <td
+          onClick={onToggleExpand}
+          className="cursor-pointer py-2.5 pr-3 align-middle"
+        >
           <span className="text-xs font-medium text-primary">{company.role?.trim() || '—'}</span>
         </td>
 
-        <td className="py-2.5 pr-3 align-middle">
+        <td
+          onClick={onToggleExpand}
+          className="cursor-pointer py-2.5 pr-3 align-middle"
+        >
           <span className="font-mono text-xs text-muted-foreground">
             {company.package ? `${company.package} LPA` : '—'}
           </span>

@@ -177,8 +177,8 @@ export default function PlacementPage() {
           deadlineDate: draft.deadlineDate,
           deadlineTime: draft.deadlineTime,
           reason: draft.reason,
-          skills: [],
-          notes: '',
+          skills: draft.skills,
+          notes: draft.notes,
           // Seed a starting entry so an opted-in row isn't blank.
           history: draft.optedIn ? [makeStageEntry(FIRST_STAGE, 'Preparing')] : [],
         },

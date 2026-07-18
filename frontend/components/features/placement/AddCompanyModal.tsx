@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { ToggleSwitch } from './ToggleSwitch';
 
 export interface NewCompanyDraft {
@@ -13,6 +13,8 @@ export interface NewCompanyDraft {
   deadlineTime: string;
   optedIn: boolean;
   reason: string;
+  skills: string[];
+  notes: string;
 }
 
 interface AddCompanyModalProps {
@@ -33,6 +35,21 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
   const [deadlineTime, setDeadlineTime] = useState('');
   const [optedIn, setOptedIn] = useState(true);
   const [reason, setReason] = useState('');
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillDraft, setSkillDraft] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const addSkill = () => {
+    const value = skillDraft.trim();
+    if (!value) return;
+    // Case-insensitive dedupe, matching the detail panel's editor.
+    if (skills.some((s) => s.toLowerCase() === value.toLowerCase())) {
+      setSkillDraft('');
+      return;
+    }
+    setSkills((prev) => [...prev, value]);
+    setSkillDraft('');
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -52,6 +69,8 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
       deadlineTime,
       optedIn,
       reason: optedIn ? '' : reason.trim(),
+      skills,
+      notes: notes.trim(),
     });
   };
 
@@ -154,6 +173,67 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
                 className={`${inputClass} font-mono`}
               />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor="ac-skills">Skills required</label>
+            {skills.length > 0 && (
+              <div className="mb-1 flex flex-wrap gap-1.5">
+                {skills.map((s) => (
+                  <span
+                    key={s}
+                    className="pill-soft inline-flex items-center gap-1 bg-secondary/60 py-0.5 pl-2 pr-1 font-mono text-[10px] text-foreground"
+                  >
+                    {s}
+                    <button
+                      type="button"
+                      onClick={() => setSkills((prev) => prev.filter((x) => x !== s))}
+                      aria-label={`Remove ${s}`}
+                      className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <input
+                id="ac-skills"
+                value={skillDraft}
+                onChange={(e) => setSkillDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter must not submit the form while adding a tag.
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSkill();
+                  }
+                }}
+                className={`${inputClass} font-mono`}
+                placeholder="Type a skill, press Enter"
+              />
+              <button
+                type="button"
+                onClick={addSkill}
+                disabled={!skillDraft.trim()}
+                aria-label="Add skill"
+                className="pill-soft pill-soft-interactive flex h-7 w-7 shrink-0 items-center justify-center bg-secondary/60 text-muted-foreground hover:text-foreground disabled:opacity-40"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor="ac-notes">Notes</label>
+            <textarea
+              id="ac-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className={`${inputClass} resize-y`}
+              placeholder="Anything worth remembering about this company"
+            />
           </div>
 
           <div className="flex items-center justify-between py-1">
