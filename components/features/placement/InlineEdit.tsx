@@ -91,7 +91,7 @@ export function InlineEdit({
         }}
         className={
           bare
-            ? `${suffix ? 'w-12 flex-none' : 'w-full flex-1'} min-w-0 truncate rounded border border-transparent bg-transparent px-1 py-0.5 outline-none transition-colors hover:border-border hover:bg-secondary/40 focus:border-border focus:bg-secondary/50 ${
+            ? `${suffix ? 'w-14 flex-none text-right' : 'w-full flex-1'} min-w-0 truncate rounded border border-transparent bg-transparent px-1 py-0.5 outline-none transition-colors hover:border-border hover:bg-secondary/40 focus:border-border focus:bg-secondary/50 ${
                 mono ? 'font-mono' : ''
               } ${className}`
             : `pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-1 ${
