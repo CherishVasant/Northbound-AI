@@ -1,16 +1,22 @@
 'use client';
 
-import { ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash2, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 import { ToggleSwitch } from './ToggleSwitch';
 import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
 import { CompanyDetailPanel } from './CompanyDetailPanel';
+import { InlineEdit } from './InlineEdit';
 
 interface PlacementRowProps {
   company: PlacementCompany;
-  index: number;
+  /** Position in the FULL list, so numbering survives filtering. */
+  serial: number;
+  dragging: boolean;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDragEnd: () => void;
   expanded: boolean;
   onToggleExpand: () => void;
   onStatusChange: (stage: PipelineStage, state: PipelineState) => void;
@@ -22,7 +28,11 @@ interface PlacementRowProps {
 
 export function PlacementRow({
   company,
-  index,
+  serial,
+  dragging,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
   expanded,
   onToggleExpand,
   onStatusChange,
@@ -36,7 +46,16 @@ export function PlacementRow({
 
   return (
     <>
-      <tr className={`group border-b border-border/60 transition-colors ${rowBg}`}>
+      <tr
+        onDragOver={(e) => {
+          e.preventDefault();
+          onDragOver();
+        }}
+        onDrop={(e) => e.preventDefault()}
+        className={`group border-b border-border/60 transition-colors ${rowBg} ${
+          dragging ? 'opacity-40' : ''
+        }`}
+      >
         <td className="w-8 py-2.5 pl-3 pr-1 align-middle sm:pl-4">
           <button
             type="button"
@@ -51,38 +70,57 @@ export function PlacementRow({
           </button>
         </td>
 
-        <td
-          onClick={onToggleExpand}
-          className="w-10 cursor-pointer py-2.5 pr-2 align-middle font-mono text-[11px] text-muted-foreground"
-        >
-          {index + 1}
+        <td className="w-12 py-2.5 pr-2 align-middle">
+          <div className="flex items-center gap-1">
+            <span
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              aria-label="Drag to reorder"
+              title="Drag to reorder"
+              className="cursor-grab text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
+            >
+              <GripVertical className="h-3.5 w-3.5" />
+            </span>
+            <span className="font-mono text-[11px] text-muted-foreground">{serial}</span>
+          </div>
         </td>
 
-        <td
-          onClick={onToggleExpand}
-          title={expanded ? 'Hide details' : 'Show details, skills and notes'}
-          className="cursor-pointer py-2.5 pr-3 align-middle"
-        >
-          <span className="text-sm font-semibold text-foreground">
-            {company.name?.trim() || <span className="text-muted-foreground">Untitled</span>}
-          </span>
+        <td className="min-w-[120px] py-2.5 pr-3 align-middle">
+          <InlineEdit
+            value={company.name ?? ''}
+            onCommit={(name) => onFieldChange({ name })}
+            ariaLabel={`Company name for row ${serial}`}
+            placeholder="Company name"
+            bare
+            className="text-sm font-semibold text-foreground"
+          />
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}
-        <td
-          onClick={onToggleExpand}
-          className="hidden cursor-pointer py-2.5 pr-3 align-middle md:table-cell"
-        >
-          <span className="text-xs font-medium text-primary">{company.role?.trim() || '—'}</span>
+        <td className="hidden min-w-[110px] py-2.5 pr-3 align-middle md:table-cell">
+          <InlineEdit
+            value={company.role ?? ''}
+            onCommit={(role) => onFieldChange({ role })}
+            ariaLabel={`Role for row ${serial}`}
+            placeholder="Role"
+            bare
+            className="text-xs font-medium text-primary"
+          />
         </td>
 
-        <td
-          onClick={onToggleExpand}
-          className="hidden cursor-pointer py-2.5 pr-3 align-middle sm:table-cell"
-        >
-          <span className="font-mono text-xs text-muted-foreground">
-            {company.package ? `${company.package} LPA` : '—'}
-          </span>
+        <td className="hidden w-24 py-2.5 pr-3 align-middle sm:table-cell">
+          <InlineEdit
+            value={company.package ? String(company.package) : ''}
+            onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}
+            ariaLabel={`Package for row ${serial}`}
+            placeholder="0"
+            type="number"
+            bare
+            mono
+            suffix="LPA"
+            className="text-xs text-muted-foreground"
+          />
         </td>
 
         <td className="py-2.5 pr-3 align-middle">

@@ -133,7 +133,7 @@ function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: stri
 
 export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPanelProps) {
   // Most recent first — the log is stored oldest-first.
-  const timeline = [...(company.history ?? [])].reverse();
+  const timeline = company.optedIn ? [...(company.history ?? [])].reverse() : [];
   const skills = company.skills ?? [];
 
   return (
@@ -145,7 +145,9 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
         </h4>
 
         {timeline.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No stage history yet</p>
+          <p className="text-xs text-muted-foreground">
+            {company.optedIn ? 'No stage history yet' : 'Not applying — no stages'}
+          </p>
         ) : (
           <ol className="relative flex flex-col gap-3">
             <span aria-hidden className="absolute left-[3.5px] top-1.5 bottom-1.5 w-px bg-border" />
@@ -247,7 +249,7 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
 
           <Field label="Registered">
             {!company.optedIn ? (
-              <span className="text-muted-foreground">—</span>
+              <span className="text-muted-foreground">No</span>
             ) : (
               <button
                 type="button"

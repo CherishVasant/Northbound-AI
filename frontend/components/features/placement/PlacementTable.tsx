@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Building2 } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
@@ -13,6 +13,9 @@ interface PlacementTableProps {
   onOptedInChange: (id: number, optedIn: boolean) => void;
   onFieldChange: (id: number, patch: Partial<PlacementCompany>) => void;
   onDelete: (id: number) => void;
+  /** Position in the FULL list, so numbering survives filtering. */
+  serialOf: (id: number) => number;
+  onReorder: (sourceId: number, targetId: number) => void;
 }
 
 /**
@@ -43,8 +46,14 @@ export function PlacementTable({
   onOptedInChange,
   onFieldChange,
   onDelete,
+  serialOf,
+  onReorder,
 }: PlacementTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  // Ref, not state: dragover fires continuously and re-rendering on each event
+  // would make the drag stutter.
+  const lastTargetRef = useRef<number | null>(null);
 
   if (companies.length === 0) {
     return (
@@ -84,7 +93,22 @@ export function PlacementTable({
               <PlacementRow
                 key={company.id}
                 company={company}
-                index={index}
+                serial={serialOf(company.id)}
+                dragging={draggingId === company.id}
+                onDragStart={() => {
+                  setDraggingId(company.id);
+                  lastTargetRef.current = company.id;
+                }}
+                onDragOver={() => {
+                  if (draggingId === null || draggingId === company.id) return;
+                  if (lastTargetRef.current === company.id) return;
+                  lastTargetRef.current = company.id;
+                  onReorder(draggingId, company.id);
+                }}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  lastTargetRef.current = null;
+                }}
                 expanded={expandedId === company.id}
                 onToggleExpand={() =>
                   setExpandedId((prev) => (prev === company.id ? null : company.id))

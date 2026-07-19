@@ -142,6 +142,31 @@ export default function PlacementPage() {
     [updateCompany],
   );
 
+  /**
+   * Serial numbers reflect position in the FULL list, so filtering to
+   * "Not Opted" shows 3,4,5 rather than renumbering them 1,2,3.
+   */
+  const serialOf = useCallback(
+    (id: number) => companies.findIndex((c) => c.id === id) + 1,
+    [companies],
+  );
+
+  /** Moves source to target's position in the full list, filtered view or not. */
+  const handleReorder = useCallback(
+    (sourceId: number, targetId: number) => {
+      setCompanies((prev) => {
+        const from = prev.findIndex((c) => c.id === sourceId);
+        const to = prev.findIndex((c) => c.id === targetId);
+        if (from === -1 || to === -1 || from === to) return prev;
+        const next = [...prev];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    },
+    [setCompanies],
+  );
+
   const handleDelete = useCallback(
     (id: number) => {
       setCompanies((prev) => prev.filter((c) => c.id !== id));
@@ -176,7 +201,7 @@ export default function PlacementPage() {
   );
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-background">
+    <div className="min-h-full bg-background pb-6">
       {/* Page head */}
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-5 sm:px-6">
         <div>
@@ -218,6 +243,8 @@ export default function PlacementPage() {
         onDeadlineChange={handleDeadlineChange}
         onOptedInChange={handleOptedInChange}
         onFieldChange={handleFieldChange}
+        serialOf={serialOf}
+        onReorder={handleReorder}
         onDelete={handleDelete}
       />
 
