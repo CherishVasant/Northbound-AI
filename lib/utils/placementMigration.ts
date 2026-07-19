@@ -1,4 +1,9 @@
-import type { PlacementCompany, StageEntry } from '@/lib/utils/storage'
+import type {
+  PlacementCompany,
+  StageEntry,
+  ScheduledEvent,
+  Compensation,
+} from '@/lib/utils/storage'
 import {
   FIRST_STAGE,
   PIPELINE_STAGES,
@@ -64,8 +69,38 @@ function isAlreadyMigrated(rec: any): boolean {
     typeof rec.name === 'string' &&
     Array.isArray(rec.history) &&
     typeof rec.optedIn === 'boolean' &&
-    !('company' in rec)
+    !('company' in rec) &&
+    // Post-track shape: compensation replaced the bare `package` number.
+    rec.compensation != null &&
+    typeof rec.track === 'string'
   )
+}
+
+/** Everything recorded before internships existed was a full-time placement. */
+function coerceCompensation(rec: any): Compensation {
+  const c = rec?.compensation
+  if (c && typeof c === 'object' && Number.isFinite(Number(c.amount))) {
+    return {
+      amount: Number(c.amount) || 0,
+      unit: c.unit === 'per-month' ? 'per-month' : 'LPA',
+    }
+  }
+  // Legacy: a bare number that always meant LPA.
+  const legacy = Number(rec?.package ?? rec?.packageCTC ?? 0) || 0
+  return { amount: legacy, unit: 'LPA' }
+}
+
+function coerceSchedule(raw: any): ScheduledEvent[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((e) => e && typeof e === 'object')
+    .map((e, i) => ({
+      id: typeof e.id === 'string' && e.id ? e.id : `evt-${i}-${e.date ?? ''}`,
+      stage: PIPELINE_STAGES.includes(e.stage) ? e.stage : FIRST_STAGE,
+      date: typeof e.date === 'string' ? e.date : '',
+      time: typeof e.time === 'string' ? e.time : '',
+      note: typeof e.note === 'string' ? e.note : '',
+    }))
 }
 
 /** Rebuilds a plausible pipeline log from the old flat fields. */
@@ -120,6 +155,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         ...rec,
         id,
         history: (rec.history as any[]).map(coerceEntry).filter(Boolean) as StageEntry[],
+        schedule: coerceSchedule(rec.schedule),
       } as PlacementCompany
     }
 
@@ -129,7 +165,11 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
       name: String(rec?.company ?? rec?.name ?? ''),
       role: String(rec?.jobRole ?? rec?.role ?? ''),
-      package: Number(rec?.packageCTC ?? rec?.package ?? 0) || 0,
+      track: rec?.track === 'internship' ? 'internship' : 'placement',
+      compensation: coerceCompensation(rec),
+      startDate: typeof rec?.startDate === 'string' ? rec.startDate : '',
+      endDate: typeof rec?.endDate === 'string' ? rec.endDate : '',
+      durationMonths: Number(rec?.durationMonths ?? 0) || 0,
       location: String(rec?.location ?? ''),
       optedIn: Boolean(rec?.optedIn),
       registered: Boolean(rec?.registrationCompleted ?? rec?.registered),
@@ -146,6 +186,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       history: Array.isArray(rec?.history) && rec.history.length
         ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
         : historyFromLegacy(rec),
+      schedule: coerceSchedule(rec?.schedule),
     }
   })
 }
@@ -153,7 +194,29 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
 /** True when migration would change the stored array (avoids pointless writes). */
 export function needsMigration(raw: unknown): boolean {
   if (!Array.isArray(raw)) return false
-  return (raw as any[]).some((rec) => !isAlreadyMigrated(rec) || typeof rec?.id !== 'number')
+  return (raw as any[]).some(
+    (rec) => !isAlreadyMigrated(rec) || typeof rec?.id !== 'number' || !Array.isArray(rec?.schedule),
+  )
+}
+
+/** Derives months from a start/end pair; 0 when either is missing. */
+export function monthsBetween(startDate: string, endDate: string): number {
+  if (!startDate || !endDate) return 0
+  const a = new Date(startDate)
+  const b = new Date(endDate)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
+  const months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
+  return months > 0 ? months : 0
+}
+
+export function makeScheduledEvent(): ScheduledEvent {
+  return {
+    id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    stage: FIRST_STAGE,
+    date: '',
+    time: '',
+    note: '',
+  }
 }
 
 export function nextCompanyId(companies: PlacementCompany[]): number {

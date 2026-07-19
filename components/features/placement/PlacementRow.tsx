@@ -3,6 +3,7 @@
 import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
+import { compensationSuffix } from '@/lib/constants/placement';
 import { ToggleSwitch } from './ToggleSwitch';
 import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
@@ -113,14 +114,21 @@ export function PlacementRow({
 
         <td className="hidden w-[94px] py-2.5 pr-2 align-top xl:table-cell">
           <InlineEdit
-            value={company.package ? String(company.package) : ''}
-            onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}
+            value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+            onCommit={(v) =>
+              onFieldChange({
+                compensation: {
+                  amount: Number(v) || 0,
+                  unit: company.compensation?.unit ?? 'LPA',
+                },
+              })
+            }
             ariaLabel={`Package for row ${serial}`}
             placeholder="0"
             type="number"
             bare
             mono
-            suffix="LPA"
+            suffix={compensationSuffix(company.compensation?.unit ?? 'LPA')}
             className="text-xs text-muted-foreground"
           />
         </td>

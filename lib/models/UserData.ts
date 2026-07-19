@@ -125,6 +125,25 @@ const StageEntrySchema = new Schema(
   { _id: false },
 )
 
+const ScheduledEventSchema = new Schema(
+  {
+    id: { type: String, default: '' },
+    stage: { type: String, default: '' },
+    date: { type: String, default: '' },
+    time: { type: String, default: '' },
+    note: { type: String, default: '' },
+  },
+  { _id: false },
+)
+
+const CompensationSchema = new Schema(
+  {
+    amount: { type: Number, default: 0 },
+    unit: { type: String, default: 'LPA' },
+  },
+  { _id: false },
+)
+
 const PlacementCompanySchema = new Schema(
   {
     // Mixed, not Number: pre-migration records carry string UUID ids, and a
@@ -133,7 +152,13 @@ const PlacementCompanySchema = new Schema(
     id: { type: Schema.Types.Mixed, required: true },
     name: { type: String, default: '' },
     role: { type: String, default: '' },
-    package: { type: Number, default: 0 },
+    track: { type: String, default: 'placement' },
+    compensation: { type: CompensationSchema, default: () => ({ amount: 0, unit: 'LPA' }) },
+    startDate: { type: String, default: '' },
+    endDate: { type: String, default: '' },
+    durationMonths: { type: Number, default: 0 },
+    // Legacy bare number, kept readable so migration can still see it.
+    package: { type: Number },
     location: { type: String, default: '' },
     optedIn: { type: Boolean, default: false },
     registered: { type: Boolean, default: false },
@@ -146,6 +171,7 @@ const PlacementCompanySchema = new Schema(
     // silently destroy the note.
     notes: { type: Schema.Types.Mixed, default: '' },
     history: { type: [StageEntrySchema], default: [] },
+    schedule: { type: [ScheduledEventSchema], default: [] },
 
     // ── Legacy fields, retained so migratePlacementCompanies() can still read
     // them. Mongoose strips unknown paths on read, so removing these before

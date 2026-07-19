@@ -100,6 +100,47 @@ export function tint(name: string, percent = 12) {
   return `color-mix(in srgb, var(${name}) ${percent}%, transparent)`;
 }
 
+// ─── Opportunity track ──────────────────────────────────────────────────────
+// Internships routinely convert to full-time offers, so this is a field on one
+// shared list rather than a separate table — converting is a field change.
+
+export type OpportunityTrack = 'placement' | 'internship';
+
+export const TRACKS: { value: OpportunityTrack; label: string }[] = [
+  { value: 'placement', label: 'Placements' },
+  { value: 'internship', label: 'Internships' },
+];
+
+// ─── Compensation ───────────────────────────────────────────────────────────
+
+export type CompensationUnit = 'LPA' | 'per-month';
+
+export const COMPENSATION_UNITS: { value: CompensationUnit; label: string }[] = [
+  { value: 'LPA', label: 'LPA' },
+  { value: 'per-month', label: '/month' },
+];
+
+/**
+ * Renders pay as stated, with no conversion between units.
+ * `amount` is read in lakhs for LPA and in rupees for per-month, matching how
+ * each is quoted.
+ */
+export function formatCompensation(amount: number, unit: CompensationUnit): string {
+  if (!amount) return '';
+  if (unit === 'LPA') return `${amount} LPA`;
+  // 135000 -> "1.35L/mo"; smaller stipends stay in plain rupees.
+  if (amount >= 100000) {
+    const lakhs = amount / 100000;
+    return `${Number(lakhs.toFixed(2))}L/mo`;
+  }
+  return `${amount.toLocaleString('en-IN')}/mo`;
+}
+
+/** Short unit label for the inline editor's suffix. */
+export function compensationSuffix(unit: CompensationUnit): string {
+  return unit === 'LPA' ? 'LPA' : '/mo';
+}
+
 // ─── Filter tabs ────────────────────────────────────────────────────────────
 
 export type OptedFilter = 'all' | 'in' | 'out';

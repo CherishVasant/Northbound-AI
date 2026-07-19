@@ -2,7 +2,7 @@
 
 import { Search } from 'lucide-react';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
-import { OPTED_FILTERS, type OptedFilter } from '@/lib/constants/placement';
+import { OPTED_FILTERS, TRACKS, type OptedFilter, type OpportunityTrack } from '@/lib/constants/placement';
 
 interface PlacementToolbarProps {
   searchQuery: string;
@@ -11,6 +11,9 @@ interface PlacementToolbarProps {
   onOptedFilterChange: (f: OptedFilter) => void;
   allExpanded: boolean;
   onToggleExpandAll: () => void;
+  track: OpportunityTrack;
+  onTrackChange: (t: OpportunityTrack) => void;
+  counts: Record<OpportunityTrack, number>;
 }
 
 export function PlacementToolbar({
@@ -20,8 +23,46 @@ export function PlacementToolbar({
   onOptedFilterChange,
   allExpanded,
   onToggleExpandAll,
+  track,
+  onTrackChange,
+  counts,
 }: PlacementToolbarProps) {
   return (
+    <>
+      {/* Track tabs sit above the other controls: they scope everything below,
+          including which companies the stats strip counts. */}
+      <div
+        role="tablist"
+        aria-label="Opportunity track"
+        className="flex items-center gap-1 px-4 pb-3 sm:px-6"
+      >
+        {TRACKS.map((t) => {
+          const active = track === t.value;
+          return (
+            <button
+              key={t.value}
+              role="tab"
+              aria-selected={active}
+              onClick={() => onTrackChange(t.value)}
+              className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold transition-colors ${
+                active
+                  ? 'bg-[var(--nav-active-bg)] text-primary'
+                  : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
+              }`}
+            >
+              {t.label}
+              <span
+                className={`font-mono text-[10px] ${
+                  active ? 'text-primary/70' : 'text-muted-foreground/70'
+                }`}
+              >
+                {counts[t.value]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
     <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
       <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -74,5 +115,6 @@ export function PlacementToolbar({
         {allExpanded ? 'Collapse all' : 'Expand all'}
       </button>
     </div>
+    </>
   );
 }

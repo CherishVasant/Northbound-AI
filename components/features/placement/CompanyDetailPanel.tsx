@@ -6,12 +6,23 @@ import {
   Plus,
   Building2,
   CalendarClock,
+  CalendarRange,
   GraduationCap,
   NotebookPen,
   Route,
+  Timer,
 } from 'lucide-react';
-import type { PlacementCompany } from '@/lib/utils/storage';
-import { STATE_LABEL, stateColorVar } from '@/lib/constants/placement';
+import type { PlacementCompany, ScheduledEvent } from '@/lib/utils/storage';
+import {
+  STATE_LABEL,
+  stateColorVar,
+  COMPENSATION_UNITS,
+  PIPELINE_STAGES,
+  STAGE_COLOR_VAR,
+  type CompensationUnit,
+  type PipelineStage,
+} from '@/lib/constants/placement';
+import { makeScheduledEvent, monthsBetween } from '@/lib/utils/placementMigration';
 import { InlineEdit } from './InlineEdit';
 
 interface CompanyDetailPanelProps {
@@ -190,6 +201,12 @@ export function CompanyDetailPanel({
   // re-opting in resumes where it left off, but it isn't shown.
   const timeline = company.optedIn ? [...(company.history ?? [])].reverse() : [];
   const skills = company.skills ?? [];
+  const derivedMonths = monthsBetween(company.startDate ?? '', company.endDate ?? '');
+
+  const updateEvent = (id: string, patch: Partial<ScheduledEvent>) =>
+    onFieldChange({
+      schedule: (company.schedule ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    });
 
   return (
     <div className="flex flex-col gap-3 px-3 py-4 sm:px-5">
@@ -336,16 +353,44 @@ export function CompanyDetailPanel({
               placeholder="e.g. SDE"
             />
           </Field>
-          <Field label="Package (LPA)">
-            <InlineEdit
-              value={company.package ? String(company.package) : ''}
-              // Blank or unparseable clears to 0 rather than storing NaN.
-              onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}
-              ariaLabel="Package in LPA"
-              placeholder="0"
-              type="number"
-              mono
-            />
+          <Field label="Compensation">
+            <div className="flex items-center gap-1.5">
+              <InlineEdit
+                value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+                // Blank or unparseable clears to 0 rather than storing NaN.
+                onCommit={(v) =>
+                  onFieldChange({
+                    compensation: {
+                      amount: Number(v) || 0,
+                      unit: company.compensation?.unit ?? 'LPA',
+                    },
+                  })
+                }
+                ariaLabel="Compensation amount"
+                placeholder="0"
+                type="number"
+                mono
+              />
+              <select
+                aria-label="Compensation unit"
+                value={company.compensation?.unit ?? 'LPA'}
+                onChange={(e) =>
+                  onFieldChange({
+                    compensation: {
+                      amount: company.compensation?.amount ?? 0,
+                      unit: e.target.value as CompensationUnit,
+                    },
+                  })
+                }
+                className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+              >
+                {COMPENSATION_UNITS.map((u) => (
+                  <option key={u.value} value={u.value}>
+                    {u.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </Field>
           <Field label="Location">
             <InlineEdit
@@ -358,7 +403,116 @@ export function CompanyDetailPanel({
         </div>
       </Section>
 
-      {/* Row 3 — preparation */}
+      {/* Row 3 - duration and known upcoming rounds */}
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Section icon={Timer} title="Duration">
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Start">
+              <input
+                type="date"
+                value={company.startDate ?? ''}
+                onChange={(e) => onFieldChange({ startDate: e.target.value })}
+                aria-label="Start date"
+                className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+              />
+            </Field>
+            <Field label="End">
+              <input
+                type="date"
+                value={company.endDate ?? ''}
+                onChange={(e) => onFieldChange({ endDate: e.target.value })}
+                aria-label="End date"
+                className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+              />
+            </Field>
+            <Field label="Months">
+              <InlineEdit
+                value={
+                  derivedMonths
+                    ? String(derivedMonths)
+                    : company.durationMonths
+                      ? String(company.durationMonths)
+                      : ''
+                }
+                onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
+                ariaLabel="Duration in months"
+                placeholder="0"
+                type="number"
+                mono
+              />
+            </Field>
+          </div>
+          {derivedMonths > 0 && (
+            <p className="mt-2 text-[10px] text-muted-foreground">Derived from the dates above.</p>
+          )}
+        </Section>
+
+        <Section icon={CalendarRange} title="Scheduled rounds">
+          {(company.schedule ?? []).length === 0 ? (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Nothing scheduled yet. Add a round once they give you a date.
+            </p>
+          ) : (
+            <ul className="mb-2 flex flex-col gap-2">
+              {(company.schedule ?? []).map((ev) => (
+                <li key={ev.id} className="flex flex-wrap items-center gap-1.5">
+                  <select
+                    aria-label="Stage for scheduled round"
+                    value={ev.stage}
+                    onChange={(e) => updateEvent(ev.id, { stage: e.target.value as PipelineStage })}
+                    className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-1 text-[10px] font-semibold"
+                    style={{ color: `var(${STAGE_COLOR_VAR[ev.stage]})` }}
+                  >
+                    {PIPELINE_STAGES.map((st) => (
+                      <option key={st} value={st} style={{ color: `var(${STAGE_COLOR_VAR[st]})` }}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    value={ev.date}
+                    onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
+                    aria-label="Scheduled date"
+                    className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                  />
+                  <input
+                    type="time"
+                    value={ev.time}
+                    onChange={(e) => updateEvent(ev.id, { time: e.target.value })}
+                    aria-label="Scheduled time"
+                    className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onFieldChange({
+                        schedule: (company.schedule ?? []).filter((x) => x.id !== ev.id),
+                      })
+                    }
+                    aria-label="Remove scheduled round"
+                    className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            type="button"
+            onClick={() =>
+              onFieldChange({ schedule: [...(company.schedule ?? []), makeScheduledEvent()] })
+            }
+            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="h-3 w-3" />
+            Add round
+          </button>
+        </Section>
+      </div>
+
+      {/* Row 4 - preparation */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Section icon={GraduationCap} title="Skills required">
           <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />

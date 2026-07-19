@@ -3,11 +3,19 @@
 import { useEffect, useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { ToggleSwitch } from './ToggleSwitch';
+import {
+  COMPENSATION_UNITS,
+  TRACKS,
+  type CompensationUnit,
+  type OpportunityTrack,
+} from '@/lib/constants/placement';
 
 export interface NewCompanyDraft {
   name: string;
   role: string;
-  package: number;
+  track: OpportunityTrack;
+  amount: number;
+  unit: CompensationUnit;
   location: string;
   deadlineDate: string;
   deadlineTime: string;
@@ -18,6 +26,8 @@ export interface NewCompanyDraft {
 }
 
 interface AddCompanyModalProps {
+  /** Whichever tab is open — new entries land there. */
+  track: OpportunityTrack;
   onCreate: (draft: NewCompanyDraft) => void;
   onClose: () => void;
 }
@@ -26,10 +36,15 @@ const inputClass =
   'pill-soft w-full bg-secondary/40 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground';
 const labelClass = 'text-[10px] font-bold uppercase tracking-wider text-muted-foreground';
 
-export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
+export function AddCompanyModal({ track, onCreate, onClose }: AddCompanyModalProps) {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [pkg, setPkg] = useState('');
+  const [draftTrack, setDraftTrack] = useState<OpportunityTrack>(track);
+  // Internships are quoted per month far more often than as an annual figure.
+  const [unit, setUnit] = useState<CompensationUnit>(
+    track === 'internship' ? 'per-month' : 'LPA',
+  );
   const [location, setLocation] = useState('');
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTime, setDeadlineTime] = useState('');
@@ -63,7 +78,9 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
     onCreate({
       name: name.trim(),
       role: role.trim(),
-      package: Number(pkg) || 0,
+      track: draftTrack,
+      amount: Number(pkg) || 0,
+      unit,
       location: location.trim(),
       deadlineDate,
       deadlineTime,
@@ -115,6 +132,29 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
             />
           </div>
 
+          <div className="flex flex-col gap-1">
+            <span className={labelClass}>Type</span>
+            <div className="flex items-center gap-1">
+              {TRACKS.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    setDraftTrack(t.value);
+                    setUnit(t.value === 'internship' ? 'per-month' : 'LPA');
+                  }}
+                  className={`flex-1 rounded-[10px] px-2 py-1.5 text-xs font-semibold transition-colors ${
+                    draftTrack === t.value
+                      ? 'bg-[var(--nav-active-bg)] text-primary'
+                      : 'bg-secondary/50 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t.label.replace(/s$/, '')}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className={labelClass} htmlFor="ac-role">Role</label>
@@ -127,17 +167,31 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className={labelClass} htmlFor="ac-package">Package (LPA)</label>
-              <input
-                id="ac-package"
-                type="number"
-                min="0"
-                step="0.1"
-                value={pkg}
-                onChange={(e) => setPkg(e.target.value)}
-                className={`${inputClass} font-mono`}
-                placeholder="12.5"
-              />
+              <label className={labelClass} htmlFor="ac-package">Compensation</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  id="ac-package"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={pkg}
+                  onChange={(e) => setPkg(e.target.value)}
+                  className={`${inputClass} font-mono`}
+                  placeholder={unit === 'LPA' ? '12.5' : '135000'}
+                />
+                <select
+                  aria-label="Compensation unit"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value as CompensationUnit)}
+                  className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1.5 font-mono text-[10px] text-foreground"
+                >
+                  {COMPENSATION_UNITS.map((u) => (
+                    <option key={u.value} value={u.value}>
+                      {u.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

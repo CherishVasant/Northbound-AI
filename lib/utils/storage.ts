@@ -383,7 +383,12 @@ export function setStoredData<T>(key: string, value: T): void {
 
 // ─── Placement Tracker Types ─────────────────────────────────────────────────
 
-import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
+import type {
+  PipelineStage,
+  PipelineState,
+  OpportunityTrack,
+  CompensationUnit,
+} from '@/lib/constants/placement';
 
 export interface PlacementNotes {
   content: string;
@@ -403,13 +408,44 @@ export interface StageEntry {
   date: string;
 }
 
+/** A round the company has already scheduled — what's coming, not what happened. */
+export interface ScheduledEvent {
+  id: string;
+  stage: PipelineStage;
+  /** yyyy-mm-dd */
+  date: string;
+  /** HH:mm (24h), '' when only a date is known */
+  time: string;
+  note: string;
+}
+
+/**
+ * Pay as the company stated it. Deliberately NOT normalised: an internship
+ * quoting 1.35L per month has no annual figure, and inventing one would imply
+ * a salary that was never offered.
+ *   { amount: 26,     unit: 'LPA' }       -> 26 LPA
+ *   { amount: 135000, unit: 'per-month' } -> 1.35L/mo
+ */
+export interface Compensation {
+  amount: number;
+  unit: CompensationUnit;
+}
+
 export interface PlacementCompany {
   /** Monotonic numeric id (see nextCompanyId) */
   id: number;
   name: string;
   role: string;
-  /** LPA; 0 when unset */
-  package: number;
+  /** Placement or internship. Internships convert, so this is a field on one
+   *  shared list rather than a separate table. */
+  track: OpportunityTrack;
+  compensation: Compensation;
+  /** yyyy-mm-dd, '' when unset — internship start */
+  startDate: string;
+  /** yyyy-mm-dd, '' when unset — internship end */
+  endDate: string;
+  /** Stated length when no explicit dates are given ("2 month internship"); 0 when unset */
+  durationMonths: number;
   location: string;
   optedIn: boolean;
   registered: boolean;
@@ -423,6 +459,8 @@ export interface PlacementCompany {
   notes: string;
   /** Ordered oldest-first; last entry is the current status */
   history: StageEntry[];
+  /** Known upcoming rounds, distinct from the history log */
+  schedule: ScheduledEvent[];
 }
 
 export interface PlacementCustomOptions {

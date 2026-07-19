@@ -6,6 +6,7 @@ import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, type PlacementCompany } from '@/lib/utils/storage';
 import {
   FIRST_STAGE,
+  type OpportunityTrack,
   type OptedFilter,
   type PipelineStage,
   type PipelineState,
@@ -52,6 +53,7 @@ export default function PlacementPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [optedFilter, setOptedFilter] = useState<OptedFilter>('all');
+  const [track, setTrack] = useState<OpportunityTrack>('placement');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   // Several rows may stay open at once; expanding one no longer closes another.
@@ -69,7 +71,7 @@ export default function PlacementPage() {
   }, [stored, setStored]);
 
   const visibleCompanies = useMemo(() => {
-    let list = companies;
+    let list = companies.filter((c) => c.track === track);
 
     if (optedFilter === 'in') list = list.filter((c) => c.optedIn);
     else if (optedFilter === 'out') list = list.filter((c) => !c.optedIn);
@@ -82,7 +84,7 @@ export default function PlacementPage() {
     }
 
     return list;
-  }, [companies, optedFilter, searchQuery]);
+  }, [companies, track, optedFilter, searchQuery]);
 
   /** True only when every currently visible row is open. */
   const allExpanded =
@@ -213,7 +215,11 @@ export default function PlacementPage() {
           id: nextCompanyId(prev),
           name: draft.name,
           role: draft.role,
-          package: draft.package,
+          track: draft.track,
+          compensation: { amount: draft.amount, unit: draft.unit },
+          startDate: '',
+          endDate: '',
+          durationMonths: 0,
           location: draft.location,
           optedIn: draft.optedIn,
           registered: false,
@@ -224,6 +230,7 @@ export default function PlacementPage() {
           notes: draft.notes,
           // Seed a starting entry so an opted-in row isn't blank.
           history: draft.optedIn ? [makeStageEntry(FIRST_STAGE, 'Preparing')] : [],
+          schedule: [],
         },
       ]);
       setShowAddModal(false);
@@ -259,13 +266,24 @@ export default function PlacementPage() {
         </button>
       </div>
 
-      <PlacementStatsStrip companies={companies} />
+      <PlacementStatsStrip companies={companies.filter((c) => c.track === track)} />
 
       <PlacementToolbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         optedFilter={optedFilter}
         onOptedFilterChange={setOptedFilter}
+        track={track}
+        onTrackChange={(t) => {
+          setTrack(t);
+          // Selections and open rows belong to the tab they were made in.
+          setSelectedIds([]);
+          setExpandedIds([]);
+        }}
+        counts={{
+          placement: companies.filter((c) => c.track === 'placement').length,
+          internship: companies.filter((c) => c.track === 'internship').length,
+        }}
         allExpanded={allExpanded}
         onToggleExpandAll={() =>
           setExpandedIds(allExpanded ? [] : visibleCompanies.map((c) => c.id))
@@ -326,7 +344,8 @@ export default function PlacementPage() {
       />
 
       {showAddModal && (
-        <AddCompanyModal onCreate={handleCreate} onClose={() => setShowAddModal(false)} />
+        <AddCompanyModal
+          track={track} onCreate={handleCreate} onClose={() => setShowAddModal(false)} />
       )}
     </div>
   );
