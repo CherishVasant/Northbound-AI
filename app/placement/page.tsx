@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, type PlacementCompany } from '@/lib/utils/storage';
 import {
@@ -24,6 +24,7 @@ import {
   AddCompanyModal,
   type NewCompanyDraft,
 } from '@/components/features/placement/AddCompanyModal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function PlacementPage() {
   // Raw persisted value — may still hold pre-redesign records, either on first
@@ -52,6 +53,8 @@ export default function PlacementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [optedFilter, setOptedFilter] = useState<OptedFilter>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Persist the migration once so the reshape survives a reload and reaches
   // MongoDB. Rendering already uses the migrated value regardless.
@@ -167,12 +170,27 @@ export default function PlacementPage() {
     [setCompanies],
   );
 
-  const handleDelete = useCallback(
-    (id: number) => {
-      setCompanies((prev) => prev.filter((c) => c.id !== id));
+  /**
+   * Removes one logged stage. The row's selects follow whatever becomes the new
+   * last entry, since they read from history rather than holding their own
+   * committed state.
+   */
+  const handleDeleteHistoryEntry = useCallback(
+    (id: number, index: number) => {
+      updateCompany(id, (c) => ({
+        ...c,
+        history: c.history.filter((_, i) => i !== index),
+      }));
     },
-    [setCompanies],
+    [updateCompany],
   );
+
+  /** Deletes every selected company. Only ever called from the confirm dialog. */
+  const handleDeleteSelected = useCallback(() => {
+    setCompanies((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
+    setSelectedIds([]);
+    setConfirmDelete(false);
+  }, [setCompanies, selectedIds]);
 
   const handleCreate = useCallback(
     (draft: NewCompanyDraft) => {
@@ -237,15 +255,55 @@ export default function PlacementPage() {
         onOptedFilterChange={setOptedFilter}
       />
 
+      {selectedIds.length > 0 && (
+        <div className="mx-3 mb-2 flex flex-wrap items-center gap-2 px-1 sm:mx-6">
+          <span className="text-xs font-semibold text-foreground">
+            {selectedIds.length} selected
+          </span>
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive"
+          >
+            <Trash2 className="h-3 w-3" />
+            Delete
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3 w-3" />
+            Clear
+          </button>
+        </div>
+      )}
+
       <PlacementTable
         companies={visibleCompanies}
         onStatusChange={handleStatusChange}
         onDeadlineChange={handleDeadlineChange}
         onOptedInChange={handleOptedInChange}
         onFieldChange={handleFieldChange}
+        onDeleteHistoryEntry={handleDeleteHistoryEntry}
         serialOf={serialOf}
         onReorder={handleReorder}
-        onDelete={handleDelete}
+        selectedIds={selectedIds}
+        onSelectedChange={setSelectedIds}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDelete}
+        isDestructive
+        title={`Delete ${selectedIds.length} compan${selectedIds.length === 1 ? 'y' : 'ies'}?`}
+        description={
+          selectedIds.length === 1
+            ? `"${companies.find((c) => c.id === selectedIds[0])?.name || 'This company'}" and its stage history will be permanently removed. This cannot be undone.`
+            : `${selectedIds.length} companies and all their stage history will be permanently removed. This cannot be undone.`
+        }
+        confirmLabel="Delete"
+        onConfirm={handleDeleteSelected}
+        onCancel={() => setConfirmDelete(false)}
       />
 
       {showAddModal && (

@@ -13,7 +13,9 @@ interface PlacementTableProps {
   onDeadlineChange: (id: number, date: string, time: string) => void;
   onOptedInChange: (id: number, optedIn: boolean) => void;
   onFieldChange: (id: number, patch: Partial<PlacementCompany>) => void;
-  onDelete: (id: number) => void;
+  onDeleteHistoryEntry: (id: number, index: number) => void;
+  selectedIds: number[];
+  onSelectedChange: (ids: number[]) => void;
   /** Position in the FULL list, so numbering survives filtering. */
   serialOf: (id: number) => number;
   onReorder: (sourceId: number, targetId: number) => void;
@@ -34,7 +36,7 @@ const HEADERS: { label: string; cls: string }[] = [
   { label: 'Status', cls: 'w-full' },
   { label: 'Deadline', cls: 'hidden w-[150px] lg:table-cell' },
   { label: 'Opted In', cls: 'w-[76px]' },
-  { label: '', cls: 'w-8' },
+  { label: '', cls: 'w-9' },
 ];
 
 /**
@@ -47,7 +49,9 @@ export function PlacementTable({
   onDeadlineChange,
   onOptedInChange,
   onFieldChange,
-  onDelete,
+  onDeleteHistoryEntry,
+  selectedIds,
+  onSelectedChange,
   serialOf,
   onReorder,
 }: PlacementTableProps) {
@@ -104,7 +108,15 @@ export function PlacementTable({
                 onDeadlineChange={(date, time) => onDeadlineChange(company.id, date, time)}
                 onOptedInChange={(optedIn) => onOptedInChange(company.id, optedIn)}
                 onFieldChange={(patch) => onFieldChange(company.id, patch)}
-                onDelete={() => onDelete(company.id)}
+                onDeleteHistoryEntry={(i) => onDeleteHistoryEntry(company.id, i)}
+                selected={selectedIds.includes(company.id)}
+                onSelectedChange={(sel) =>
+                  onSelectedChange(
+                    sel
+                      ? [...selectedIds, company.id]
+                      : selectedIds.filter((x) => x !== company.id),
+                  )
+                }
               />
             ))}
           </tbody>

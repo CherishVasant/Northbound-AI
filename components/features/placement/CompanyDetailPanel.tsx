@@ -17,6 +17,8 @@ import { InlineEdit } from './InlineEdit';
 interface CompanyDetailPanelProps {
   company: PlacementCompany;
   onFieldChange: (patch: Partial<PlacementCompany>) => void;
+  /** Index into the stored (oldest-first) history array. */
+  onDeleteHistoryEntry: (index: number) => void;
 }
 
 /** '2026-07-26' → '26 Jul 2026' */
@@ -179,7 +181,11 @@ function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: stri
   );
 }
 
-export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPanelProps) {
+export function CompanyDetailPanel({
+  company,
+  onFieldChange,
+  onDeleteHistoryEntry,
+}: CompanyDetailPanelProps) {
   // A company that isn't opted in has no pipeline. The log stays in storage so
   // re-opting in resumes where it left off, but it isn't shown.
   const timeline = company.optedIn ? [...(company.history ?? [])].reverse() : [];
@@ -202,8 +208,10 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
               {timeline.map((entry, i) => {
                 const color = `var(${stateColorVar(entry.stage, entry.status)})`;
                 const isCurrent = i === 0;
+                // Displayed newest-first; convert back to the stored index.
+                const storedIndex = timeline.length - 1 - i;
                 return (
-                  <li key={`${entry.stage}-${entry.date}-${i}`} className="relative flex gap-3">
+                  <li key={`${entry.stage}-${entry.date}-${i}`} className="group/entry relative flex gap-3">
                     <span
                       className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{
@@ -243,6 +251,16 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
                         )}
                       </span>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onDeleteHistoryEntry(storedIndex)}
+                      title="Remove this entry"
+                      aria-label={`Remove ${entry.stage} entry`}
+                      className="ml-auto mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-100 transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2 sm:opacity-0 sm:group-hover/entry:opacity-100 sm:focus-visible:opacity-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </li>
                 );
               })}

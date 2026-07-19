@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, Trash2, GripVertical } from 'lucide-react';
+import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 import { ToggleSwitch } from './ToggleSwitch';
@@ -24,7 +24,9 @@ interface PlacementRowProps {
   onDeadlineChange: (date: string, time: string) => void;
   onOptedInChange: (optedIn: boolean) => void;
   onFieldChange: (patch: Partial<PlacementCompany>) => void;
-  onDelete: () => void;
+  onDeleteHistoryEntry: (index: number) => void;
+  selected: boolean;
+  onSelectedChange: (selected: boolean) => void;
 }
 
 export function PlacementRow({
@@ -39,7 +41,9 @@ export function PlacementRow({
   onDeadlineChange,
   onOptedInChange,
   onFieldChange,
-  onDelete,
+  onDeleteHistoryEntry,
+  selected,
+  onSelectedChange,
 }: PlacementRowProps) {
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
@@ -149,22 +153,25 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-8 py-2.5 pr-3 align-middle sm:pr-4">
-          <button
-            type="button"
-            onClick={onDelete}
-            aria-label={`Delete ${company.name || 'company'}`}
-            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-2 sm:opacity-0 sm:group-hover:opacity-100"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+        <td className="w-9 py-2.5 pr-3 align-middle sm:pr-4">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => onSelectedChange(e.target.checked)}
+            aria-label={`Select ${company.name || 'company'}`}
+            className="h-3.5 w-3.5 cursor-pointer accent-[var(--primary)]"
+          />
         </td>
       </tr>
 
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
           <td colSpan={9} className="p-0">
-            <CompanyDetailPanel company={company} onFieldChange={onFieldChange} />
+            <CompanyDetailPanel
+              company={company}
+              onFieldChange={onFieldChange}
+              onDeleteHistoryEntry={onDeleteHistoryEntry}
+            />
           </td>
         </tr>
       )}

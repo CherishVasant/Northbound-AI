@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { Check, Undo2 } from 'lucide-react';
 import type { StageEntry } from '@/lib/utils/storage';
 import {
   PIPELINE_STAGES,
@@ -19,15 +21,34 @@ interface StatusSelectsProps {
 }
 
 /**
- * The Status cell for an opted-in company: two adjacent selects driven entirely
- * by the last history entry. This is the only way status is ever edited — there
- * is no separate edit mode or dialog.
+ * The Status cell for an opted-in company: two adjacent selects.
+ *
+ * Changing a select stages a PENDING selection rather than writing to history
+ * immediately. Nothing is logged until the tick is pressed, so browsing the
+ * dropdowns to see what a stage looks like can't leave a trail of entries
+ * behind. The undo arrow drops the pending change and snaps back to what is
+ * actually recorded.
  */
 export function StatusSelects({ history, onChange }: StatusSelectsProps) {
   const entries = Array.isArray(history) ? history : [];
   const last = entries.length ? entries[entries.length - 1] : null;
-  const stage: PipelineStage = last?.stage ?? FIRST_STAGE;
-  const state: PipelineState = last?.status ?? 'Preparing';
+  const committedStage: PipelineStage = last?.stage ?? FIRST_STAGE;
+  const committedState: PipelineState = last?.status ?? 'Preparing';
+
+  const [stage, setStage] = useState<PipelineStage>(committedStage);
+  const [state, setState] = useState<PipelineState>(committedState);
+
+  // Re-sync when the record changes underneath us — a committed log entry, a
+  // deleted one, or a sync landing.
+  useEffect(() => {
+    setStage(committedStage);
+    setState(committedState);
+  }, [committedStage, committedState]);
+
+  const dirty = stage !== committedStage || state !== committedState;
+  // With no history at all there is nothing recorded yet, so even the default
+  // selection is worth offering to log.
+  const canLog = dirty || entries.length === 0;
 
   const stageVar = STAGE_COLOR_VAR[stage];
   const stateVar = stateColorVar(stage, state);
@@ -50,14 +71,10 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
       <select
         aria-label="Pipeline stage"
-        className={selectBase}
+        className={`${selectBase} ${dirty ? 'ring-1 ring-primary/50' : ''}`}
         value={stage}
-        onChange={(e) => onChange(e.target.value as PipelineStage, state)}
-        style={{
-          color: `var(${stageVar})`,
-          backgroundColor: tint(stageVar),
-          ...chevron,
-        }}
+        onChange={(e) => setStage(e.target.value as PipelineStage)}
+        style={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar), ...chevron }}
       >
         {PIPELINE_STAGES.map((s) => (
           <option
@@ -73,14 +90,10 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
 
       <select
         aria-label="Stage status"
-        className={selectBase}
+        className={`${selectBase} ${dirty ? 'ring-1 ring-primary/50' : ''}`}
         value={state}
-        onChange={(e) => onChange(stage, e.target.value as PipelineState)}
-        style={{
-          color: `var(${stateVar})`,
-          backgroundColor: tint(stateVar),
-          ...chevron,
-        }}
+        onChange={(e) => setState(e.target.value as PipelineState)}
+        style={{ color: `var(${stateVar})`, backgroundColor: tint(stateVar), ...chevron }}
       >
         {PIPELINE_STATES.map((s) => (
           <option
@@ -95,6 +108,34 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
           </option>
         ))}
       </select>
+
+      {canLog && (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onChange(stage, state)}
+            title="Log this stage to the history"
+            aria-label="Log this stage to the history"
+            className="pill-soft pill-soft-interactive flex h-6 w-6 items-center justify-center bg-primary/15 text-primary"
+          >
+            <Check className="h-3 w-3" />
+          </button>
+          {dirty && (
+            <button
+              type="button"
+              onClick={() => {
+                setStage(committedStage);
+                setState(committedState);
+              }}
+              title="Discard this change"
+              aria-label="Discard this change"
+              className="pill-soft pill-soft-interactive flex h-6 w-6 items-center justify-center bg-secondary/60 text-muted-foreground hover:text-foreground"
+            >
+              <Undo2 className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
