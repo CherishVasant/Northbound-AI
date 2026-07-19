@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getApiUrl } from '@/lib/api'
+import { adoptServerValue, getSyncedAt, setSyncedAt } from '@/lib/syncMeta'
 
 // Global tracking objects for sync status and timeouts
 if (typeof window !== 'undefined') {
@@ -97,10 +98,28 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
           fetch(getApiUrl(`/api/sync/${username}`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key, value: valueToStore })
+            // The server compares this against its own timestamp and refuses
+            // the write if it has newer data, rather than letting a stale tab
+            // overwrite it.
+            body: JSON.stringify({ key, value: valueToStore, baseUpdatedAt: getSyncedAt(key) }),
           })
-            .then((res) => {
-              if (!res.ok) throw new Error('Server returned non-2xx status')
+            .then(async (res) => {
+              if (res.status === 409) {
+                // The server moved on. Take its copy rather than clobbering it;
+                // this browser's edit is discarded on purpose.
+                const body = await res.json().catch(() => null)
+                if (body?.serverValue !== undefined) {
+                  console.warn(
+                    `[Sync] Server had newer data for ${key}; adopting the server copy.`,
+                  )
+                  adoptServerValue(key, body.serverValue, body.serverUpdatedAt)
+                }
+                updateGlobalSyncStatus(key, 'saved')
+                return
+              }
+              if (!res.ok) throw new Error(`Server returned ${res.status}`)
+              const body = await res.json().catch(() => null)
+              if (body?.updatedAt) setSyncedAt(key, body.updatedAt)
               updateGlobalSyncStatus(key, 'saved')
             })
             .catch((err) => {

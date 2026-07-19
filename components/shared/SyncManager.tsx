@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User, Lock, Mail, ShieldCheck, Loader2 } from 'lucide-react';
 import { getApiUrl, parseResponseBody } from '@/lib/api';
+import { SYNC_META_KEY, adoptServerValue, serverIsAhead, setSyncedAt } from '@/lib/syncMeta';
 
 export function SyncManager() {
   const [isMounted, setIsMounted] = useState(false);
@@ -73,12 +74,10 @@ export function SyncManager() {
       const syncData = typeof syncPayload === 'object' && syncPayload !== null ? syncPayload : {};
 
       // Write synced collections directly into localStorage
+      const meta = (syncData[SYNC_META_KEY] ?? {}) as Record<string, string>;
       Object.entries(syncData).forEach(([key, value]) => {
-        window.localStorage.setItem(key, JSON.stringify(value));
-        // Dispatch storage update event for live UI synchrony
-        window.dispatchEvent(
-          new CustomEvent('preptrack_storage_update', { detail: { key, value } })
-        );
+        if (key === SYNC_META_KEY) return; // bookkeeping, not a storage key
+        adoptServerValue(key, value, meta[key]);
       });
 
       // Commit login states
@@ -105,28 +104,41 @@ export function SyncManager() {
   useEffect(() => {
     if (!username) return;
 
-    const isSyncedThisSession = window.sessionStorage.getItem('preptrack_synced') === 'true';
-    if (!isSyncedThisSession) {
-      const autoSync = async () => {
-        try {
-          const res = await fetch(getApiUrl(`/api/sync/${username}`));
-          if (res.ok) {
-            const syncPayload = await parseResponseBody<Record<string, unknown> | string>(res, {});
-            const syncData = typeof syncPayload === 'object' && syncPayload !== null ? syncPayload : {};
-            Object.entries(syncData).forEach(([key, value]) => {
-              window.localStorage.setItem(key, JSON.stringify(value));
-              window.dispatchEvent(
-                new CustomEvent('preptrack_storage_update', { detail: { key, value } })
-              );
-            });
-            window.sessionStorage.setItem('preptrack_synced', 'true');
+    /**
+     * Pull on every load, not once per browser session. The old session gate
+     * meant a tab opened before a server-side change never saw it — data could
+     * sit on the server indefinitely while this browser showed a stale copy and
+     * happily overwrote it on the next edit.
+     *
+     * Only keys the server has touched more recently than this browser are
+     * adopted, so unsent local edits are left alone to be pushed normally.
+     */
+    const pullFromServer = async () => {
+      try {
+        const res = await fetch(getApiUrl(`/api/sync/${username}`));
+        if (!res.ok) return;
+        const payload = await parseResponseBody<Record<string, unknown> | string>(res, {});
+        const syncData = typeof payload === 'object' && payload !== null ? payload : {};
+        const meta = ((syncData as any)[SYNC_META_KEY] ?? {}) as Record<string, string>;
+
+        let adopted = 0;
+        Object.entries(syncData).forEach(([key, value]) => {
+          if (key === SYNC_META_KEY) return;
+          if (serverIsAhead(key, meta[key])) {
+            adoptServerValue(key, value, meta[key]);
+            adopted += 1;
+          } else if (meta[key]) {
+            setSyncedAt(key, meta[key]);
           }
-        } catch (err) {
-          console.warn('[SyncManager] Auto-sync failed, running in local-offline state.', err);
+        });
+        if (adopted > 0) {
+          console.info(`[SyncManager] Adopted ${adopted} collection(s) newer on the server.`);
         }
-      };
-      autoSync();
-    }
+      } catch (err) {
+        console.warn('[SyncManager] Pull failed, running in local-offline state.', err);
+      }
+    };
+    pullFromServer();
   }, [username]);
 
   // Form handlers

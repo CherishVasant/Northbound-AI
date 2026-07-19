@@ -247,6 +247,11 @@ const UserDataSchema = new Schema(
     dsaConcepts: { type: [ConceptTopicSchema], default: [] },
     placementCompanies: { type: [PlacementCompanySchema], default: [] },
     placementCustomOptions: { type: PlacementCustomOptionsSchema, default: () => ({}) },
+    /**
+     * Per-storage-key last-write timestamps, used to reject writes based on a
+     * stale copy. Mixed because the key set is the client's STORAGE_KEYS map.
+     */
+    syncMeta: { type: Schema.Types.Mixed, default: () => ({}) },
   },
   { timestamps: true },
 )

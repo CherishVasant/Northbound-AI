@@ -17,6 +17,13 @@ const KEY_MAP: Record<string, string> = {
   placement_custom_options: 'placementCustomOptions',
 }
 
+/**
+ * Reserved key carrying each collection's last-write time. Sent alongside the
+ * data on GET so the client can tell whether the server moved on since it last
+ * synced. Not a storage key — the client strips it before writing localStorage.
+ */
+export const SYNC_META_KEY = '_syncMeta'
+
 function dbUnavailable(scope: string, err: unknown) {
   console.error(`[sync/${scope}] database unavailable:`, err)
   // Report the failure rather than faking success — the client surfaces this as
@@ -50,10 +57,13 @@ export async function GET(
       await userData.save()
     }
 
+    const meta = (userData.syncMeta ?? {}) as Record<string, string>
     const response: Record<string, unknown> = {}
     for (const [storageKey, dbField] of Object.entries(KEY_MAP)) {
       response[storageKey] = userData[dbField] ?? []
     }
+    // Lets the client detect a server that has moved ahead of it.
+    response[SYNC_META_KEY] = meta
 
     return NextResponse.json(response)
   } catch (error) {
@@ -69,7 +79,7 @@ export async function POST(
   try {
     const { username: raw } = await params
     const username = decodeURIComponent(raw).trim().toLowerCase()
-    const { key, value } = await request.json()
+    const { key, value, baseUpdatedAt } = await request.json()
 
     if (!username) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 })
@@ -91,17 +101,50 @@ export async function POST(
       userData = new UserData({ username })
     }
 
+    const meta = ((userData.syncMeta ?? {}) as Record<string, string>) || {}
+    const serverUpdatedAt = meta[key]
+
+    /**
+     * Conflict guard. The client sends the timestamp it last saw for this key;
+     * if the server has been written since, this request is based on stale data
+     * and applying it would silently destroy the newer copy. Reject instead and
+     * hand back what the server holds so the client can adopt it.
+     *
+     * A client with no timestamp at all is treated as stale whenever the server
+     * already has data — that is exactly the "tab open since before the change"
+     * case that wiped this collection twice.
+     */
+    if (serverUpdatedAt) {
+      const stale =
+        !baseUpdatedAt || new Date(baseUpdatedAt).getTime() < new Date(serverUpdatedAt).getTime()
+      if (stale) {
+        return NextResponse.json(
+          {
+            conflict: true,
+            error: 'The server has newer data for this key.',
+            serverValue: userData[dbField] ?? [],
+            serverUpdatedAt,
+          },
+          { status: 409 },
+        )
+      }
+    }
+
     userData[dbField] = value
 
-    // The browser's localStorage is the source of truth, so persist client data
-    // as-is: one record with an unexpected enum value must never block the whole
-    // sync and cause silent data loss. Type casting still applies.
+    const now = new Date().toISOString()
+    userData.syncMeta = { ...meta, [key]: now }
+    userData.markModified('syncMeta')
+
+    // The browser's localStorage is the source of truth for shape, so persist
+    // client data as-is: one record with an unexpected enum value must never
+    // block the whole sync. Type casting still applies.
     await userData.save({ validateBeforeSave: false })
 
     return NextResponse.json({
       success: true,
       message: `Successfully synchronized ${key}`,
-      updatedAt: userData.updatedAt,
+      updatedAt: now,
     })
   } catch (error) {
     console.error('[sync/POST] error:', error)
