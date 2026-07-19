@@ -54,6 +54,8 @@ export default function PlacementPage() {
   const [optedFilter, setOptedFilter] = useState<OptedFilter>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  // Several rows may stay open at once; expanding one no longer closes another.
+  const [expandedIds, setExpandedIds] = useState<number[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Persist the migration once so the reshape survives a reload and reaches
@@ -81,6 +83,11 @@ export default function PlacementPage() {
 
     return list;
   }, [companies, optedFilter, searchQuery]);
+
+  /** True only when every currently visible row is open. */
+  const allExpanded =
+    visibleCompanies.length > 0 &&
+    visibleCompanies.every((c) => expandedIds.includes(c.id));
 
   const updateCompany = useCallback(
     (id: number, patch: (c: PlacementCompany) => PlacementCompany) => {
@@ -170,6 +177,12 @@ export default function PlacementPage() {
     [setCompanies],
   );
 
+  const handleToggleExpand = useCallback((id: number) => {
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }, []);
+
   /**
    * Removes one logged stage. The row's selects follow whatever becomes the new
    * last entry, since they read from history rather than holding their own
@@ -253,6 +266,10 @@ export default function PlacementPage() {
         onSearchChange={setSearchQuery}
         optedFilter={optedFilter}
         onOptedFilterChange={setOptedFilter}
+        allExpanded={allExpanded}
+        onToggleExpandAll={() =>
+          setExpandedIds(allExpanded ? [] : visibleCompanies.map((c) => c.id))
+        }
       />
 
       {selectedIds.length > 0 && (
@@ -290,6 +307,8 @@ export default function PlacementPage() {
         onReorder={handleReorder}
         selectedIds={selectedIds}
         onSelectedChange={setSelectedIds}
+        expandedIds={expandedIds}
+        onToggleExpand={handleToggleExpand}
       />
 
       <ConfirmDialog

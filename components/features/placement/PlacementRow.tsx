@@ -125,7 +125,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-full py-2.5 pr-3 align-middle">
+        <td className="w-full py-2.5 pl-4 pr-3 align-middle">
           {company.optedIn ? (
             <StatusSelects history={company.history} onChange={onStatusChange} />
           ) : (

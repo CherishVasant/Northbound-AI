@@ -136,7 +136,7 @@
   /* Placement pipeline — stage identity colors. Light-mode values are darkened
      for contrast against white surfaces; the dark block carries the values the
      design was authored against. */
-  --stage-resume: #64748b;
+  --stage-resume: #4f7cac;
   --stage-coding: #0891b2;
   --stage-gd: #db2777;
   --stage-tech: #ea580c;
@@ -223,7 +223,7 @@ html[data-theme='dark'],
   --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
 
   /* Stage + state colors as authored for the dark design. */
-  --stage-resume: #94a3b8;
+  --stage-resume: #8ab4e8;
   --stage-coding: #22d3ee;
   --stage-gd: #f472b6;
   --stage-tech: #fb923c;

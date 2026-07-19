@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Building2 } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
@@ -16,6 +15,9 @@ interface PlacementTableProps {
   onDeleteHistoryEntry: (id: number, index: number) => void;
   selectedIds: number[];
   onSelectedChange: (ids: number[]) => void;
+  /** Lifted so the toolbar can expand or collapse everything at once. */
+  expandedIds: number[];
+  onToggleExpand: (id: number) => void;
   /** Position in the FULL list, so numbering survives filtering. */
   serialOf: (id: number) => number;
   onReorder: (sourceId: number, targetId: number) => void;
@@ -33,7 +35,7 @@ const HEADERS: { label: string; cls: string }[] = [
   { label: 'Role', cls: 'hidden w-[116px] sm:table-cell' },
   { label: 'Package', cls: 'hidden w-[94px] xl:table-cell' },
   // w-full: absorbs the slack so the three columns above stay tucked together.
-  { label: 'Status', cls: 'w-full' },
+  { label: 'Status', cls: 'w-full pl-4' },
   { label: 'Deadline', cls: 'hidden w-[150px] lg:table-cell' },
   { label: 'Opted In', cls: 'w-[76px]' },
   { label: '', cls: 'w-9' },
@@ -54,8 +56,9 @@ export function PlacementTable({
   onSelectedChange,
   serialOf,
   onReorder,
+  expandedIds,
+  onToggleExpand,
 }: PlacementTableProps) {
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
 
   if (companies.length === 0) {
@@ -100,10 +103,8 @@ export function PlacementTable({
                 dragging={draggingId === company.id}
                 onHandlePointerDown={(e) => handlePointerDown(e, company.id)}
                 onRowPointerDown={(e) => rowPointerDown(e, company.id)}
-                expanded={expandedId === company.id}
-                onToggleExpand={() =>
-                  setExpandedId((prev) => (prev === company.id ? null : company.id))
-                }
+                expanded={expandedIds.includes(company.id)}
+                onToggleExpand={() => onToggleExpand(company.id)}
                 onStatusChange={(stage, state) => onStatusChange(company.id, stage, state)}
                 onDeadlineChange={(date, time) => onDeadlineChange(company.id, date, time)}
                 onOptedInChange={(optedIn) => onOptedInChange(company.id, optedIn)}

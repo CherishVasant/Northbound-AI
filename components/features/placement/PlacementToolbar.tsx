@@ -1,6 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { OPTED_FILTERS, type OptedFilter } from '@/lib/constants/placement';
 
 interface PlacementToolbarProps {
@@ -8,6 +9,8 @@ interface PlacementToolbarProps {
   onSearchChange: (q: string) => void;
   optedFilter: OptedFilter;
   onOptedFilterChange: (f: OptedFilter) => void;
+  allExpanded: boolean;
+  onToggleExpandAll: () => void;
 }
 
 export function PlacementToolbar({
@@ -15,6 +18,8 @@ export function PlacementToolbar({
   onSearchChange,
   optedFilter,
   onOptedFilterChange,
+  allExpanded,
+  onToggleExpandAll,
 }: PlacementToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
@@ -55,6 +60,19 @@ export function PlacementToolbar({
           );
         })}
       </div>
+
+      <button
+        type="button"
+        onClick={onToggleExpandAll}
+        className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground sm:ml-auto"
+      >
+        {allExpanded ? (
+          <ChevronsDownUp className="h-3 w-3" />
+        ) : (
+          <ChevronsUpDown className="h-3 w-3" />
+        )}
+        {allExpanded ? 'Collapse all' : 'Expand all'}
+      </button>
     </div>
   );
 }
