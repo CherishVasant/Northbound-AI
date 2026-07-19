@@ -163,11 +163,13 @@
   );
 
   /* Placement pipeline — state colors (independent of stage). */
-  --state-preparing: #7c3aed;
-  --state-waiting: #b45309;
-  --state-done: #2563eb;
+  /* States sit next to the stage control, so they take warm hues (plus a true
+     green) that the stage gradient — pink through blue to mint — never uses. */
+  --state-preparing: #ea580c;
+  --state-waiting: #ca8a04;
+  --state-done: #16a34a;
   --state-rejected: #dc2626;
-  /* Offer + Done reads as "Offer Received". */
+  /* Offer + Done reads as "Offer Received" — brand teal, not the plain green. */
   --state-offer: #0d9488;
 
   --radius-card: 16px;
@@ -266,11 +268,11 @@ html[data-theme='dark'],
     var(--pink) 100%
   );
 
-  --state-preparing: #a78bfa;
-  --state-waiting: #f0b344;
-  --state-done: #5b9dfb;
+  --state-preparing: #fb923c;
+  --state-waiting: #facc15;
+  --state-done: #22c55e;
   --state-rejected: #f2596b;
-  --state-offer: #2dd4a7;
+  --state-offer: #6ee7b7;
 
   /* --radius-card is theme-independent; inherited from :root. */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 14px rgba(0, 0, 0, 0.32);
