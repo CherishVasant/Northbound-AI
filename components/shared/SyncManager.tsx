@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Lock, Mail, ShieldCheck, Loader2 } from 'lucide-react';
+import { User, Lock, ShieldCheck, Loader2 } from 'lucide-react';
 import { getApiUrl, parseResponseBody } from '@/lib/api';
 import { SYNC_META_KEY, adoptServerValue, serverIsAhead, setSyncedAt } from '@/lib/syncMeta';
 
@@ -18,7 +18,6 @@ export function SyncManager() {
 
   // Register form state
   const [regUsername, setRegUsername] = useState('');
-  const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
@@ -36,7 +35,6 @@ export function SyncManager() {
       setLoginInput('');
       setLoginPassword('');
       setRegUsername('');
-      setRegEmail('');
       setRegPassword('');
       setRegConfirmPassword('');
       setActiveTab('login');
@@ -204,7 +202,6 @@ export function SyncManager() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: regUsername.trim(),
-          email: regEmail.trim(),
           password: regPassword,
         }),
       });
@@ -328,18 +325,6 @@ export function SyncManager() {
                 onChange={(e) => setRegUsername(e.target.value)}
                 disabled={isSyncing}
                 required
-                className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
-              />
-            </div>
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <input
-                type="email"
-                placeholder="Email Address (optional)"
-                value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
-                disabled={isSyncing}
                 className="w-full h-10 pl-9 pr-3 pill-soft bg-background focus:outline-none focus:ring-2 focus:ring-primary text-xs"
               />
             </div>

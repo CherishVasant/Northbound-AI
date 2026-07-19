@@ -1,10 +1,11 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutGrid, BarChart3, Book, BookOpen, Code2, Briefcase, Award, Bot, Menu, X, Cloud, RefreshCw, AlertCircle, LogOut, HelpCircle, Building2, MoonStar, SunMedium } from 'lucide-react';
+import { LayoutGrid, BarChart3, Book, BookOpen, Code2, Briefcase, Award, Bot, Menu, X, Cloud, RefreshCw, AlertCircle, LogOut, HelpCircle, Building2, MoonStar, SunMedium, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { NorthboundBrand } from '@/components/shared/NorthboundBrand';
+import { SettingsModal } from '@/components/shared/SettingsModal';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -22,6 +23,7 @@ export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem('northbound-theme');
@@ -140,9 +142,18 @@ export function Navbar() {
 
               {/* Logout/Switch */}
               <button
+                onClick={() => setShowSettings(true)}
+                title="Settings"
+                aria-label="Open settings"
+                className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors ml-1"
+              >
+                <Settings className="w-3 h-3" />
+              </button>
+
+              <button
                 onClick={handleSwitchProfile}
                 title="Switch Profile"
-                className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors ml-1"
+                className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
               >
                 <LogOut className="w-3 h-3" />
               </button>
@@ -204,6 +215,9 @@ export function Navbar() {
             })}
           </nav>
         </div>
+      )}
+      {showSettings && username && (
+        <SettingsModal username={username} onClose={() => setShowSettings(false)} />
       )}
     </header>
   );
