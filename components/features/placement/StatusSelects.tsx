@@ -15,25 +15,26 @@ import {
   type PipelineStage,
   type PipelineState,
 } from '@/lib/constants/placement';
-
-/** Native chevron is hidden by `appearance-none`; this redraws it in the
- *  current text colour so it tracks the stage/state tint. */
-const CHEVRON_SVG =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='currentColor' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")";
+import { ColorSelect, type ColorOption } from './ColorSelect';
 
 interface StatusSelectsProps {
   history: StageEntry[];
   onChange: (stage: PipelineStage, state: PipelineState) => void;
 }
 
+const AURORA = 'var(--aurora-solid)';
+
 /**
- * The Status cell for an opted-in company: two adjacent selects.
+ * The Status cell for an opted-in company: two adjacent dropdowns.
  *
- * Changing a select stages a PENDING selection rather than writing to history
+ * Changing one stages a PENDING selection rather than writing to history
  * immediately. Nothing is logged until the tick is pressed, so browsing the
- * dropdowns to see what a stage looks like can't leave a trail of entries
- * behind. The undo arrow drops the pending change and snaps back to what is
- * actually recorded.
+ * options to see what a stage looks like can't leave a trail of entries behind.
+ * The undo arrow drops the pending change and snaps back to what is recorded.
+ *
+ * These are ColorSelect rather than native <select> because a native option
+ * list is drawn by the operating system, which discards per-option colour — the
+ * closed control was tinted while the list that opened from it was plain text.
  */
 export function StatusSelects({ history, onChange }: StatusSelectsProps) {
   const entries = Array.isArray(history) ? history : [];
@@ -60,81 +61,50 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
   const stateVar = stateColorVar(stage, state);
   const rejected = isRejected(stage, state);
 
-  const chevron = {
-    backgroundImage: CHEVRON_SVG,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 4px center',
-    backgroundSize: '11px 11px',
-  } as const;
+  const stageOptions: ColorOption<PipelineStage>[] = PIPELINE_STAGES.map((s) => ({
+    value: s,
+    label: s,
+    color: `var(${STAGE_COLOR_VAR[s]})`,
+  }));
 
-  /**
-   * The chevron is drawn as a background-image, so the Rejected gradient has to
-   * be layered beneath it as a second background rather than replacing it.
-   */
-  const stateBackground = rejected
-    ? {
-        backgroundImage: `${CHEVRON_SVG}, var(--aurora-soft)`,
-        backgroundRepeat: 'no-repeat, no-repeat',
-        backgroundPosition: 'right 4px center, 0 0',
-        backgroundSize: '11px 11px, cover',
-        // The brighter wash needs firm text: --foreground alone was thin
-        // against the pale mint end of the gradient in light mode.
-        color: 'var(--foreground)',
-        fontWeight: 700,
-      }
-    : {
-        color: `var(${stateVar})`,
-        backgroundColor: tint(stateVar),
-        ...chevron,
-      };
+  const stateOptions: ColorOption<PipelineState>[] = PIPELINE_STATES.map((s) => ({
+    value: s,
+    label: STATE_LABEL[s],
+    color: `var(${stateColorVar(stage, s)})`,
+    // Rejected carries the brand gradient rather than a flat colour.
+    gradient: s === 'Rejected' ? AURORA : undefined,
+  }));
 
-  const selectBase =
-    'pill-soft appearance-none cursor-pointer text-[11px] font-semibold ' +
-    'px-2 py-1 pr-5 leading-none focus-visible:outline-2 focus-visible:outline-offset-2';
+  const ring = dirty ? 'ring-1 ring-primary/50' : '';
 
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
-      <select
-        aria-label="Pipeline stage"
-        className={`${selectBase} ${dirty ? 'ring-1 ring-primary/50' : ''}`}
+      <ColorSelect
         value={stage}
-        onChange={(e) => setStage(e.target.value as PipelineStage)}
-        style={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar), ...chevron }}
-      >
-        {PIPELINE_STAGES.map((s) => (
-          <option
-            key={s}
-            value={s}
-            // Per-option colour so the stage stays recognisable in the open list.
-            style={{ color: `var(${STAGE_COLOR_VAR[s]})`, backgroundColor: 'var(--surface)' }}
-          >
-            {s}
-          </option>
-        ))}
-      </select>
+        options={stageOptions}
+        onChange={setStage}
+        ariaLabel="Pipeline stage"
+        className={ring}
+        triggerStyle={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar) }}
+      />
 
-      <select
-        aria-label="Stage status"
-        className={`${selectBase} ${dirty ? 'ring-1 ring-primary/50' : ''}`}
+      <ColorSelect
         value={state}
-        onChange={(e) => setState(e.target.value as PipelineState)}
-        style={stateBackground}
-      >
-        {PIPELINE_STATES.map((s) => (
-          <option
-            key={s}
-            value={s}
-            style={{
-              // Native <option> can't render a gradient, so Rejected borrows a
-              // mid-gradient hue in the open list.
-              color: s === 'Rejected' ? 'var(--lavender)' : `var(${stateColorVar(stage, s)})`,
-              backgroundColor: 'var(--surface)',
-            }}
-          >
-            {STATE_LABEL[s]}
-          </option>
-        ))}
-      </select>
+        options={stateOptions}
+        onChange={setState}
+        ariaLabel="Stage status"
+        className={ring}
+        triggerStyle={
+          rejected
+            ? {
+                backgroundImage: 'var(--aurora-soft)',
+                backgroundSize: 'cover',
+                color: 'var(--foreground)',
+                fontWeight: 700,
+              }
+            : { color: `var(${stateVar})`, backgroundColor: tint(stateVar) }
+        }
+      />
 
       {canLog && (
         <div className="flex items-center gap-1">
