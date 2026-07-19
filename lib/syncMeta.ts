@@ -24,11 +24,20 @@ export function setSyncedAt(key: string, iso: string) {
   window.localStorage.setItem(stamp(key), iso)
 }
 
-/** True when the server's timestamp is ahead of what this browser last saw. */
+/**
+ * True when this browser cannot prove its copy is current.
+ *
+ * The no-local-timestamp case must come FIRST. A browser that has never synced
+ * under this scheme has no basis to claim its copy is newer, so it adopts the
+ * server's — including when the server carries no timestamp either, which is
+ * what happens for records written straight to the database (an import, a
+ * restore) rather than through this API. Checking the server timestamp first
+ * meant imported data was silently ignored and never reached the browser.
+ */
 export function serverIsAhead(key: string, serverUpdatedAt?: string | null): boolean {
-  if (!serverUpdatedAt) return false
   const local = getSyncedAt(key)
   if (!local) return true
+  if (!serverUpdatedAt) return false
   return new Date(serverUpdatedAt).getTime() > new Date(local).getTime()
 }
 

@@ -57,7 +57,25 @@ export async function GET(
       await userData.save()
     }
 
-    const meta = (userData.syncMeta ?? {}) as Record<string, string>
+    let meta = (userData.syncMeta ?? {}) as Record<string, string>
+
+    /**
+     * Backfill timestamps for collections that hold data but were never written
+     * through this API — an import or a manual restore. Without this they look
+     * unversioned forever, and the conflict guard has nothing to compare.
+     */
+    const missing = Object.entries(KEY_MAP).filter(
+      ([storageKey, dbField]) =>
+        !meta[storageKey] && Array.isArray(userData[dbField]) && userData[dbField].length > 0,
+    )
+    if (missing.length > 0) {
+      const now = new Date().toISOString()
+      meta = { ...meta, ...Object.fromEntries(missing.map(([k]) => [k, now])) }
+      userData.syncMeta = meta
+      userData.markModified('syncMeta')
+      await userData.save({ validateBeforeSave: false })
+    }
+
     const response: Record<string, unknown> = {}
     for (const [storageKey, dbField] of Object.entries(KEY_MAP)) {
       response[storageKey] = userData[dbField] ?? []
