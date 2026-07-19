@@ -148,7 +148,39 @@ export async function POST(
       }
     }
 
-    userData[dbField] = value
+    /**
+     * Field-preserving merge for the company list.
+     *
+     * A browser tab left open across a deploy runs the old bundle, which does
+     * not know about newer fields and writes records without them — silently
+     * erasing `year`, `kind` and `compensation` for every company. That has
+     * destroyed this collection repeatedly.
+     *
+     * So for each incoming record, any key the stored record has but the
+     * incoming one omits is carried over. A client can still change or clear a
+     * field (it sends '' or 0); it just cannot delete one by not knowing it
+     * exists.
+     */
+    if (key === 'placement_companies' && Array.isArray(value)) {
+      const existing = new Map<unknown, Record<string, unknown>>()
+      for (const rec of (userData[dbField] ?? []) as Record<string, unknown>[]) {
+        const plain = typeof (rec as any)?.toObject === 'function' ? (rec as any).toObject() : rec
+        if (plain?.id !== undefined) existing.set(plain.id, plain)
+      }
+
+      userData[dbField] = (value as Record<string, unknown>[]).map((incoming) => {
+        const prior = existing.get(incoming?.id)
+        if (!prior) return incoming
+        const merged: Record<string, unknown> = { ...incoming }
+        for (const [k, v] of Object.entries(prior)) {
+          if (k === '_id') continue
+          if (merged[k] === undefined) merged[k] = v
+        }
+        return merged
+      })
+    } else {
+      userData[dbField] = value
+    }
 
     const now = new Date().toISOString()
     userData.syncMeta = { ...meta, [key]: now }
