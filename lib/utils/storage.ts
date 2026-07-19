@@ -386,7 +386,8 @@ export function setStoredData<T>(key: string, value: T): void {
 import type {
   PipelineStage,
   PipelineState,
-  OpportunityTrack,
+  OpportunityYear,
+  OpportunityKind,
   CompensationUnit,
 } from '@/lib/constants/placement';
 
@@ -436,9 +437,11 @@ export interface PlacementCompany {
   id: number;
   name: string;
   role: string;
-  /** Placement or internship. Internships convert, so this is a field on one
-   *  shared list rather than a separate table. */
-  track: OpportunityTrack;
+  /** Which year's drive this was — the tab it appears under. */
+  year: OpportunityYear;
+  /** Whether this specific company came for a placement or an internship.
+   *  Independent of `year`: a 4th-year internship stays in the 4th Year tab. */
+  kind: OpportunityKind;
   compensation: Compensation;
   /** yyyy-mm-dd, '' when unset — internship start */
   startDate: string;

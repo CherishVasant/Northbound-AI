@@ -6,7 +6,9 @@ import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, type PlacementCompany } from '@/lib/utils/storage';
 import {
   FIRST_STAGE,
-  type OpportunityTrack,
+  type OpportunityYear,
+  type OpportunityKind,
+  DEFAULT_KIND,
   type OptedFilter,
   type PipelineStage,
   type PipelineState,
@@ -53,7 +55,8 @@ export default function PlacementPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [optedFilter, setOptedFilter] = useState<OptedFilter>('all');
-  const [track, setTrack] = useState<OpportunityTrack>('placement');
+  // The tab is the year; a company's placement/internship kind is its own field.
+  const [year, setYear] = useState<OpportunityYear>('fourth');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   // Several rows may stay open at once; expanding one no longer closes another.
@@ -71,7 +74,7 @@ export default function PlacementPage() {
   }, [stored, setStored]);
 
   const visibleCompanies = useMemo(() => {
-    let list = companies.filter((c) => c.track === track);
+    let list = companies.filter((c) => c.year === year);
 
     if (optedFilter === 'in') list = list.filter((c) => c.optedIn);
     else if (optedFilter === 'out') list = list.filter((c) => !c.optedIn);
@@ -84,7 +87,7 @@ export default function PlacementPage() {
     }
 
     return list;
-  }, [companies, track, optedFilter, searchQuery]);
+  }, [companies, year, optedFilter, searchQuery]);
 
   /** True only when every currently visible row is open. */
   const allExpanded =
@@ -215,7 +218,9 @@ export default function PlacementPage() {
           id: nextCompanyId(prev),
           name: draft.name,
           role: draft.role,
-          track: draft.track,
+          // New entries land in the tab being viewed; kind is the user's choice.
+          year,
+          kind: draft.kind,
           compensation: { amount: draft.amount, unit: draft.unit },
           startDate: '',
           endDate: '',
@@ -266,23 +271,23 @@ export default function PlacementPage() {
         </button>
       </div>
 
-      <PlacementStatsStrip companies={companies.filter((c) => c.track === track)} />
+      <PlacementStatsStrip companies={companies.filter((c) => c.year === year)} />
 
       <PlacementToolbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         optedFilter={optedFilter}
         onOptedFilterChange={setOptedFilter}
-        track={track}
-        onTrackChange={(t) => {
-          setTrack(t);
+        year={year}
+        onYearChange={(y) => {
+          setYear(y);
           // Selections and open rows belong to the tab they were made in.
           setSelectedIds([]);
           setExpandedIds([]);
         }}
         counts={{
-          placement: companies.filter((c) => c.track === 'placement').length,
-          internship: companies.filter((c) => c.track === 'internship').length,
+          third: companies.filter((c) => c.year === 'third').length,
+          fourth: companies.filter((c) => c.year === 'fourth').length,
         }}
         allExpanded={allExpanded}
         onToggleExpandAll={() =>
@@ -345,7 +350,7 @@ export default function PlacementPage() {
 
       {showAddModal && (
         <AddCompanyModal
-          track={track} onCreate={handleCreate} onClose={() => setShowAddModal(false)} />
+          defaultKind={DEFAULT_KIND} onCreate={handleCreate} onClose={() => setShowAddModal(false)} />
       )}
     </div>
   );

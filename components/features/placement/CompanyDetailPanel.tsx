@@ -18,9 +18,13 @@ import {
   stateColorVar,
   isRejected,
   COMPENSATION_UNITS,
+  KINDS,
+  YEARS,
   PIPELINE_STAGES,
   STAGE_COLOR_VAR,
   type CompensationUnit,
+  type OpportunityKind,
+  type OpportunityYear,
   type PipelineStage,
 } from '@/lib/constants/placement';
 import { makeScheduledEvent, monthsBetween } from '@/lib/utils/placementMigration';
@@ -411,6 +415,37 @@ export function CompanyDetailPanel({
               ariaLabel="Location"
               placeholder="e.g. Bangalore"
             />
+          </Field>
+
+          <Field label="Type">
+            <select
+              aria-label="Opportunity type"
+              value={company.kind ?? 'placement'}
+              onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
+              className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+            >
+              {KINDS.map((k) => (
+                <option key={k.value} value={k.value}>
+                  {k.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Year">
+            <select
+              aria-label="Year"
+              value={company.year ?? 'fourth'}
+              // Changing this moves the row to the other tab.
+              onChange={(e) => onFieldChange({ year: e.target.value as OpportunityYear })}
+              className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+            >
+              {YEARS.map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
       </Section>

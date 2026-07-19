@@ -5,15 +5,15 @@ import { X, Plus } from 'lucide-react';
 import { ToggleSwitch } from './ToggleSwitch';
 import {
   COMPENSATION_UNITS,
-  TRACKS,
+  KINDS,
   type CompensationUnit,
-  type OpportunityTrack,
+  type OpportunityKind,
 } from '@/lib/constants/placement';
 
 export interface NewCompanyDraft {
   name: string;
   role: string;
-  track: OpportunityTrack;
+  kind: OpportunityKind;
   amount: number;
   unit: CompensationUnit;
   location: string;
@@ -26,8 +26,8 @@ export interface NewCompanyDraft {
 }
 
 interface AddCompanyModalProps {
-  /** Whichever tab is open — new entries land there. */
-  track: OpportunityTrack;
+  /** Placement unless the user says otherwise. */
+  defaultKind: OpportunityKind;
   onCreate: (draft: NewCompanyDraft) => void;
   onClose: () => void;
 }
@@ -36,14 +36,14 @@ const inputClass =
   'pill-soft w-full bg-secondary/40 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground';
 const labelClass = 'text-[10px] font-bold uppercase tracking-wider text-muted-foreground';
 
-export function AddCompanyModal({ track, onCreate, onClose }: AddCompanyModalProps) {
+export function AddCompanyModal({ defaultKind, onCreate, onClose }: AddCompanyModalProps) {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [pkg, setPkg] = useState('');
-  const [draftTrack, setDraftTrack] = useState<OpportunityTrack>(track);
+  const [kind, setKind] = useState<OpportunityKind>(defaultKind);
   // Internships are quoted per month far more often than as an annual figure.
   const [unit, setUnit] = useState<CompensationUnit>(
-    track === 'internship' ? 'per-month' : 'LPA',
+    defaultKind === 'internship' ? 'per-month' : 'LPA',
   );
   const [location, setLocation] = useState('');
   const [deadlineDate, setDeadlineDate] = useState('');
@@ -78,7 +78,7 @@ export function AddCompanyModal({ track, onCreate, onClose }: AddCompanyModalPro
     onCreate({
       name: name.trim(),
       role: role.trim(),
-      track: draftTrack,
+      kind,
       amount: Number(pkg) || 0,
       unit,
       location: location.trim(),
@@ -135,21 +135,21 @@ export function AddCompanyModal({ track, onCreate, onClose }: AddCompanyModalPro
           <div className="flex flex-col gap-1">
             <span className={labelClass}>Type</span>
             <div className="flex items-center gap-1">
-              {TRACKS.map((t) => (
+              {KINDS.map((k) => (
                 <button
-                  key={t.value}
+                  key={k.value}
                   type="button"
                   onClick={() => {
-                    setDraftTrack(t.value);
-                    setUnit(t.value === 'internship' ? 'per-month' : 'LPA');
+                    setKind(k.value);
+                    setUnit(k.value === 'internship' ? 'per-month' : 'LPA');
                   }}
                   className={`flex-1 rounded-[10px] px-2 py-1.5 text-xs font-semibold transition-colors ${
-                    draftTrack === t.value
+                    kind === k.value
                       ? 'bg-[var(--nav-active-bg)] text-primary'
                       : 'bg-secondary/50 text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {t.label.replace(/s$/, '')}
+                  {k.label}
                 </button>
               ))}
             </div>

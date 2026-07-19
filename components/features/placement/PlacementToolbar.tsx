@@ -2,7 +2,7 @@
 
 import { Search } from 'lucide-react';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
-import { OPTED_FILTERS, TRACKS, type OptedFilter, type OpportunityTrack } from '@/lib/constants/placement';
+import { OPTED_FILTERS, YEARS, type OptedFilter, type OpportunityYear } from '@/lib/constants/placement';
 
 interface PlacementToolbarProps {
   searchQuery: string;
@@ -11,9 +11,9 @@ interface PlacementToolbarProps {
   onOptedFilterChange: (f: OptedFilter) => void;
   allExpanded: boolean;
   onToggleExpandAll: () => void;
-  track: OpportunityTrack;
-  onTrackChange: (t: OpportunityTrack) => void;
-  counts: Record<OpportunityTrack, number>;
+  year: OpportunityYear;
+  onYearChange: (y: OpportunityYear) => void;
+  counts: Record<OpportunityYear, number>;
 }
 
 export function PlacementToolbar({
@@ -23,8 +23,8 @@ export function PlacementToolbar({
   onOptedFilterChange,
   allExpanded,
   onToggleExpandAll,
-  track,
-  onTrackChange,
+  year,
+  onYearChange,
   counts,
 }: PlacementToolbarProps) {
   return (
@@ -33,17 +33,17 @@ export function PlacementToolbar({
           including which companies the stats strip counts. */}
       <div
         role="tablist"
-        aria-label="Opportunity track"
+        aria-label="Year"
         className="flex items-center gap-1 px-4 pb-3 sm:px-6"
       >
-        {TRACKS.map((t) => {
-          const active = track === t.value;
+        {YEARS.map((t) => {
+          const active = year === t.value;
           return (
             <button
               key={t.value}
               role="tab"
               aria-selected={active}
-              onClick={() => onTrackChange(t.value)}
+              onClick={() => onYearChange(t.value)}
               className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold transition-colors ${
                 active
                   ? 'bg-[var(--nav-active-bg)] text-primary'

@@ -152,7 +152,10 @@ const PlacementCompanySchema = new Schema(
     id: { type: Schema.Types.Mixed, required: true },
     name: { type: String, default: '' },
     role: { type: String, default: '' },
-    track: { type: String, default: 'placement' },
+    year: { type: String, default: 'fourth' },
+    kind: { type: String, default: 'placement' },
+    // Superseded by year+kind; kept readable so migration can still see it.
+    track: { type: String },
     compensation: { type: CompensationSchema, default: () => ({ amount: 0, unit: 'LPA' }) },
     startDate: { type: String, default: '' },
     endDate: { type: String, default: '' },

@@ -98,6 +98,11 @@ export function PlacementRow({
             bare
             className="text-sm font-semibold text-foreground"
           />
+          {company.kind === 'internship' && (
+            <span className="ml-1 inline-block rounded-full bg-accent/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-accent">
+              Intern
+            </span>
+          )}
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}

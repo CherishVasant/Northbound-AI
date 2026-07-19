@@ -72,7 +72,8 @@ function isAlreadyMigrated(rec: any): boolean {
     !('company' in rec) &&
     // Post-track shape: compensation replaced the bare `package` number.
     rec.compensation != null &&
-    typeof rec.track === 'string'
+    typeof rec.year === 'string' &&
+    typeof rec.kind === 'string'
   )
 }
 
@@ -88,6 +89,17 @@ function coerceCompensation(rec: any): Compensation {
   // Legacy: a bare number that always meant LPA.
   const legacy = Number(rec?.package ?? rec?.packageCTC ?? 0) || 0
   return { amount: legacy, unit: 'LPA' }
+}
+
+function coerceYear(rec: any): 'third' | 'fourth' {
+  if (rec?.year === 'third' || rec?.year === 'fourth') return rec.year
+  // Legacy: the 29 imported internships were the 3rd-year season.
+  return rec?.track === 'internship' ? 'third' : 'fourth'
+}
+
+function coerceKind(rec: any): 'placement' | 'internship' {
+  if (rec?.kind === 'internship' || rec?.kind === 'placement') return rec.kind
+  return rec?.track === 'internship' ? 'internship' : 'placement'
 }
 
 function coerceSchedule(raw: any): ScheduledEvent[] {
@@ -154,6 +166,8 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       return {
         ...rec,
         id,
+        year: coerceYear(rec),
+        kind: coerceKind(rec),
         history: (rec.history as any[]).map(coerceEntry).filter(Boolean) as StageEntry[],
         schedule: coerceSchedule(rec.schedule),
       } as PlacementCompany
@@ -165,7 +179,13 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
       name: String(rec?.company ?? rec?.name ?? ''),
       role: String(rec?.jobRole ?? rec?.role ?? ''),
-      track: rec?.track === 'internship' ? 'internship' : 'placement',
+      /**
+       * Splits the old single `track` into two axes. Everything previously
+       * marked 'internship' was a 3rd-year internship drive; everything else
+       * was a 4th-year placement. Both are then editable independently.
+       */
+      year: coerceYear(rec),
+      kind: coerceKind(rec),
       compensation: coerceCompensation(rec),
       startDate: typeof rec?.startDate === 'string' ? rec.startDate : '',
       endDate: typeof rec?.endDate === 'string' ? rec.endDate : '',
@@ -195,7 +215,12 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
 export function needsMigration(raw: unknown): boolean {
   if (!Array.isArray(raw)) return false
   return (raw as any[]).some(
-    (rec) => !isAlreadyMigrated(rec) || typeof rec?.id !== 'number' || !Array.isArray(rec?.schedule),
+    (rec) =>
+      !isAlreadyMigrated(rec) ||
+      typeof rec?.id !== 'number' ||
+      !Array.isArray(rec?.schedule) ||
+      typeof rec?.year !== 'string' ||
+      typeof rec?.kind !== 'string',
   )
 }
 

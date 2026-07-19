@@ -109,16 +109,28 @@ export function tint(name: string, percent = 12) {
   return `color-mix(in srgb, var(${name}) ${percent}%, transparent)`;
 }
 
-// ─── Opportunity track ──────────────────────────────────────────────────────
-// Internships routinely convert to full-time offers, so this is a field on one
-// shared list rather than a separate table — converting is a field change.
+// ─── Year bucket and opportunity kind ───────────────────────────────────────
+// These are two independent axes. The tab is the YEAR the drive happened in;
+// the KIND says whether that particular company came for a placement or an
+// internship. A 4th-year internship (UBS, say) therefore belongs in the 4th
+// Year tab marked as an internship — not shuffled into the 3rd Year tab.
 
-export type OpportunityTrack = 'placement' | 'internship';
+export type OpportunityYear = 'third' | 'fourth';
 
-export const TRACKS: { value: OpportunityTrack; label: string }[] = [
-  { value: 'placement', label: 'Placements' },
-  { value: 'internship', label: 'Internships' },
+export const YEARS: { value: OpportunityYear; label: string }[] = [
+  { value: 'third', label: '3rd Year' },
+  { value: 'fourth', label: '4th Year' },
 ];
+
+export type OpportunityKind = 'placement' | 'internship';
+
+export const KINDS: { value: OpportunityKind; label: string }[] = [
+  { value: 'placement', label: 'Placement' },
+  { value: 'internship', label: 'Internship' },
+];
+
+/** New entries are placements unless said otherwise. */
+export const DEFAULT_KIND: OpportunityKind = 'placement';
 
 // ─── Compensation ───────────────────────────────────────────────────────────
 
