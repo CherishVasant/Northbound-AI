@@ -3,7 +3,7 @@ const path = require('path');
 const https = require('https');
 
 // Path to mockData.ts
-const mockDataPath = path.resolve(__dirname, '../frontend/lib/utils/mockData.ts');
+const mockDataPath = path.resolve(__dirname, '../lib/utils/mockData.ts');
 
 if (!fs.existsSync(mockDataPath)) {
   console.error(`mockData.ts not found at ${mockDataPath}`);
