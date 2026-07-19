@@ -77,7 +77,10 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
         backgroundRepeat: 'no-repeat, no-repeat',
         backgroundPosition: 'right 4px center, 0 0',
         backgroundSize: '11px 11px, cover',
+        // The brighter wash needs firm text: --foreground alone was thin
+        // against the pale mint end of the gradient in light mode.
         color: 'var(--foreground)',
+        fontWeight: 700,
       }
     : {
         color: `var(${stateVar})`,

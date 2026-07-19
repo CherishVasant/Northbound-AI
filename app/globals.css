@@ -149,10 +149,10 @@
      brand gradient instead — visible without being a telling-off. */
   --aurora-soft: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--mint) 32%, transparent) 0%,
-    color-mix(in srgb, var(--sky) 32%, transparent) 35%,
-    color-mix(in srgb, var(--lavender) 32%, transparent) 70%,
-    color-mix(in srgb, var(--pink) 32%, transparent) 100%
+    color-mix(in srgb, var(--mint) 58%, transparent) 0%,
+    color-mix(in srgb, var(--sky) 58%, transparent) 35%,
+    color-mix(in srgb, var(--lavender) 58%, transparent) 70%,
+    color-mix(in srgb, var(--pink) 58%, transparent) 100%
   );
   --aurora-solid: linear-gradient(
     135deg,
@@ -253,10 +253,10 @@ html[data-theme='dark'],
      brand gradient instead — visible without being a telling-off. */
   --aurora-soft: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--mint) 45%, transparent) 0%,
-    color-mix(in srgb, var(--sky) 45%, transparent) 35%,
-    color-mix(in srgb, var(--lavender) 45%, transparent) 70%,
-    color-mix(in srgb, var(--pink) 45%, transparent) 100%
+    color-mix(in srgb, var(--mint) 72%, transparent) 0%,
+    color-mix(in srgb, var(--sky) 72%, transparent) 35%,
+    color-mix(in srgb, var(--lavender) 72%, transparent) 70%,
+    color-mix(in srgb, var(--pink) 72%, transparent) 100%
   );
   --aurora-solid: linear-gradient(
     135deg,
