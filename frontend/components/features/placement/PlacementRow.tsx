@@ -14,9 +14,10 @@ interface PlacementRowProps {
   /** Position in the FULL list, so numbering survives filtering. */
   serial: number;
   dragging: boolean;
-  onDragStart: () => void;
-  onDragOver: () => void;
-  onDragEnd: () => void;
+  /** Grip handle: mouse drags at once, touch long-presses. */
+  onHandlePointerDown: (e: React.PointerEvent) => void;
+  /** Anywhere on the row: touch long-press to pick it up. */
+  onRowPointerDown: (e: React.PointerEvent) => void;
   expanded: boolean;
   onToggleExpand: () => void;
   onStatusChange: (stage: PipelineStage, state: PipelineState) => void;
@@ -30,9 +31,8 @@ export function PlacementRow({
   company,
   serial,
   dragging,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
+  onHandlePointerDown,
+  onRowPointerDown,
   expanded,
   onToggleExpand,
   onStatusChange,
@@ -47,13 +47,10 @@ export function PlacementRow({
   return (
     <>
       <tr
-        onDragOver={(e) => {
-          e.preventDefault();
-          onDragOver();
-        }}
-        onDrop={(e) => e.preventDefault()}
+        data-company-id={company.id}
+        onPointerDown={onRowPointerDown}
         className={`group border-b border-border/60 transition-colors ${rowBg} ${
-          dragging ? 'opacity-40' : ''
+          dragging ? 'relative z-10 opacity-60 shadow-[var(--shadow-card-hover)]' : ''
         }`}
       >
         <td className="w-8 py-2.5 pl-3 pr-1 align-middle sm:pl-4">
@@ -73,12 +70,13 @@ export function PlacementRow({
         <td className="w-12 py-2.5 pr-2 align-middle">
           <div className="flex items-center gap-1">
             <span
-              draggable
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
+              onPointerDown={onHandlePointerDown}
+              role="button"
+              tabIndex={-1}
               aria-label="Drag to reorder"
-              title="Drag to reorder"
-              className="cursor-grab text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
+              title="Drag to reorder (on a phone, press and hold the row)"
+              // touch-none stops the browser scrolling instead of dragging.
+              className="cursor-grab touch-none text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
             >
               <GripVertical className="h-3.5 w-3.5" />
             </span>

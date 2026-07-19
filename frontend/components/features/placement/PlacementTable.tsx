@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Building2 } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 import { PlacementRow } from './PlacementRow';
+import { useRowReorder } from './useRowReorder';
 
 interface PlacementTableProps {
   companies: PlacementCompany[];
@@ -50,10 +51,7 @@ export function PlacementTable({
   onReorder,
 }: PlacementTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
-  // Ref, not state: dragover fires continuously and re-rendering on each event
-  // would make the drag stutter.
-  const lastTargetRef = useRef<number | null>(null);
+  const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
 
   if (companies.length === 0) {
     return (
@@ -71,7 +69,7 @@ export function PlacementTable({
     <div className="card-soft mx-3 mb-6 overflow-hidden bg-card sm:mx-6">
       {/* Horizontal scroll is a fallback for narrow screens only — the table is
           designed to fit without it. */}
-      <div className="overflow-x-auto">
+      <div className={`overflow-x-auto ${draggingId !== null ? "select-none" : ""}`}>
         <table className="w-full border-collapse text-left lg:min-w-[860px]">
           <thead>
             <tr className="border-b border-border">
@@ -95,20 +93,8 @@ export function PlacementTable({
                 company={company}
                 serial={serialOf(company.id)}
                 dragging={draggingId === company.id}
-                onDragStart={() => {
-                  setDraggingId(company.id);
-                  lastTargetRef.current = company.id;
-                }}
-                onDragOver={() => {
-                  if (draggingId === null || draggingId === company.id) return;
-                  if (lastTargetRef.current === company.id) return;
-                  lastTargetRef.current = company.id;
-                  onReorder(draggingId, company.id);
-                }}
-                onDragEnd={() => {
-                  setDraggingId(null);
-                  lastTargetRef.current = null;
-                }}
+                onHandlePointerDown={(e) => handlePointerDown(e, company.id)}
+                onRowPointerDown={(e) => rowPointerDown(e, company.id)}
                 expanded={expandedId === company.id}
                 onToggleExpand={() =>
                   setExpandedId((prev) => (prev === company.id ? null : company.id))
