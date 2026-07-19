@@ -16,9 +16,7 @@ interface PlacementRowProps {
   onStatusChange: (stage: PipelineStage, state: PipelineState) => void;
   onDeadlineChange: (date: string, time: string) => void;
   onOptedInChange: (optedIn: boolean) => void;
-  onNotesChange: (notes: string) => void;
-  onSkillsChange: (skills: string[]) => void;
-  onRegisteredChange: (registered: boolean) => void;
+  onFieldChange: (patch: Partial<PlacementCompany>) => void;
   onDelete: () => void;
 }
 
@@ -30,9 +28,7 @@ export function PlacementRow({
   onStatusChange,
   onDeadlineChange,
   onOptedInChange,
-  onNotesChange,
-  onSkillsChange,
-  onRegisteredChange,
+  onFieldChange,
   onDelete,
 }: PlacementRowProps) {
   // Expanded rows keep the hover background so the pair reads as one unit.
@@ -41,7 +37,7 @@ export function PlacementRow({
   return (
     <>
       <tr className={`group border-b border-border/60 transition-colors ${rowBg}`}>
-        <td className="w-8 py-2.5 pl-4 pr-1 align-middle">
+        <td className="w-8 py-2.5 pl-3 pr-1 align-middle sm:pl-4">
           <button
             type="button"
             onClick={onToggleExpand}
@@ -75,14 +71,14 @@ export function PlacementRow({
         {/* Role is the bright identity field; package is deliberately muted. */}
         <td
           onClick={onToggleExpand}
-          className="cursor-pointer py-2.5 pr-3 align-middle"
+          className="hidden cursor-pointer py-2.5 pr-3 align-middle md:table-cell"
         >
           <span className="text-xs font-medium text-primary">{company.role?.trim() || '—'}</span>
         </td>
 
         <td
           onClick={onToggleExpand}
-          className="cursor-pointer py-2.5 pr-3 align-middle"
+          className="hidden cursor-pointer py-2.5 pr-3 align-middle sm:table-cell"
         >
           <span className="font-mono text-xs text-muted-foreground">
             {company.package ? `${company.package} LPA` : '—'}
@@ -99,7 +95,7 @@ export function PlacementRow({
           )}
         </td>
 
-        <td className="py-2.5 pr-3 align-middle">
+        <td className="hidden py-2.5 pr-3 align-middle lg:table-cell">
           <DeadlineCell
             optedIn={company.optedIn}
             deadlineDate={company.deadlineDate}
@@ -117,12 +113,12 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-8 py-2.5 pr-4 align-middle">
+        <td className="w-8 py-2.5 pr-3 align-middle sm:pr-4">
           <button
             type="button"
             onClick={onDelete}
             aria-label={`Delete ${company.name || 'company'}`}
-            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-2 group-hover:opacity-100"
+            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-2 sm:opacity-0 sm:group-hover:opacity-100"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
@@ -132,12 +128,7 @@ export function PlacementRow({
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
           <td colSpan={9} className="p-0">
-            <CompanyDetailPanel
-              company={company}
-              onNotesChange={onNotesChange}
-              onSkillsChange={onSkillsChange}
-              onRegisteredChange={onRegisteredChange}
-            />
+            <CompanyDetailPanel company={company} onFieldChange={onFieldChange} />
           </td>
         </tr>
       )}

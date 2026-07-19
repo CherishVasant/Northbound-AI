@@ -134,23 +134,10 @@ export default function PlacementPage() {
     [updateCompany],
   );
 
-  const handleNotesChange = useCallback(
-    (id: number, notes: string) => {
-      updateCompany(id, (c) => ({ ...c, notes }));
-    },
-    [updateCompany],
-  );
-
-  const handleSkillsChange = useCallback(
-    (id: number, skills: string[]) => {
-      updateCompany(id, (c) => ({ ...c, skills }));
-    },
-    [updateCompany],
-  );
-
-  const handleRegisteredChange = useCallback(
-    (id: number, registered: boolean) => {
-      updateCompany(id, (c) => ({ ...c, registered }));
+  /** Generic patch so every scalar field is editable through one path. */
+  const handleFieldChange = useCallback(
+    (id: number, patch: Partial<PlacementCompany>) => {
+      updateCompany(id, (c) => ({ ...c, ...patch }));
     },
     [updateCompany],
   );
@@ -191,7 +178,7 @@ export default function PlacementPage() {
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-background">
       {/* Page head */}
-      <div className="flex flex-wrap items-start justify-between gap-3 px-6 pb-3 pt-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-5 sm:px-6">
         <div>
           <div className="flex items-baseline gap-2">
             <h1 className="text-xl font-bold tracking-tight text-foreground">
@@ -230,9 +217,7 @@ export default function PlacementPage() {
         onStatusChange={handleStatusChange}
         onDeadlineChange={handleDeadlineChange}
         onOptedInChange={handleOptedInChange}
-        onNotesChange={handleNotesChange}
-        onSkillsChange={handleSkillsChange}
-        onRegisteredChange={handleRegisteredChange}
+        onFieldChange={handleFieldChange}
         onDelete={handleDelete}
       />
 

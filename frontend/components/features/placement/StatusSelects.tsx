@@ -47,7 +47,7 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
   } as const;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
       <select
         aria-label="Pipeline stage"
         className={selectBase}

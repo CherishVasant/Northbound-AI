@@ -55,7 +55,7 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
   }, [companies]);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-6 pb-3">
+    <div className="flex snap-x items-center gap-2 overflow-x-auto px-4 pb-3 sm:flex-wrap sm:overflow-visible sm:px-6">
       {stats.map((s) => (
         <div
           key={s.label}

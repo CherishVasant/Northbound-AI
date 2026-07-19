@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import { STATE_LABEL, stateColorVar } from '@/lib/constants/placement';
+import { InlineEdit } from './InlineEdit';
 
 interface CompanyDetailPanelProps {
   company: PlacementCompany;
-  onNotesChange: (notes: string) => void;
-  onSkillsChange: (skills: string[]) => void;
-  onRegisteredChange: (registered: boolean) => void;
+  onFieldChange: (patch: Partial<PlacementCompany>) => void;
 }
 
 /** '2026-07-26' → '26 Jul 2026' */
@@ -26,16 +25,16 @@ function formatDate(iso: string) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
-      <div className="text-xs text-foreground">{children}</div>
+      <div className="min-w-0 text-xs text-foreground">{children}</div>
     </div>
   );
 }
 
-/** Editable tag chips. Enter or the + button commits; × removes. */
+/** Editable tag chips. Enter or + commits; × removes. */
 function SkillsEditor({
   skills,
   onChange,
@@ -64,14 +63,14 @@ function SkillsEditor({
           {skills.map((s) => (
             <span
               key={s}
-              className="pill-soft group/chip inline-flex items-center gap-1 bg-secondary/60 py-0.5 pl-2 pr-1 font-mono text-[10px] text-foreground"
+              className="pill-soft inline-flex items-center gap-1 bg-secondary/60 py-0.5 pl-2 pr-1 font-mono text-[10px] text-foreground"
             >
               {s}
               <button
                 type="button"
                 onClick={() => onChange(skills.filter((x) => x !== s))}
                 aria-label={`Remove ${s}`}
-                className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2"
+                className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
               >
                 <X className="h-2.5 w-2.5" />
               </button>
@@ -92,14 +91,14 @@ function SkillsEditor({
           }}
           placeholder="Add a skill…"
           aria-label="Add a skill"
-          className="pill-soft w-40 bg-secondary/40 px-2 py-1 font-mono text-[10px] text-foreground placeholder:text-muted-foreground"
+          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[10px] text-foreground placeholder:text-muted-foreground sm:max-w-40"
         />
         <button
           type="button"
           onClick={add}
           disabled={!draft.trim()}
           aria-label="Add skill"
-          className="pill-soft pill-soft-interactive flex h-6 w-6 items-center justify-center bg-secondary/60 text-muted-foreground hover:text-foreground disabled:opacity-40"
+          className="pill-soft pill-soft-interactive flex h-6 w-6 shrink-0 items-center justify-center bg-secondary/60 text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
           <Plus className="h-3 w-3" />
         </button>
@@ -108,49 +107,22 @@ function SkillsEditor({
   );
 }
 
-/**
- * Notes commit on blur rather than per keystroke, so typing doesn't trigger a
- * storage write and a debounced backend sync on every character. A cleanup
- * commit covers collapsing the row (which unmounts this) while still focused.
- */
-function NotesEditor({
-  value,
-  onCommit,
-}: {
-  value: string;
-  onCommit: (next: string) => void;
-}) {
+/** Notes commit on blur; see InlineEdit for why not per keystroke. */
+function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: string) => void }) {
   const [draft, setDraft] = useState(value);
-  const draftRef = useRef(draft);
-  const committedRef = useRef(value);
+  const [lastSeen, setLastSeen] = useState(value);
 
-  draftRef.current = draft;
-
-  // Adopt external changes (e.g. a sync landing) unless they match what we have.
-  useEffect(() => {
-    if (value !== committedRef.current) {
-      committedRef.current = value;
-      setDraft(value);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    return () => {
-      if (draftRef.current !== committedRef.current) onCommit(draftRef.current);
-    };
-  }, [onCommit]);
-
-  const commit = () => {
-    if (draftRef.current === committedRef.current) return;
-    committedRef.current = draftRef.current;
-    onCommit(draftRef.current);
-  };
+  // Adopt external updates without interrupting typing.
+  if (value !== lastSeen) {
+    setLastSeen(value);
+    setDraft(value);
+  }
 
   return (
     <textarea
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
+      onBlur={() => draft !== value && onCommit(draft)}
       rows={3}
       placeholder="No notes yet."
       aria-label="Notes"
@@ -159,20 +131,15 @@ function NotesEditor({
   );
 }
 
-export function CompanyDetailPanel({
-  company,
-  onNotesChange,
-  onSkillsChange,
-  onRegisteredChange,
-}: CompanyDetailPanelProps) {
+export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPanelProps) {
   // Most recent first — the log is stored oldest-first.
   const timeline = [...(company.history ?? [])].reverse();
   const skills = company.skills ?? [];
 
   return (
-    <div className="grid gap-6 px-6 py-5 md:grid-cols-2">
+    <div className="grid gap-6 px-4 py-5 sm:px-6 md:grid-cols-2">
       {/* ── Stage history ───────────────────────────────────────────────── */}
-      <div>
+      <div className="min-w-0">
         <h4 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Stage History
         </h4>
@@ -181,11 +148,7 @@ export function CompanyDetailPanel({
           <p className="text-xs text-muted-foreground">No stage history yet</p>
         ) : (
           <ol className="relative flex flex-col gap-3">
-            {/* Connecting line, inset to sit behind the dots */}
-            <span
-              aria-hidden
-              className="absolute left-[3.5px] top-1.5 bottom-1.5 w-px bg-border"
-            />
+            <span aria-hidden className="absolute left-[3.5px] top-1.5 bottom-1.5 w-px bg-border" />
             {timeline.map((entry, i) => {
               const color = `var(${stateColorVar(entry.stage, entry.status)})`;
               return (
@@ -194,7 +157,7 @@ export function CompanyDetailPanel({
                     className="relative z-10 mt-1 h-2 w-2 shrink-0 rounded-full"
                     style={{ backgroundColor: color }}
                   />
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-xs font-semibold text-foreground">
                       {entry.stage}
                       <span className="text-muted-foreground"> — </span>
@@ -211,23 +174,85 @@ export function CompanyDetailPanel({
         )}
       </div>
 
-      {/* ── Details ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-4">
+      {/* ── Details: every field here is editable ───────────────────────── */}
+      <div className="flex min-w-0 flex-col gap-4">
         <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Details
         </h4>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Location">{company.location?.trim() || '—'}</Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Company">
+            <InlineEdit
+              value={company.name ?? ''}
+              onCommit={(name) => onFieldChange({ name })}
+              ariaLabel="Company name"
+              placeholder="Company name"
+            />
+          </Field>
+
+          <Field label="Role">
+            <InlineEdit
+              value={company.role ?? ''}
+              onCommit={(role) => onFieldChange({ role })}
+              ariaLabel="Role"
+              placeholder="e.g. SDE"
+            />
+          </Field>
+
+          <Field label="Package">
+            <InlineEdit
+              value={company.package ? String(company.package) : ''}
+              // Blank or unparseable clears back to 0 rather than storing NaN.
+              onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}
+              ariaLabel="Package in LPA"
+              placeholder="0"
+              type="number"
+              mono
+              suffix="LPA"
+            />
+          </Field>
+
+          <Field label="Location">
+            <InlineEdit
+              value={company.location ?? ''}
+              onCommit={(location) => onFieldChange({ location })}
+              ariaLabel="Location"
+              placeholder="e.g. Bangalore"
+            />
+          </Field>
+
+          {company.optedIn && (
+            <>
+              <Field label="Deadline date">
+                <input
+                  type="date"
+                  value={company.deadlineDate ?? ''}
+                  onChange={(e) => onFieldChange({ deadlineDate: e.target.value })}
+                  aria-label="Deadline date"
+                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                />
+              </Field>
+
+              <Field label="Deadline time">
+                <input
+                  type="time"
+                  value={company.deadlineTime ?? ''}
+                  onChange={(e) => onFieldChange({ deadlineTime: e.target.value })}
+                  aria-label="Deadline time"
+                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                />
+              </Field>
+            </>
+          )}
 
           <Field label="Registered">
             {!company.optedIn ? (
-              '—'
+              <span className="text-muted-foreground">—</span>
             ) : (
               <button
                 type="button"
-                onClick={() => onRegisteredChange(!company.registered)}
-                className="pill-soft pill-soft-interactive bg-secondary/50 px-2 py-0.5 text-[11px] font-medium text-foreground"
+                onClick={() => onFieldChange({ registered: !company.registered })}
+                className="pill-soft pill-soft-interactive self-start bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
                 aria-pressed={company.registered}
               >
                 {company.registered ? 'Yes' : 'Not yet'}
@@ -235,28 +260,30 @@ export function CompanyDetailPanel({
             )}
           </Field>
 
-          <div className="col-span-2">
+          {/* Only meaningful when the company was skipped. */}
+          {!company.optedIn && (
+            <Field label="Reason for not opting in">
+              <InlineEdit
+                value={company.reason ?? ''}
+                onCommit={(reason) => onFieldChange({ reason })}
+                ariaLabel="Reason for not opting in"
+                placeholder="e.g. Low package"
+              />
+            </Field>
+          )}
+
+          <div className="sm:col-span-2">
             <Field label="Skills Required">
-              <SkillsEditor skills={skills} onChange={onSkillsChange} />
+              <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
             </Field>
           </div>
 
-          {/* Only meaningful when the company was skipped. */}
-          {!company.optedIn && (
-            <div className="col-span-2">
-              <Field label="Reason for not opting in">
-                {company.reason?.trim() ? (
-                  <span className="italic text-muted-foreground">{company.reason}</span>
-                ) : (
-                  '—'
-                )}
-              </Field>
-            </div>
-          )}
-
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Field label="Notes">
-              <NotesEditor value={company.notes ?? ''} onCommit={onNotesChange} />
+              <NotesEditor
+                value={company.notes ?? ''}
+                onCommit={(notes) => onFieldChange({ notes })}
+              />
             </Field>
           </div>
         </div>

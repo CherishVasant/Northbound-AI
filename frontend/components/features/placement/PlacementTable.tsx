@@ -11,13 +11,26 @@ interface PlacementTableProps {
   onStatusChange: (id: number, stage: PipelineStage, state: PipelineState) => void;
   onDeadlineChange: (id: number, date: string, time: string) => void;
   onOptedInChange: (id: number, optedIn: boolean) => void;
-  onNotesChange: (id: number, notes: string) => void;
-  onSkillsChange: (id: number, skills: string[]) => void;
-  onRegisteredChange: (id: number, registered: boolean) => void;
+  onFieldChange: (id: number, patch: Partial<PlacementCompany>) => void;
   onDelete: (id: number) => void;
 }
 
-const HEADERS = ['', '#', 'Company', 'Role', 'Package', 'Status', 'Deadline', 'Opted In', ''];
+/**
+ * `cls` must stay in lockstep with the matching <td> in PlacementRow — a header
+ * hidden at a breakpoint where its cell is not (or vice versa) shifts the whole
+ * row. Columns hidden on small screens remain editable in the detail panel.
+ */
+const HEADERS: { label: string; cls: string }[] = [
+  { label: '', cls: '' },
+  { label: '#', cls: '' },
+  { label: 'Company', cls: '' },
+  { label: 'Role', cls: 'hidden md:table-cell' },
+  { label: 'Package', cls: 'hidden sm:table-cell' },
+  { label: 'Status', cls: '' },
+  { label: 'Deadline', cls: 'hidden lg:table-cell' },
+  { label: 'Opted In', cls: '' },
+  { label: '', cls: '' },
+];
 
 /**
  * One row per company. Everything that used to live in extra columns or a
@@ -28,16 +41,14 @@ export function PlacementTable({
   onStatusChange,
   onDeadlineChange,
   onOptedInChange,
-  onNotesChange,
-  onSkillsChange,
-  onRegisteredChange,
+  onFieldChange,
   onDelete,
 }: PlacementTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   if (companies.length === 0) {
     return (
-      <div className="card-soft mx-6 mb-6 flex flex-col items-center justify-center gap-2 bg-card px-6 py-16 text-center">
+      <div className="card-soft mx-3 mb-6 flex flex-col items-center justify-center gap-2 bg-card px-6 py-16 text-center sm:mx-6">
         <Building2 className="h-6 w-6 text-muted-foreground" />
         <p className="text-sm font-semibold text-foreground">No companies yet</p>
         <p className="text-xs text-muted-foreground">
@@ -48,22 +59,22 @@ export function PlacementTable({
   }
 
   return (
-    <div className="card-soft mx-6 mb-6 overflow-hidden bg-card">
+    <div className="card-soft mx-3 mb-6 overflow-hidden bg-card sm:mx-6">
       {/* Horizontal scroll is a fallback for narrow screens only — the table is
           designed to fit without it. */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[860px] border-collapse text-left">
+        <table className="w-full border-collapse text-left lg:min-w-[860px]">
           <thead>
             <tr className="border-b border-border">
               {HEADERS.map((h, i) => (
                 <th
-                  key={`${h}-${i}`}
+                  key={`${h.label}-${i}`}
                   scope="col"
                   className={`py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${
-                    i === 0 ? 'pl-4' : ''
-                  } ${i === HEADERS.length - 1 ? 'pr-4' : 'pr-3'}`}
+                    i === 0 ? 'pl-3 sm:pl-4' : ''
+                  } ${i === HEADERS.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'} ${h.cls}`}
                 >
-                  {h}
+                  {h.label}
                 </th>
               ))}
             </tr>
@@ -81,9 +92,7 @@ export function PlacementTable({
                 onStatusChange={(stage, state) => onStatusChange(company.id, stage, state)}
                 onDeadlineChange={(date, time) => onDeadlineChange(company.id, date, time)}
                 onOptedInChange={(optedIn) => onOptedInChange(company.id, optedIn)}
-                onNotesChange={(notes) => onNotesChange(company.id, notes)}
-                onSkillsChange={(skills) => onSkillsChange(company.id, skills)}
-                onRegisteredChange={(reg) => onRegisteredChange(company.id, reg)}
+                onFieldChange={(patch) => onFieldChange(company.id, patch)}
                 onDelete={() => onDelete(company.id)}
               />
             ))}

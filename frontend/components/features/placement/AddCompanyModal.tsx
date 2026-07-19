@@ -83,7 +83,7 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-company-title"
-        className="overlay-soft w-full max-w-md bg-card"
+        className="overlay-soft flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden bg-card"
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <h2 id="add-company-title" className="text-sm font-bold text-foreground">
@@ -99,7 +99,7 @@ export function AddCompanyModal({ onCreate, onClose }: AddCompanyModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 px-5 py-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 overflow-y-auto px-5 py-4">
           <div className="flex flex-col gap-1">
             <label className={labelClass} htmlFor="ac-name">
               Company name <span className="text-destructive">*</span>
