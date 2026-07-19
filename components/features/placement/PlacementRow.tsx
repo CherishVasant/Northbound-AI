@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
@@ -9,6 +10,42 @@ import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
 import { CompanyDetailPanel } from './CompanyDetailPanel';
 import { InlineEdit } from './InlineEdit';
+
+interface NotesCellProps {
+  value: string;
+  onChange: (v: string) => void;
+}
+
+function NotesCell({ value, onChange }: NotesCellProps) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const commit = () => {
+    if (draft !== value) {
+      onChange(draft);
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          commit();
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      placeholder="Add stage notes..."
+      className="w-full bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
+    />
+  );
+}
 
 interface PlacementRowProps {
   company: PlacementCompany;
@@ -89,7 +126,7 @@ export function PlacementRow({
           </div>
         </td>
 
-        <td className="w-[132px] py-2.5 pr-1 align-top">
+        <td className="w-[120px] py-2.5 pr-1 align-top">
           <InlineEdit
             value={company.name ?? ''}
             onCommit={(name) => onFieldChange({ name })}
@@ -106,7 +143,7 @@ export function PlacementRow({
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}
-        <td className="hidden w-[116px] py-2.5 pr-1 align-top sm:table-cell">
+        <td className="hidden w-[100px] py-2.5 pr-1 align-top sm:table-cell">
           <InlineEdit
             value={company.role ?? ''}
             onCommit={(role) => onFieldChange({ role })}
@@ -117,7 +154,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="hidden w-[94px] py-2.5 pr-2 align-top xl:table-cell">
+        <td className="hidden w-[76px] py-2.5 pr-2 align-top xl:table-cell">
           <InlineEdit
             value={company.compensation?.amount ? String(company.compensation.amount) : ''}
             onCommit={(v) =>
@@ -138,13 +175,33 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-full py-2.5 pl-4 pr-3 align-middle">
+        <td className="w-[250px] py-2.5 pl-4 pr-3 align-middle">
           {company.optedIn ? (
             <StatusSelects history={company.history} onChange={onStatusChange} />
           ) : (
             <span className="inline-flex items-center rounded-[20px] border border-dashed border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
               Not Applying
             </span>
+          )}
+        </td>
+
+        <td className="w-full py-2.5 pl-2 pr-3 align-middle">
+          {company.optedIn ? (
+            <NotesCell
+              value={company.history.length > 0 ? (company.history[company.history.length - 1].notes ?? '') : ''}
+              onChange={(newNotes) => {
+                if (company.history.length === 0) return;
+                const nextHistory = [...company.history];
+                const lastIndex = nextHistory.length - 1;
+                nextHistory[lastIndex] = {
+                  ...nextHistory[lastIndex],
+                  notes: newNotes,
+                };
+                onFieldChange({ history: nextHistory });
+              }}
+            />
+          ) : (
+            <span className="text-xs text-muted-foreground/30">—</span>
           )}
         </td>
 
@@ -158,7 +215,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="py-2.5 pr-3 align-middle">
+        <td className="w-[80px] py-2.5 pr-3 align-middle">
           <ToggleSwitch
             checked={company.optedIn}
             onChange={onOptedInChange}
@@ -179,7 +236,7 @@ export function PlacementRow({
 
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
-          <td colSpan={9} className="p-0">
+          <td colSpan={10} className="p-0">
             <CompanyDetailPanel
               company={company}
               onFieldChange={onFieldChange}

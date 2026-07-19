@@ -94,7 +94,7 @@ export function InlineEdit({
 
   if (type === 'number') {
     return (
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-0.5">
         <input
           type="number"
           inputMode="decimal"
@@ -115,9 +115,9 @@ export function InlineEdit({
               (e.target as HTMLInputElement).blur();
             }
           }}
-          // Sized to the value and right-aligned so the unit sits beside the
+          // Sized to the value and left-aligned so the unit sits beside the
           // digits rather than at the far edge of the cell.
-          className={`w-14 shrink-0 text-right ${shared}`}
+          className={`w-11 shrink-0 text-left ${shared}`}
         />
         {suffix && (
           <span className="shrink-0 font-mono text-[10px] leading-none text-muted-foreground">

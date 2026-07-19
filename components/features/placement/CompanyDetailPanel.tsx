@@ -283,6 +283,11 @@ export function CompanyDetailPanel({
                           </span>
                         )}
                       </span>
+                      {entry.notes && (
+                        <p className="mt-1 max-w-[280px] sm:max-w-md rounded bg-secondary/30 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 font-sans">
+                          {entry.notes}
+                        </p>
+                      )}
                     </div>
 
                     <button

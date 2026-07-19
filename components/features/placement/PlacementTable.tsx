@@ -30,14 +30,14 @@ interface PlacementTableProps {
  */
 const HEADERS: { label: string; cls: string }[] = [
   { label: '', cls: 'w-8' },
-  { label: '#', cls: 'w-12' },
-  { label: 'Company', cls: 'w-[132px]' },
-  { label: 'Role', cls: 'hidden w-[116px] sm:table-cell' },
-  { label: 'Package', cls: 'hidden w-[94px] xl:table-cell' },
-  // w-full: absorbs the slack so the three columns above stay tucked together.
-  { label: 'Status', cls: 'w-full pl-4' },
+  { label: '#', cls: 'w-10' },
+  { label: 'Company', cls: 'w-[120px]' },
+  { label: 'Role', cls: 'hidden w-[100px] sm:table-cell' },
+  { label: 'Package', cls: 'hidden w-[76px] xl:table-cell' },
+  { label: 'Status', cls: 'w-[250px] pl-4' },
+  { label: 'Notes', cls: 'w-full pl-2' },
   { label: 'Deadline', cls: 'hidden w-[150px] lg:table-cell' },
-  { label: 'Opted In', cls: 'w-[76px]' },
+  { label: 'Opted In', cls: 'w-[80px]' },
   { label: '', cls: 'w-9' },
 ];
 

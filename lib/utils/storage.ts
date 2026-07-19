@@ -407,6 +407,7 @@ export interface StageEntry {
   status: PipelineState;
   /** ISO date (yyyy-mm-dd) */
   date: string;
+  notes?: string;
 }
 
 /** A round the company has already scheduled — what's coming, not what happened. */
