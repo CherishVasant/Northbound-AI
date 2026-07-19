@@ -25,15 +25,16 @@ interface PlacementTableProps {
  * row. Columns hidden on small screens remain editable in the detail panel.
  */
 const HEADERS: { label: string; cls: string }[] = [
-  { label: '', cls: '' },
-  { label: '#', cls: '' },
-  { label: 'Company', cls: '' },
-  { label: 'Role', cls: 'hidden sm:table-cell' },
-  { label: 'Package', cls: 'hidden xl:table-cell' },
-  { label: 'Status', cls: '' },
-  { label: 'Deadline', cls: 'hidden lg:table-cell' },
-  { label: 'Opted In', cls: '' },
-  { label: '', cls: '' },
+  { label: '', cls: 'w-8' },
+  { label: '#', cls: 'w-12' },
+  { label: 'Company', cls: 'w-[168px]' },
+  { label: 'Role', cls: 'hidden w-[140px] sm:table-cell' },
+  { label: 'Package', cls: 'hidden w-[92px] xl:table-cell' },
+  // w-full: absorbs the slack so the three columns above stay tucked together.
+  { label: 'Status', cls: 'w-full' },
+  { label: 'Deadline', cls: 'hidden w-[150px] lg:table-cell' },
+  { label: 'Opted In', cls: 'w-[76px]' },
+  { label: '', cls: 'w-8' },
 ];
 
 /**
@@ -70,7 +71,7 @@ export function PlacementTable({
       {/* Horizontal scroll is a fallback for narrow screens only — the table is
           designed to fit without it. */}
       <div className={`overflow-x-auto ${draggingId !== null ? "select-none" : ""}`}>
-        <table className="w-full border-collapse text-left lg:min-w-[860px]">
+        <table className="w-full table-fixed border-collapse text-left lg:min-w-[860px]">
           <thead>
             <tr className="border-b border-border">
               {HEADERS.map((h, i) => (
