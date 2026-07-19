@@ -136,12 +136,31 @@
   /* Placement pipeline — stage identity colors. Light-mode values are darkened
      for contrast against white surfaces; the dark block carries the values the
      design was authored against. */
-  --stage-resume: #4f7cac;
-  --stage-coding: #0891b2;
-  --stage-gd: #db2777;
-  --stage-tech: #ea580c;
-  --stage-hr: #4f46e5;
-  --stage-offer: #0d9488;
+  /* Stages follow the brand gradient in reverse (pink -> green), so the colour
+     itself says how far through the pipeline a company got. */
+  --stage-resume: #db2777;
+  --stage-coding: #9333ea;
+  --stage-gd: #6366f1;
+  --stage-tech: #2563eb;
+  --stage-hr: #0284c7;
+  --stage-offer: #059669;
+  /* Rejected is the most common outcome in a placement season. Painting 30 rows
+     in alarm-red makes the tracker punishing to look at, so it carries the
+     brand gradient instead — visible without being a telling-off. */
+  --aurora-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mint) 32%, transparent) 0%,
+    color-mix(in srgb, var(--sky) 32%, transparent) 35%,
+    color-mix(in srgb, var(--lavender) 32%, transparent) 70%,
+    color-mix(in srgb, var(--pink) 32%, transparent) 100%
+  );
+  --aurora-solid: linear-gradient(
+    135deg,
+    var(--mint) 0%,
+    var(--sky) 35%,
+    var(--lavender) 70%,
+    var(--pink) 100%
+  );
 
   /* Placement pipeline — state colors (independent of stage). */
   --state-preparing: #7c3aed;
@@ -223,12 +242,29 @@ html[data-theme='dark'],
   --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
 
   /* Stage + state colors as authored for the dark design. */
-  --stage-resume: #8ab4e8;
-  --stage-coding: #22d3ee;
-  --stage-gd: #f472b6;
-  --stage-tech: #fb923c;
-  --stage-hr: #a5b4fc;
-  --stage-offer: #2dd4a7;
+  --stage-resume: #f472b6;
+  --stage-coding: #c084fc;
+  --stage-gd: #818cf8;
+  --stage-tech: #60a5fa;
+  --stage-hr: #38bdf8;
+  --stage-offer: #6ee7b7;
+  /* Rejected is the most common outcome in a placement season. Painting 30 rows
+     in alarm-red makes the tracker punishing to look at, so it carries the
+     brand gradient instead — visible without being a telling-off. */
+  --aurora-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mint) 45%, transparent) 0%,
+    color-mix(in srgb, var(--sky) 45%, transparent) 35%,
+    color-mix(in srgb, var(--lavender) 45%, transparent) 70%,
+    color-mix(in srgb, var(--pink) 45%, transparent) 100%
+  );
+  --aurora-solid: linear-gradient(
+    135deg,
+    var(--mint) 0%,
+    var(--sky) 35%,
+    var(--lavender) 70%,
+    var(--pink) 100%
+  );
 
   --state-preparing: #a78bfa;
   --state-waiting: #f0b344;

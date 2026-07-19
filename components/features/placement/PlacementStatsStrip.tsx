@@ -64,7 +64,13 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
           <span
             aria-hidden
             className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: `var(${s.color})` }}
+            // Rejected carries the brand gradient rather than alarm red, so the
+            // strip matches the rows it summarises.
+            style={
+              s.label === 'Rejected'
+                ? { backgroundImage: 'var(--aurora-solid)' }
+                : { backgroundColor: `var(${s.color})` }
+            }
           />
           <span className="text-[11px] text-muted-foreground">{s.label}</span>
           <span className="font-mono text-xs font-bold text-foreground">{s.value}</span>

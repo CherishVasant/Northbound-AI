@@ -90,6 +90,15 @@ export function stateColorVar(stage: PipelineStage, state: PipelineState): strin
   return STATE_COLOR_VAR[state];
 }
 
+/**
+ * Rejected is rendered with the brand gradient rather than a state colour.
+ * Callers need to branch on it because a gradient is a background-image, not a
+ * colour, so it cannot flow through the usual `var(--token)` path.
+ */
+export function isRejected(stage: PipelineStage, state: PipelineState): boolean {
+  return state === 'Rejected';
+}
+
 /** Convenience for inline styles: `cssVar('--state-done')`. */
 export function cssVar(name: string) {
   return `var(${name})`;

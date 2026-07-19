@@ -16,6 +16,7 @@ import type { PlacementCompany, ScheduledEvent } from '@/lib/utils/storage';
 import {
   STATE_LABEL,
   stateColorVar,
+  isRejected,
   COMPENSATION_UNITS,
   PIPELINE_STAGES,
   STAGE_COLOR_VAR,
@@ -224,6 +225,7 @@ export function CompanyDetailPanel({
               <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
               {timeline.map((entry, i) => {
                 const color = `var(${stateColorVar(entry.stage, entry.status)})`;
+                const rejected = isRejected(entry.stage, entry.status);
                 const isCurrent = i === 0;
                 // Displayed newest-first; convert back to the stored index.
                 const storedIndex = timeline.length - 1 - i;
@@ -232,11 +234,15 @@ export function CompanyDetailPanel({
                     <span
                       className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{
-                        backgroundColor: color,
+                        ...(rejected
+                          ? { backgroundImage: 'var(--aurora-solid)' }
+                          : { backgroundColor: color }),
                         // Only the newest entry is live; halo it so the current
                         // position is findable without reading dates.
                         boxShadow: isCurrent
-                          ? `0 0 0 3px color-mix(in srgb, ${color} 25%, transparent)`
+                          ? `0 0 0 3px color-mix(in srgb, ${
+                              rejected ? 'var(--lavender)' : color
+                            } 25%, transparent)`
                           : undefined,
                       }}
                     />
@@ -255,9 +261,15 @@ export function CompanyDetailPanel({
                           </span>
                         )}
                       </span>
-                      <span className="text-[11px] font-medium" style={{ color }}>
-                        {STATE_LABEL[entry.status]}
-                      </span>
+                      {rejected ? (
+                        <span className="aurora-text text-[11px] font-semibold">
+                          {STATE_LABEL[entry.status]}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-medium" style={{ color }}>
+                          {STATE_LABEL[entry.status]}
+                        </span>
+                      )}
                       <span className="font-mono text-[10px] text-muted-foreground">
                         {formatDate(entry.date)}
                         {relativeDate(entry.date) && (

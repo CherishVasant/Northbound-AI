@@ -10,10 +10,16 @@ import {
   STATE_LABEL,
   FIRST_STAGE,
   stateColorVar,
+  isRejected,
   tint,
   type PipelineStage,
   type PipelineState,
 } from '@/lib/constants/placement';
+
+/** Native chevron is hidden by `appearance-none`; this redraws it in the
+ *  current text colour so it tracks the stage/state tint. */
+const CHEVRON_SVG =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='currentColor' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")";
 
 interface StatusSelectsProps {
   history: StageEntry[];
@@ -52,20 +58,36 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
 
   const stageVar = STAGE_COLOR_VAR[stage];
   const stateVar = stateColorVar(stage, state);
+  const rejected = isRejected(stage, state);
 
-  const selectBase =
-    'pill-soft appearance-none cursor-pointer text-[11px] font-semibold ' +
-    'px-2 py-1 pr-5 leading-none focus-visible:outline-2 focus-visible:outline-offset-2';
-
-  // Native chevron is hidden by `appearance-none`; this redraws it in the
-  // current text colour so it tracks the stage/state tint.
   const chevron = {
-    backgroundImage:
-      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='currentColor' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")",
+    backgroundImage: CHEVRON_SVG,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 4px center',
     backgroundSize: '11px 11px',
   } as const;
+
+  /**
+   * The chevron is drawn as a background-image, so the Rejected gradient has to
+   * be layered beneath it as a second background rather than replacing it.
+   */
+  const stateBackground = rejected
+    ? {
+        backgroundImage: `${CHEVRON_SVG}, var(--aurora-soft)`,
+        backgroundRepeat: 'no-repeat, no-repeat',
+        backgroundPosition: 'right 4px center, 0 0',
+        backgroundSize: '11px 11px, cover',
+        color: 'var(--foreground)',
+      }
+    : {
+        color: `var(${stateVar})`,
+        backgroundColor: tint(stateVar),
+        ...chevron,
+      };
+
+  const selectBase =
+    'pill-soft appearance-none cursor-pointer text-[11px] font-semibold ' +
+    'px-2 py-1 pr-5 leading-none focus-visible:outline-2 focus-visible:outline-offset-2';
 
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
@@ -93,14 +115,16 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
         className={`${selectBase} ${dirty ? 'ring-1 ring-primary/50' : ''}`}
         value={state}
         onChange={(e) => setState(e.target.value as PipelineState)}
-        style={{ color: `var(${stateVar})`, backgroundColor: tint(stateVar), ...chevron }}
+        style={stateBackground}
       >
         {PIPELINE_STATES.map((s) => (
           <option
             key={s}
             value={s}
             style={{
-              color: `var(${stateColorVar(stage, s)})`,
+              // Native <option> can't render a gradient, so Rejected borrows a
+              // mid-gradient hue in the open list.
+              color: s === 'Rejected' ? 'var(--lavender)' : `var(${stateColorVar(stage, s)})`,
               backgroundColor: 'var(--surface)',
             }}
           >
