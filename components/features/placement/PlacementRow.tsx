@@ -96,7 +96,7 @@ export function PlacementRow({
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}
-        <td className="hidden min-w-[110px] py-2.5 pr-3 align-middle md:table-cell">
+        <td className="hidden min-w-[110px] py-2.5 pr-3 align-middle sm:table-cell">
           <InlineEdit
             value={company.role ?? ''}
             onCommit={(role) => onFieldChange({ role })}
@@ -107,7 +107,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="hidden w-24 py-2.5 pr-3 align-middle sm:table-cell">
+        <td className="hidden w-24 py-2.5 pr-3 align-middle xl:table-cell">
           <InlineEdit
             value={company.package ? String(company.package) : ''}
             onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}

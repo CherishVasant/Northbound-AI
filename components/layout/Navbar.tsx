@@ -93,14 +93,15 @@ export function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-[10px] text-sm font-medium transition-all ${
+                  title={label}
+                  className={`flex items-center gap-0 px-2 py-2 rounded-[10px] text-sm font-medium transition-all xl:gap-2 xl:px-3 ${
                     isActive
                       ? 'bg-[var(--nav-active-bg)] text-primary font-semibold'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{label}</span>
+                  <span className="hidden xl:inline">{label}</span>
                 </Link>
               );
             })}
@@ -197,7 +198,7 @@ export function Navbar() {
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{label}</span>
+                  <span className="hidden xl:inline">{label}</span>
                 </Link>
               );
             })}
