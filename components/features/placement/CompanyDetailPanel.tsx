@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import {
+  X,
+  Plus,
+  Building2,
+  CalendarClock,
+  GraduationCap,
+  NotebookPen,
+  Route,
+} from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import { STATE_LABEL, stateColorVar } from '@/lib/constants/placement';
 import { InlineEdit } from './InlineEdit';
@@ -23,10 +31,52 @@ function formatDate(iso: string) {
   });
 }
 
+/** "today", "3 days ago", "2 wks ago" — orients the timeline at a glance. */
+function relativeDate(iso: string) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  const then = new Date(y, m - 1, d);
+  const now = new Date();
+  const days = Math.round(
+    (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - then.getTime()) /
+      86_400_000,
+  );
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 0) return `in ${Math.abs(days)}d`;
+  if (days < 14) return `${days} days ago`;
+  if (days < 60) return `${Math.round(days / 7)} wks ago`;
+  return `${Math.round(days / 30)} mo ago`;
+}
+
+/** A titled block, so the panel reads as grouped sections rather than one grid. */
+function Section({
+  icon: Icon,
+  title,
+  children,
+  className = '',
+}: {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`card-soft bg-card/60 p-4 ${className}`}>
+      <h4 className="mb-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/80">
         {label}
       </span>
       <div className="min-w-0 text-xs text-foreground">{children}</div>
@@ -34,7 +84,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/** Editable tag chips. Enter or + commits; × removes. */
 function SkillsEditor({
   skills,
   onChange,
@@ -91,7 +140,7 @@ function SkillsEditor({
           }}
           placeholder="Add a skill…"
           aria-label="Add a skill"
-          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[10px] text-foreground placeholder:text-muted-foreground sm:max-w-40"
+          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[10px] text-foreground placeholder:text-muted-foreground"
         />
         <button
           type="button"
@@ -107,7 +156,6 @@ function SkillsEditor({
   );
 }
 
-/** Notes commit on blur; see InlineEdit for why not per keystroke. */
 function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: string) => void }) {
   const [draft, setDraft] = useState(value);
   const [lastSeen, setLastSeen] = useState(value);
@@ -123,66 +171,137 @@ function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: stri
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== value && onCommit(draft)}
-      rows={3}
-      placeholder="No notes yet."
+      rows={4}
+      placeholder="Interview feedback, referrals, prep reminders…"
       aria-label="Notes"
-      className="card-soft w-full resize-y bg-secondary/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="pill-soft w-full resize-y bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
     />
   );
 }
 
 export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPanelProps) {
-  // Most recent first — the log is stored oldest-first.
+  // A company that isn't opted in has no pipeline. The log stays in storage so
+  // re-opting in resumes where it left off, but it isn't shown.
   const timeline = company.optedIn ? [...(company.history ?? [])].reverse() : [];
   const skills = company.skills ?? [];
 
   return (
-    <div className="grid gap-6 px-4 py-5 sm:px-6 md:grid-cols-2">
-      {/* ── Stage history ───────────────────────────────────────────────── */}
-      <div className="min-w-0">
-        <h4 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Stage History
-        </h4>
+    <div className="flex flex-col gap-3 px-3 py-4 sm:px-5">
+      {/* Row 1 — where it stands, and what's due */}
+      <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr]">
+        <Section icon={Route} title="Pipeline">
+          {timeline.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {company.optedIn
+                ? 'No stages recorded yet — set the stage and state in the row above.'
+                : 'Not applying to this company.'}
+            </p>
+          ) : (
+            <ol className="relative flex flex-col gap-3">
+              <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
+              {timeline.map((entry, i) => {
+                const color = `var(${stateColorVar(entry.stage, entry.status)})`;
+                const isCurrent = i === 0;
+                return (
+                  <li key={`${entry.stage}-${entry.date}-${i}`} className="relative flex gap-3">
+                    <span
+                      className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor: color,
+                        // Only the newest entry is live; halo it so the current
+                        // position is findable without reading dates.
+                        boxShadow: isCurrent
+                          ? `0 0 0 3px color-mix(in srgb, ${color} 25%, transparent)`
+                          : undefined,
+                      }}
+                    />
+                    <div className="flex min-w-0 flex-col gap-0.5 pb-0.5">
+                      <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-foreground">
+                        {entry.stage}
+                        {isCurrent && (
+                          <span
+                            className="rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
+                            style={{
+                              color,
+                              backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+                            }}
+                          >
+                            now
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[11px] font-medium" style={{ color }}>
+                        {STATE_LABEL[entry.status]}
+                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {formatDate(entry.date)}
+                        {relativeDate(entry.date) && (
+                          <span className="text-muted-foreground/70">
+                            {' · '}
+                            {relativeDate(entry.date)}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </Section>
 
-        {timeline.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            {company.optedIn ? 'No stage history yet' : 'Not applying — no stages'}
-          </p>
-        ) : (
-          <ol className="relative flex flex-col gap-3">
-            <span aria-hidden className="absolute left-[3.5px] top-1.5 bottom-1.5 w-px bg-border" />
-            {timeline.map((entry, i) => {
-              const color = `var(${stateColorVar(entry.stage, entry.status)})`;
-              return (
-                <li key={`${entry.stage}-${entry.date}-${i}`} className="relative flex gap-3">
-                  <span
-                    className="relative z-10 mt-1 h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: color }}
+        <Section icon={CalendarClock} title="Application">
+          <div className="grid grid-cols-2 gap-3">
+            {company.optedIn ? (
+              <>
+                <Field label="Deadline date">
+                  <input
+                    type="date"
+                    value={company.deadlineDate ?? ''}
+                    onChange={(e) => onFieldChange({ deadlineDate: e.target.value })}
+                    aria-label="Deadline date"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
                   />
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-xs font-semibold text-foreground">
-                      {entry.stage}
-                      <span className="text-muted-foreground"> — </span>
-                      <span style={{ color }}>{STATE_LABEL[entry.status]}</span>
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {formatDate(entry.date)}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+                </Field>
+                <Field label="Deadline time">
+                  <input
+                    type="time"
+                    value={company.deadlineTime ?? ''}
+                    onChange={(e) => onFieldChange({ deadlineTime: e.target.value })}
+                    aria-label="Deadline time"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                  />
+                </Field>
+                <Field label="Registered">
+                  <button
+                    type="button"
+                    onClick={() => onFieldChange({ registered: !company.registered })}
+                    aria-pressed={company.registered}
+                    className="pill-soft pill-soft-interactive w-full bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
+                  >
+                    {company.registered ? 'Yes' : 'Not yet'}
+                  </button>
+                </Field>
+              </>
+            ) : (
+              <div className="col-span-2">
+                <Field label="Reason for not opting in">
+                  <InlineEdit
+                    value={company.reason ?? ''}
+                    onCommit={(reason) => onFieldChange({ reason })}
+                    ariaLabel="Reason for not opting in"
+                    placeholder="e.g. Package below target"
+                  />
+                </Field>
+              </div>
+            )}
+          </div>
+        </Section>
       </div>
 
-      {/* ── Details: every field here is editable ───────────────────────── */}
-      <div className="flex min-w-0 flex-col gap-4">
-        <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Details
-        </h4>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Row 2 — the company's own facts */}
+      <Section icon={Building2} title="Company details">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Field label="Company">
             <InlineEdit
               value={company.name ?? ''}
@@ -191,7 +310,6 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
               placeholder="Company name"
             />
           </Field>
-
           <Field label="Role">
             <InlineEdit
               value={company.role ?? ''}
@@ -200,20 +318,17 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
               placeholder="e.g. SDE"
             />
           </Field>
-
-          <Field label="Package">
+          <Field label="Package (LPA)">
             <InlineEdit
               value={company.package ? String(company.package) : ''}
-              // Blank or unparseable clears back to 0 rather than storing NaN.
+              // Blank or unparseable clears to 0 rather than storing NaN.
               onCommit={(v) => onFieldChange({ package: Number(v) || 0 })}
               ariaLabel="Package in LPA"
               placeholder="0"
               type="number"
               mono
-              suffix="LPA"
             />
           </Field>
-
           <Field label="Location">
             <InlineEdit
               value={company.location ?? ''}
@@ -222,73 +337,18 @@ export function CompanyDetailPanel({ company, onFieldChange }: CompanyDetailPane
               placeholder="e.g. Bangalore"
             />
           </Field>
-
-          {company.optedIn && (
-            <>
-              <Field label="Deadline date">
-                <input
-                  type="date"
-                  value={company.deadlineDate ?? ''}
-                  onChange={(e) => onFieldChange({ deadlineDate: e.target.value })}
-                  aria-label="Deadline date"
-                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                />
-              </Field>
-
-              <Field label="Deadline time">
-                <input
-                  type="time"
-                  value={company.deadlineTime ?? ''}
-                  onChange={(e) => onFieldChange({ deadlineTime: e.target.value })}
-                  aria-label="Deadline time"
-                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                />
-              </Field>
-            </>
-          )}
-
-          <Field label="Registered">
-            {!company.optedIn ? (
-              <span className="text-muted-foreground">No</span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onFieldChange({ registered: !company.registered })}
-                className="pill-soft pill-soft-interactive self-start bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
-                aria-pressed={company.registered}
-              >
-                {company.registered ? 'Yes' : 'Not yet'}
-              </button>
-            )}
-          </Field>
-
-          {/* Only meaningful when the company was skipped. */}
-          {!company.optedIn && (
-            <Field label="Reason for not opting in">
-              <InlineEdit
-                value={company.reason ?? ''}
-                onCommit={(reason) => onFieldChange({ reason })}
-                ariaLabel="Reason for not opting in"
-                placeholder="e.g. Low package"
-              />
-            </Field>
-          )}
-
-          <div className="sm:col-span-2">
-            <Field label="Skills Required">
-              <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
-            </Field>
-          </div>
-
-          <div className="sm:col-span-2">
-            <Field label="Notes">
-              <NotesEditor
-                value={company.notes ?? ''}
-                onCommit={(notes) => onFieldChange({ notes })}
-              />
-            </Field>
-          </div>
         </div>
+      </Section>
+
+      {/* Row 3 — preparation */}
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Section icon={GraduationCap} title="Skills required">
+          <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
+        </Section>
+
+        <Section icon={NotebookPen} title="Notes">
+          <NotesEditor value={company.notes ?? ''} onCommit={(notes) => onFieldChange({ notes })} />
+        </Section>
       </div>
     </div>
   );
