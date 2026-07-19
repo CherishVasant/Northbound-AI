@@ -158,11 +158,19 @@ export default function PlacementPage() {
   );
 
   /**
-   * Serial numbers reflect position in the FULL list, so filtering to
-   * "Not Opted" shows 3,4,5 rather than renumbering them 1,2,3.
+   * Numbering restarts per year tab: 3rd Year runs 1..n and 4th Year runs 1..n
+   * independently, since the two are separate records that never interleave.
+   *
+   * It is position within that year bucket — NOT within the filtered view — so
+   * switching to "Not Opted" still shows each row's real number rather than
+   * renumbering the visible subset 1,2,3.
    */
   const serialOf = useCallback(
-    (id: number) => companies.findIndex((c) => c.id === id) + 1,
+    (id: number) => {
+      const target = companies.find((c) => c.id === id);
+      if (!target) return 0;
+      return companies.filter((c) => c.year === target.year).findIndex((c) => c.id === id) + 1;
+    },
     [companies],
   );
 
