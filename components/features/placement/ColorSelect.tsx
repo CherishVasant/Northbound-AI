@@ -32,8 +32,8 @@ interface ColorSelectProps<T extends string> {
  * colour (and Rejected can carry the gradient).
  *
  * The list is portalled to <body> and positioned from the trigger's rect: the
- * table scrolls horizontally, and an absolutely-positioned list would be
- * clipped by that container.
+ * table cell clips its overflow, and an absolutely-positioned list would be
+ * cut off by that container.
  */
 export function ColorSelect<T extends string>({
   value,
@@ -129,7 +129,7 @@ export function ColorSelect<T extends string>({
           setOpen((o) => !o);
         }}
         onKeyDown={onKeyDown}
-        className={`pill-soft flex cursor-pointer items-center gap-1 px-2 py-1 text-[11px] font-semibold leading-none focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
+        className={`pill-soft flex min-w-0 cursor-pointer items-center justify-between gap-1 px-2 py-1 text-[11px] font-semibold leading-none focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
         style={triggerStyle}
       >
         <span className="truncate">{selected?.label}</span>

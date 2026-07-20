@@ -1,21 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
-import { compensationSuffix } from '@/lib/constants/placement';
+import { packageSuffix, formatPackage } from '@/lib/constants/placement';
 import { ToggleSwitch } from './ToggleSwitch';
 import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
 import { CompanyDetailPanel } from './CompanyDetailPanel';
 import { InlineEdit } from './InlineEdit';
-import { HEADERS } from './PlacementTable';
 
 interface NotesCellProps {
   value: string;
   onChange: (v: string) => void;
 }
+
+/** Two lines of text plus padding — the resting height of an empty note. */
+const NOTES_MIN_HEIGHT = 46;
 
 function NotesCell({ value, onChange }: NotesCellProps) {
   const [draft, setDraft] = useState(value);
@@ -25,11 +27,22 @@ function NotesCell({ value, onChange }: NotesCellProps) {
     setDraft(value);
   }, [value]);
 
-  useEffect(() => {
+  /**
+   * Layout effect, not a plain effect: measuring in a passive effect meant the
+   * box painted once at its collapsed height before being corrected, which is
+   * why it opened looking like a sliver and only "found" its size after a
+   * keystroke forced a second pass.
+   *
+   * `auto` (not `0px`) before reading scrollHeight is what lets it SHRINK.
+   * scrollHeight never reports less than the element's current height, so
+   * clearing the field while the box was still tall measured the tall box and
+   * it stayed tall.
+   */
+  useLayoutEffect(() => {
     const el = areaRef.current;
     if (!el) return;
-    el.style.height = '0px';
-    el.style.height = `${el.scrollHeight}px`;
+    el.style.height = 'auto';
+    el.style.height = `${Math.max(el.scrollHeight, NOTES_MIN_HEIGHT)}px`;
   }, [draft]);
 
   const commit = () => {
@@ -41,7 +54,7 @@ function NotesCell({ value, onChange }: NotesCellProps) {
   return (
     <textarea
       ref={areaRef}
-      rows={1}
+      rows={2}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
@@ -52,8 +65,9 @@ function NotesCell({ value, onChange }: NotesCellProps) {
           (e.target as HTMLTextAreaElement).blur();
         }
       }}
-      placeholder="Add stage notes..."
-      className="w-full resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
+      placeholder="Add company notes..."
+      style={{ minHeight: NOTES_MIN_HEIGHT }}
+      className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-xs leading-relaxed text-foreground outline-none transition-colors placeholder:text-muted-foreground/30 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
     />
   );
 }
@@ -123,7 +137,7 @@ function SkillsCell({ value, onChange }: SkillsCellProps) {
             }
           }}
           placeholder="e.g. Python, SQL..."
-          className="w-full resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
+          className="w-full min-h-[28px] resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
         />
       </div>
     );
@@ -171,6 +185,10 @@ interface PlacementRowProps {
   selected: boolean;
   onSelectedChange: (selected: boolean) => void;
   selectionMode?: boolean;
+  /** Column ids the table decided it can fit, in display order. */
+  visibleIds: string[];
+  /** Status column is too narrow for two dropdowns side by side. */
+  stackStatus: boolean;
 }
 
 export function PlacementRow({
@@ -189,55 +207,59 @@ export function PlacementRow({
   selected,
   onSelectedChange,
   selectionMode = false,
+  visibleIds,
+  stackStatus,
 }: PlacementRowProps) {
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
 
-  const getColCls = (id: string) => {
-    return HEADERS.find((h) => h.id === id)?.cls ?? '';
-  };
+  /**
+   * Keyed by column id and rendered in the order the table planned, so a cell
+   * can never land under the wrong header. Widths come from the table's
+   * <colgroup> — cells carry padding only.
+   */
+  const cells: Record<string, { cls: string; content: React.ReactNode }> = {
+    expand: {
+      cls: 'py-2.5 pl-3 pr-1 align-middle sm:pl-4',
+      content: (
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Collapse details' : 'Expand details'}
+          className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <ChevronRight
+            className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+          />
+        </button>
+      ),
+    },
 
-  return (
-    <>
-      <tr
-        data-company-id={company.id}
-        onPointerDown={onRowPointerDown}
-        className={`group border-b border-border/60 transition-colors ${rowBg} ${
-          dragging ? 'relative z-10 opacity-60 shadow-[var(--shadow-card-hover)]' : ''
-        }`}
-      >
-        <td className={`py-2.5 pl-3 pr-1 align-middle sm:pl-4 ${getColCls('expand')}`}>
-          <button
-            type="button"
-            onClick={onToggleExpand}
-            aria-expanded={expanded}
-            aria-label={expanded ? 'Collapse details' : 'Expand details'}
-            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+    serial: {
+      cls: 'py-2.5 pr-2 align-middle',
+      content: (
+        <div className="flex items-center gap-1">
+          <span
+            onPointerDown={onHandlePointerDown}
+            role="button"
+            tabIndex={-1}
+            aria-label="Drag to reorder"
+            title="Drag to reorder (on a phone, press and hold the row)"
+            // touch-none stops the browser scrolling instead of dragging.
+            className="cursor-grab touch-none text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
           >
-            <ChevronRight
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
-            />
-          </button>
-        </td>
+            <GripVertical className="h-3.5 w-3.5" />
+          </span>
+          <span className="font-mono text-[11px] text-muted-foreground">{serial}</span>
+        </div>
+      ),
+    },
 
-        <td className={`py-2.5 pr-2 align-middle ${getColCls('serial')}`}>
-          <div className="flex items-center gap-1">
-            <span
-              onPointerDown={onHandlePointerDown}
-              role="button"
-              tabIndex={-1}
-              aria-label="Drag to reorder"
-              title="Drag to reorder (on a phone, press and hold the row)"
-              // touch-none stops the browser scrolling instead of dragging.
-              className="cursor-grab touch-none text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </span>
-            <span className="font-mono text-[11px] text-muted-foreground">{serial}</span>
-          </div>
-        </td>
-
-        <td className={`py-2.5 pr-1 align-top ${getColCls('company')}`}>
+    company: {
+      cls: 'py-2.5 pr-1 align-top',
+      content: (
+        <>
           <InlineEdit
             value={company.name ?? ''}
             onCommit={(name) => onFieldChange({ name })}
@@ -251,113 +273,142 @@ export function PlacementRow({
               Intern
             </span>
           )}
-        </td>
+        </>
+      ),
+    },
 
-        {/* Role is the bright identity field; package is deliberately muted. */}
-        <td className={`py-2.5 pr-1 align-top ${getColCls('role')}`}>
-          <InlineEdit
-            value={company.role ?? ''}
-            onCommit={(role) => onFieldChange({ role })}
-            ariaLabel={`Role for row ${serial}`}
-            placeholder="Role"
-            bare
-            className="text-xs font-medium text-primary"
-          />
-        </td>
+    // Role is the bright identity field; package is deliberately muted.
+    role: {
+      cls: 'py-2.5 pr-1 align-top',
+      content: (
+        <InlineEdit
+          value={company.role ?? ''}
+          onCommit={(role) => onFieldChange({ role })}
+          ariaLabel={`Role for row ${serial}`}
+          placeholder="Role"
+          bare
+          className="text-xs font-medium text-primary"
+        />
+      ),
+    },
 
-        <td className={`py-2.5 pr-2 align-top ${getColCls('package')}`}>
-          <InlineEdit
-            value={company.compensation?.amount ? String(company.compensation.amount) : ''}
-            onCommit={(v) =>
-              onFieldChange({
-                compensation: {
-                  amount: Number(v) || 0,
-                  unit: company.compensation?.unit ?? 'LPA',
-                },
-              })
-            }
-            ariaLabel={`Package for row ${serial}`}
-            placeholder="0"
-            type="number"
-            bare
-            mono
-            suffix={compensationSuffix(company.compensation?.unit ?? 'LPA')}
-            className="text-xs text-muted-foreground"
-          />
-        </td>
-
-        <td className={`py-2.5 pl-4 pr-3 align-middle ${getColCls('status')}`}>
-          {company.optedIn ? (
-            <StatusSelects history={company.history} onChange={onStatusChange} />
-          ) : (
-            <span className="inline-flex items-center rounded-[20px] border border-dashed border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-              Not Applying
-            </span>
+    package: {
+      cls: 'py-2.5 pr-2 align-top',
+      content: (
+        <InlineEdit
+          value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+          onCommit={(v) =>
+            onFieldChange({
+              compensation: {
+                amount: Number(v) || 0,
+                unit: company.compensation?.unit ?? 'LPA',
+              },
+            })
+          }
+          ariaLabel={`Package for row ${serial}`}
+          placeholder="0"
+          type="number"
+          bare
+          mono
+          // Editing works on the raw number; at rest it reads as "1.35L/mo".
+          display={formatPackage(
+            company.compensation?.amount ?? 0,
+            company.compensation?.unit ?? 'LPA',
           )}
-        </td>
+          suffix={packageSuffix(company.compensation?.unit ?? 'LPA')}
+          className="text-xs text-muted-foreground"
+        />
+      ),
+    },
 
-        <td className={`py-2.5 pl-2 pr-3 align-middle ${getColCls('notes')}`}>
-          {company.optedIn ? (
-            <NotesCell
-              value={company.history.length > 0 ? (company.history[company.history.length - 1].notes ?? '') : ''}
-              onChange={(newNotes) => {
-                if (company.history.length === 0) return;
-                const nextHistory = [...company.history];
-                const lastIndex = nextHistory.length - 1;
-                nextHistory[lastIndex] = {
-                  ...nextHistory[lastIndex],
-                  notes: newNotes,
-                };
-                onFieldChange({ history: nextHistory });
-              }}
-            />
-          ) : (
-            <span className="text-xs text-muted-foreground/30">—</span>
-          )}
-        </td>
+    status: {
+      cls: 'py-2.5 pl-2 pr-2 align-middle',
+      content: company.optedIn ? (
+        <StatusSelects history={company.history} onChange={onStatusChange} stacked={stackStatus} />
+      ) : (
+        <span className="inline-flex items-center rounded-[20px] border border-dashed border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+          Not Applying
+        </span>
+      ),
+    },
 
-        <td className={`py-2.5 pl-2 pr-3 align-middle ${getColCls('skills')}`}>
-          {company.optedIn ? (
-            <SkillsCell value={company.skills ?? []} onChange={(skills) => onFieldChange({ skills })} />
-          ) : (
-            <span className="text-xs text-muted-foreground/30">—</span>
-          )}
-        </td>
+    notes: {
+      cls: 'py-2.5 pl-2 pr-3 align-middle',
+      content: (
+        <NotesCell value={company.notes ?? ''} onChange={(notes) => onFieldChange({ notes })} />
+      ),
+    },
 
-        <td className={`py-2.5 pr-3 align-middle ${getColCls('deadline')}`}>
-          <DeadlineCell
-            optedIn={company.optedIn}
-            deadlineDate={company.deadlineDate}
-            deadlineTime={company.deadlineTime}
-            reason={company.reason}
-            onChange={onDeadlineChange}
-          />
-        </td>
+    skills: {
+      cls: 'py-2.5 pl-2 pr-3 align-middle',
+      content: company.optedIn ? (
+        <SkillsCell value={company.skills ?? []} onChange={(skills) => onFieldChange({ skills })} />
+      ) : (
+        <span className="text-xs text-muted-foreground/30">—</span>
+      ),
+    },
 
-        <td className={`py-2.5 pr-3 align-middle ${getColCls('optedIn')}`}>
-          <ToggleSwitch
-            checked={company.optedIn}
-            onChange={onOptedInChange}
-            label={company.optedIn ? 'Opted in' : 'Not opted in'}
-          />
-        </td>
+    deadline: {
+      cls: 'py-2.5 pr-3 align-middle',
+      content: (
+        <DeadlineCell
+          optedIn={company.optedIn}
+          deadlineDate={company.deadlineDate}
+          deadlineTime={company.deadlineTime}
+          reason={company.reason}
+          onChange={onDeadlineChange}
+        />
+      ),
+    },
 
-        {selectionMode && (
-          <td className={`py-2.5 pr-3 align-middle sm:pr-4 ${getColCls('select')}`}>
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={(e) => onSelectedChange(e.target.checked)}
-              aria-label={`Select ${company.name || 'company'}`}
-              className="h-3.5 w-3.5 cursor-pointer accent-[var(--primary)]"
-            />
-          </td>
-        )}
+    optedIn: {
+      cls: 'py-2.5 pr-3 align-middle',
+      content: (
+        <ToggleSwitch
+          checked={company.optedIn}
+          onChange={onOptedInChange}
+          label={company.optedIn ? 'Opted in' : 'Not opted in'}
+        />
+      ),
+    },
+
+    select: {
+      cls: 'py-2.5 pr-3 align-middle sm:pr-4',
+      content: (
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onSelectedChange(e.target.checked)}
+          aria-label={`Select ${company.name || 'company'}`}
+          className="h-3.5 w-3.5 cursor-pointer accent-[var(--primary)]"
+        />
+      ),
+    },
+  };
+
+  return (
+    <>
+      <tr
+        data-company-id={company.id}
+        onPointerDown={onRowPointerDown}
+        className={`group border-b border-border/60 transition-colors ${rowBg} ${
+          dragging ? 'relative z-10 opacity-60 shadow-[var(--shadow-card-hover)]' : ''
+        }`}
+      >
+        {visibleIds.map((id) => {
+          const cell = cells[id];
+          if (!cell) return null;
+          return (
+            <td key={id} className={`overflow-hidden ${cell.cls}`}>
+              {cell.content}
+            </td>
+          );
+        })}
       </tr>
 
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
-          <td colSpan={selectionMode ? 11 : 10} className="p-0">
+          <td colSpan={visibleIds.length} className="p-0">
             <CompanyDetailPanel
               company={company}
               onFieldChange={onFieldChange}

@@ -192,11 +192,24 @@ function AIAssistantInner({
                 ...(existing.skills || []),
                 ...(payload.skills || []),
               ]));
+              // Match on stage alone, not (stage, status): the AI reporting a
+              // round the user has since advanced would otherwise append a
+              // second entry for the same round rather than updating it.
               const mergedHistory = [...(existing.history || [])];
-              if (payload.history && Array.isArray(payload.history)) {
+              if (Array.isArray(payload.history)) {
                 payload.history.forEach((h: any) => {
-                  if (!mergedHistory.some((eh: any) => eh.stage === h.stage && eh.status === h.status)) {
+                  const at = mergedHistory.findIndex((eh: any) => eh.stage === h.stage);
+                  if (at === -1) {
                     mergedHistory.push(h);
+                  } else {
+                    // The user's own edits win; the AI only fills in blanks.
+                    mergedHistory[at] = {
+                      ...h,
+                      ...mergedHistory[at],
+                      date: mergedHistory[at].date || h.date || '',
+                      time: mergedHistory[at].time || h.time || '',
+                      notes: mergedHistory[at].notes || h.notes || '',
+                    };
                   }
                 });
               }
@@ -216,15 +229,21 @@ function AIAssistantInner({
                 id: generateId(),
                 ...payload,
                 createdAt: new Date().toISOString(),
-                history: payload.history || [
-                  {
-                    stage: 'Applied',
-                    status: 'Applied',
-                    date: new Date().toISOString().split('T')[0],
-                    notes: 'Added by Northbound AI',
-                  },
-                ],
-                schedule: payload.schedule || [],
+                // 'Applied' is not a PipelineStage or PipelineState, so this
+                // seed used to fail validation on the next load and the row
+                // came back with an empty journey. Seed the real first stage.
+                history: payload.history?.length
+                  ? payload.history
+                  : [
+                      {
+                        stage: 'Resume/CGPA',
+                        status: 'Preparing',
+                        date: new Date().toISOString().split('T')[0],
+                        time: '',
+                        notes: '',
+                      },
+                    ],
+                schedule: [],
               };
               updated.push(fresh);
             }

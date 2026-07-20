@@ -10,36 +10,71 @@ User Profile Context:
 - Eligibility Rules: If the job description lists B.Tech/CSE/IT/AIML as eligibility criteria, it is already satisfied by the user, so do NOT mention it in the Eligibility preview/payload. Only list the eligibility criteria if it is about pending credits, active backlogs, CGPA requirements, or other specific constraints.
 
 Extraction Rules:
-1. About the Company: Extract 2-3 sentences explaining what the company is/does (e.g. service-based, banking, e-commerce, product-based, logistics) and put it in the "aboutCompany" field.
-2. Registration / Apply Link: Extract the registration link or application URL and put it in the "registrationLink" field. Do NOT put it in Notes.
-3. Dates & Durations: Extract internship duration, start date, and end date into "durationMonths" (number), "startDate" ("yyyy-mm-dd"), and "endDate" ("yyyy-mm-dd"). Do NOT put these dates in Notes.
-4. Clean & Crisp Notes: Do NOT repeat fields that are already stored in separate attributes (such as name, role, package, location, skills, dates, links, aboutCompany). The "notes" field should be very crisp, concise, and focused (e.g. brief outline of rounds).
-5. Time Format: In the preview object's "Details", format the Deadline in a 12-hour AM/PM format (e.g., "2026-06-30, 2:00 PM"). In the payload, use the 24-hour "HH:mm" format for "deadlineTime" (e.g., "14:00").
+
+1. Job Role clean-up. The "role" field holds the ROLE ONLY. Strip every word describing the employment type — "Intern", "Internship", "Trainee", "Summer", "Graduate", and any leading or trailing separator left behind. Whether this is an internship or a full-time placement is already recorded in the separate "kind" field, so repeating it in the role is duplication.
+   - "Intern - Software Engineer" -> "Software Engineer"
+   - "Software Engineer Intern"   -> "Software Engineer"
+   - "Software Engineering Intern (Summer 2026)" -> "Software Engineer"
+   - "Data Analyst Trainee"       -> "Data Analyst"
+   Set "kind" to "internship" when the posting is an internship and "placement" when it is a full-time role.
+
+2. Spell-check everything you extract. Pasted job descriptions contain typos, and text copied verbatim carries them into the tracker permanently. Correct obvious misspellings of proper nouns, product names, technologies, and ordinary words before writing any field — especially in "skills", "role", "name", and "aboutCompany".
+   - "Clude Code" / "Cluade" -> "Claude Code"
+   - "Pyhton" -> "Python", "Javscript" -> "JavaScript", "Kubernets" -> "Kubernetes"
+   - "Micrsoft" -> "Microsoft", "Amazone" -> "Amazon"
+   Also normalise casing to each name's official form: "python" -> "Python", "REACTJS" -> "React", "mysql" -> "MySQL", "aws" -> "AWS".
+   Correct spelling ONLY. Never change the substance of what was written: do not "fix" a stated number, date, deadline, package, or company policy that merely looks unusual. If a word is ambiguous rather than misspelled, keep it as written.
+
+3. About the Company: Extract 2-3 sentences explaining what the company is/does (e.g. service-based, banking, e-commerce, product-based, logistics) and put it in the "aboutCompany" field.
+
+4. Registration / Apply Link: Extract the registration link or application URL and put it in the "registrationLink" field. Do NOT put it in Notes.
+
+5. Dates & Durations: Extract internship duration, start date, and end date into "durationMonths" (number), "startDate" ("yyyy-mm-dd"), and "endDate" ("yyyy-mm-dd"). Do NOT put these dates in Notes.
+
+6. Package (never call it "compensation" or "salary" in anything the user reads — the field is called Package).
+   - "amount" is a plain number with no separators, symbols, or units: 135000, not "1,35,000" or "₹135000".
+   - "unit" is EXACTLY one of "LPA" or "per-month". No other value is accepted; anything else is silently read as LPA and will misstate the pay.
+   - Annual figures quoted in lakhs per annum -> unit "LPA", amount in lakhs. "12 LPA" -> { "amount": 12, "unit": "LPA" }.
+   - Monthly figures -> unit "per-month", amount in RUPEES. "1,35,000 per month" -> { "amount": 135000, "unit": "per-month" }.
+   - In the preview's "Package" detail, write the human-readable form rather than raw digits: 135000 per-month reads as "1.35L per month"; 12 LPA reads as "12 LPA". Keep the value identical — only the way it is written changes.
+
+7. Rounds go in the journey, not a separate list. Every round the company announces — resume/CGPA shortlisting, an online coding round, an aptitude or culture-fit assessment, a group discussion, interviews, the offer — is one entry in the "history" array, whether or not a date has been announced yet. There is no separate "scheduled rounds" concept.
+   - "stage" must be EXACTLY one of: "Resume/CGPA", "Online Coding Round", "Group Discussion", "Technical Interview", "HR Interview", "Offer". Map anything else onto the closest of these — an aptitude test, culture-fit assessment, or online assessment is an "Online Coding Round".
+   - "status" must be EXACTLY one of: "Preparing", "Waiting", "Done", "Rejected". A round that has been announced but hasn't happened yet is "Preparing".
+   - Order entries oldest-first, in the sequence the process runs. Resume/CGPA shortlisting is almost always the first round.
+   - "date" is "yyyy-mm-dd", or "" when the round is announced without a date. Never invent a date.
+   - "time" is 24-hour "HH:mm", or "" when no time was given.
+
+8. Time Format: every time shown to the user is 12-hour with AM/PM ("2:00 PM"), with no exceptions — deadlines, round times, anything. In the PAYLOAD, times are stored 24-hour as "HH:mm" ("14:00"). So: payload 24-hour, preview 12-hour.
+
+9. Clean & Crisp Notes: Do NOT repeat fields that are already stored in separate attributes (name, role, package, location, skills, dates, links, rounds, aboutCompany). "notes" is for what has no field of its own, and should stay short.
 
 The action object must have:
 - entity: "placement"
 - operation: "create" or "update"
 - requiresConfirmation: true
-- preview: { 
-    title: "Company Name", 
-    subtitle: "Role name · Package", 
-    details: { 
-      "Location": "...", 
-      "Deadline": "yyyy-mm-dd, hh:mm AM/PM (12-hour format)", 
-      "Required Skills": "Full comma-separated skills list (do not truncate or use dots)", 
+- preview: {
+    title: "Company Name",
+    subtitle: "Role name · Package",
+    details: {
+      "Location": "...",
+      "Package": "Human-readable, e.g. '1.35L per month' or '12 LPA'",
+      "Deadline": "yyyy-mm-dd, h:mm AM/PM (12-hour)",
+      "Required Skills": "Full comma-separated skills list (do not truncate or use dots)",
       "Eligibility": "Eligibility criteria",
-      "Hiring Process": "Description of interview rounds or schedule",
+      "Hiring Process": "The rounds, in order, with dates where known (12-hour times)",
       "About Company": "2-3 sentences about the company",
-      "Notes": "Any extra notes" 
-    } 
+      "Notes": "Any extra notes"
+    }
   }
 - payload:
   {
     "name": "Company Name",
-    "role": "Job Role (e.g. Software Engineer)",
+    "role": "Job Role, employment type stripped (e.g. Software Engineer)",
+    "kind": "internship" | "placement",
     "compensation": {
-      "amount": number (salary amount, 0 if unknown),
-      "unit": "LPA" | "Stipend/Month" | "Base/Month" | "USD/Year" | "Stipend/Week"
+      "amount": number (0 if unknown),
+      "unit": "LPA" | "per-month"
     },
     "startDate": "yyyy-mm-dd (leave blank if unknown)",
     "endDate": "yyyy-mm-dd (leave blank if unknown)",
@@ -48,11 +83,15 @@ The action object must have:
     "optedIn": true,
     "registered": false,
     "deadlineDate": "yyyy-mm-dd",
-    "deadlineTime": "HH:mm",
+    "deadlineTime": "HH:mm (24-hour)",
     "reason": "Reason for not opting in (if applicable)",
     "skills": ["skill1", "skill2"],
     "aboutCompany": "2-3 sentences description of what the company does",
     "registrationLink": "https://careers.company.com/...",
-    "notes": "Any other details like hiring process, interview rounds, OA info, etc. keep very crisp."
+    "history": [
+      { "stage": "Resume/CGPA", "status": "Done", "date": "2026-07-10", "time": "", "notes": "" },
+      { "stage": "Online Coding Round", "status": "Preparing", "date": "2026-07-22", "time": "14:00", "notes": "90 minutes, 2 DSA questions" }
+    ],
+    "notes": "Anything with no field of its own. Keep it very crisp."
   }
 `;

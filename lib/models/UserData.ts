@@ -115,16 +115,29 @@ const CertificationSchema = new Schema({
   priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
 })
 
-/** One entry in a company's pipeline log; the last entry is the current status. */
+/**
+ * One round in a company's journey — done or merely announced.
+ *
+ * `time` and `notes` are NOT optional extras here: Mongoose strips paths the
+ * schema doesn't declare, so while they were missing every per-round note the
+ * user typed was silently discarded the moment it synced to the server.
+ */
 const StageEntrySchema = new Schema(
   {
     stage: { type: String, default: '' },
     status: { type: String, default: '' },
     date: { type: String, default: '' },
+    time: { type: String, default: '' },
+    notes: { type: String, default: '' },
   },
   { _id: false },
 )
 
+/**
+ * Superseded by StageEntry — an announced round is now just a journey entry
+ * with a future date. Retained as a readable path so migration can still fold
+ * legacy scheduled rounds into `history`; nothing writes to it any more.
+ */
 const ScheduledEventSchema = new Schema(
   {
     id: { type: String, default: '' },

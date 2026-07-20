@@ -1,10 +1,12 @@
 'use client';
 
+import { useRef } from 'react';
 import { Building2 } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 import { PlacementRow } from './PlacementRow';
 import { useRowReorder } from './useRowReorder';
+import { useTableColumns, STATUS_STACK_BELOW } from './useTableColumns';
 
 interface PlacementTableProps {
   companies: PlacementCompany[];
@@ -23,27 +25,9 @@ interface PlacementTableProps {
 }
 
 /**
- * `cls` must stay in lockstep with the matching <td> in PlacementRow — a header
- * hidden at a breakpoint where its cell is not (or vice versa) shifts the whole
- * row. Columns hidden on small screens remain editable in the detail panel.
- */
-export const HEADERS: { id: string; label: string; cls: string }[] = [
-  { id: 'expand', label: '', cls: 'w-8' },
-  { id: 'serial', label: '#', cls: 'w-10' },
-  { id: 'company', label: 'Company', cls: 'w-[120px]' },
-  { id: 'role', label: 'Role', cls: 'w-[100px]' },
-  { id: 'package', label: 'Package', cls: 'hidden 2xl:table-cell w-[85px]' },
-  { id: 'status', label: 'Status', cls: 'w-full lg:w-[240px] pl-4' },
-  { id: 'notes', label: 'Notes', cls: 'hidden xl:table-cell w-[180px] 2xl:w-full pl-2' },
-  { id: 'skills', label: 'Skills Required', cls: 'hidden 2xl:table-cell 2xl:w-full pl-2' },
-  { id: 'deadline', label: 'Deadline', cls: 'hidden xl:table-cell w-[150px]' },
-  { id: 'optedIn', label: 'Opted In', cls: 'hidden 2xl:table-cell w-[80px]' },
-  { id: 'select', label: '', cls: 'w-9' },
-];
-
-/**
- * One row per company. Everything that used to live in extra columns or a
- * second side-scrolling table is behind the expandable row instead.
+ * One row per company. Everything that doesn't fit is behind the expandable
+ * row, never behind a horizontal scrollbar — the table is sized to its own
+ * container (see useTableColumns) and drops columns rather than overflowing.
  */
 export function PlacementTable({
   companies,
@@ -61,7 +45,10 @@ export function PlacementTable({
   selectionMode = false,
 }: PlacementTableProps) {
   const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
-  const headers = selectionMode ? HEADERS : HEADERS.filter((h) => h.id !== 'select');
+  const shellRef = useRef<HTMLDivElement>(null);
+  const { columns, widths, statusWidth } = useTableColumns(shellRef, selectionMode);
+  const visibleIds = columns.map((c) => c.id);
+  const stackStatus = statusWidth > 0 && statusWidth < STATUS_STACK_BELOW;
 
   if (companies.length === 0) {
     return (
@@ -76,20 +63,25 @@ export function PlacementTable({
   }
 
   return (
-    <div className="card-soft mx-3 mb-6 overflow-hidden bg-card sm:mx-6">
-      {/* Horizontal scroll is a fallback for narrow screens only — the table is
-          designed to fit without it. */}
-      <div className={`overflow-x-auto ${draggingId !== null ? "select-none" : ""}`}>
+    <div ref={shellRef} className="card-soft mx-3 mb-6 overflow-hidden bg-card sm:mx-6">
+      {/* No overflow-x anywhere on this path, by design. Columns are chosen to
+          fit the measured width, so there is never anything to scroll to. */}
+      <div className={draggingId !== null ? 'select-none' : ''}>
         <table className="w-full table-fixed border-collapse text-left">
+          <colgroup>
+            {columns.map((c, i) => (
+              <col key={c.id} style={{ width: widths[i] }} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="border-b border-border">
-              {headers.map((h, i) => (
+              {columns.map((h, i) => (
                 <th
-                  key={`${h.label}-${i}`}
+                  key={h.id}
                   scope="col"
-                  className={`py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${
+                  className={`overflow-hidden truncate py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${
                     i === 0 ? 'pl-3 sm:pl-4' : ''
-                  } ${i === headers.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'} ${h.cls}`}
+                  } ${i === columns.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'}`}
                 >
                   {h.label}
                 </th>
@@ -121,6 +113,8 @@ export function PlacementTable({
                   )
                 }
                 selectionMode={selectionMode}
+                visibleIds={visibleIds}
+                stackStatus={stackStatus}
               />
             ))}
           </tbody>

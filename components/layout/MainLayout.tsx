@@ -36,6 +36,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  /**
+   * The `ai-open` body class used to exist so CSS could shrink the placement
+   * table's columns when this panel opened. The table now measures its own
+   * container, which notices the change without being told, so the class had no
+   * remaining consumers and the 420px literal no longer had to be kept in sync
+   * with a matching set of breakpoints.
+   */
+
   return (
     <div className="flex flex-1 overflow-hidden relative">
       <Suspense fallback={<div className="w-64 border-r border-border bg-sidebar" />}>

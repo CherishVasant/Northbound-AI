@@ -364,4 +364,9 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Placement table columns are sized from the table's measured width in
+   useTableColumns.ts, not from viewport breakpoints — the AI panel changes the
+   table's width without changing the viewport's, so media queries reported a
+   size the table did not have. */
+
 

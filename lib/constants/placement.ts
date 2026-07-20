@@ -132,7 +132,10 @@ export const KINDS: { value: OpportunityKind; label: string }[] = [
 /** New entries are placements unless said otherwise. */
 export const DEFAULT_KIND: OpportunityKind = 'placement';
 
-// ─── Compensation ───────────────────────────────────────────────────────────
+// ─── Package ────────────────────────────────────────────────────────────────
+// Called "package" everywhere the user can see it — never "compensation" or
+// "salary". The stored field name stays `compensation` only because renaming it
+// would invalidate every record already in localStorage and Mongo.
 
 export type CompensationUnit = 'LPA' | 'per-month';
 
@@ -142,14 +145,16 @@ export const COMPENSATION_UNITS: { value: CompensationUnit; label: string }[] = 
 ];
 
 /**
- * Renders pay as stated, with no conversion between units.
- * `amount` is read in lakhs for LPA and in rupees for per-month, matching how
- * each is quoted.
+ * Renders pay as stated, with no conversion between units. `amount` is read in
+ * lakhs for LPA and in rupees for per-month, matching how each is quoted.
+ *
+ * Six-figure monthly stipends are re-expressed in lakhs because "135000/mo"
+ * takes a beat to parse and "1.35L/mo" doesn't. The number is unchanged — only
+ * the scale it's written at.
  */
-export function formatCompensation(amount: number, unit: CompensationUnit): string {
+export function formatPackage(amount: number, unit: CompensationUnit): string {
   if (!amount) return '';
-  if (unit === 'LPA') return `${amount} LPA`;
-  // 135000 -> "1.35L/mo"; smaller stipends stay in plain rupees.
+  if (unit === 'LPA') return `${Number(amount.toFixed(2))} LPA`;
   if (amount >= 100000) {
     const lakhs = amount / 100000;
     return `${Number(lakhs.toFixed(2))}L/mo`;
@@ -157,9 +162,32 @@ export function formatCompensation(amount: number, unit: CompensationUnit): stri
   return `${amount.toLocaleString('en-IN')}/mo`;
 }
 
+/** @deprecated Use {@link formatPackage}. */
+export const formatCompensation = formatPackage;
+
 /** Short unit label for the inline editor's suffix. */
-export function compensationSuffix(unit: CompensationUnit): string {
+export function packageSuffix(unit: CompensationUnit): string {
   return unit === 'LPA' ? 'LPA' : '/mo';
+}
+
+/** @deprecated Use {@link packageSuffix}. */
+export const compensationSuffix = packageSuffix;
+
+// ─── Time ───────────────────────────────────────────────────────────────────
+
+/**
+ * '14:00' → '2:00 PM'. Times are STORED 24-hour (that's what <input type=time>
+ * round-trips) and DISPLAYED 12-hour, everywhere without exception.
+ */
+export function formatTime12h(time: string): string {
+  if (!time) return '';
+  const [hRaw, mRaw] = time.split(':');
+  const h = Number(hRaw);
+  const m = Number(mRaw);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return time;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
 // ─── Filter tabs ────────────────────────────────────────────────────────────

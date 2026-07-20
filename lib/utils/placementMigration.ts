@@ -1,9 +1,4 @@
-import type {
-  PlacementCompany,
-  StageEntry,
-  ScheduledEvent,
-  Compensation,
-} from '@/lib/utils/storage'
+import type { PlacementCompany, StageEntry, Compensation } from '@/lib/utils/storage'
 import {
   FIRST_STAGE,
   PIPELINE_STAGES,
@@ -102,17 +97,67 @@ function coerceKind(rec: any): 'placement' | 'internship' {
   return rec?.track === 'internship' ? 'internship' : 'placement'
 }
 
-function coerceSchedule(raw: any): ScheduledEvent[] {
+/**
+ * Legacy `schedule` entries become ordinary journey entries. An announced round
+ * is a stage the company hasn't reached yet, which is exactly 'Preparing'.
+ */
+function scheduleAsHistory(raw: any): StageEntry[] {
   if (!Array.isArray(raw)) return []
   return raw
     .filter((e) => e && typeof e === 'object')
-    .map((e, i) => ({
-      id: typeof e.id === 'string' && e.id ? e.id : `evt-${i}-${e.date ?? ''}`,
-      stage: PIPELINE_STAGES.includes(e.stage) ? e.stage : FIRST_STAGE,
+    .map((e) => ({
+      stage: (PIPELINE_STAGES.includes(e.stage) ? e.stage : FIRST_STAGE) as PipelineStage,
+      status: 'Preparing' as PipelineState,
       date: typeof e.date === 'string' ? e.date : '',
       time: typeof e.time === 'string' ? e.time : '',
-      note: typeof e.note === 'string' ? e.note : '',
+      notes: typeof e.note === 'string' ? e.note : '',
     }))
+}
+
+/**
+ * Journey order is by date, undated entries last — a round announced for next
+ * week must not sort ahead of one that already happened just because it was
+ * typed in first. Ties keep their existing relative order.
+ */
+function sortJourney(entries: StageEntry[]): StageEntry[] {
+  return entries
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => {
+      if (!a.e.date && !b.e.date) return a.i - b.i
+      if (!a.e.date) return 1
+      if (!b.e.date) return -1
+      if (a.e.date !== b.e.date) return a.e.date < b.e.date ? -1 : 1
+      return a.i - b.i
+    })
+    .map(({ e }) => e)
+}
+
+/** Drops entries that describe the same stage twice, keeping the richer one. */
+function dedupeJourney(entries: StageEntry[]): StageEntry[] {
+  const out: StageEntry[] = []
+  for (const entry of entries) {
+    const clash = out.findIndex((o) => o.stage === entry.stage && o.date === entry.date)
+    if (clash === -1) {
+      out.push(entry)
+      continue
+    }
+    out[clash] = {
+      ...out[clash],
+      ...entry,
+      notes: entry.notes || out[clash].notes,
+      time: entry.time || out[clash].time,
+    }
+  }
+  return out
+}
+
+/** History + folded-in legacy schedule, ordered and de-duplicated. */
+function buildJourney(rawHistory: any, rawSchedule: any, fallback: StageEntry[]): StageEntry[] {
+  const fromHistory = Array.isArray(rawHistory)
+    ? (rawHistory.map(coerceEntry).filter(Boolean) as StageEntry[])
+    : []
+  const base = fromHistory.length ? fromHistory : fallback
+  return dedupeJourney(sortJourney([...base, ...scheduleAsHistory(rawSchedule)]))
 }
 
 /** Rebuilds a plausible pipeline log from the old flat fields. */
@@ -136,12 +181,75 @@ function historyFromLegacy(rec: any): StageEntry[] {
   return [{ stage, status, date }]
 }
 
+/**
+ * Aliases for stage/status names that never existed in PIPELINE_STAGES but do
+ * get produced — by the AI agent, by hand-written imports, by older builds.
+ * Without these the entry is dropped entirely and the row loses its journey.
+ */
+const STAGE_ALIASES: Record<string, PipelineStage> = {
+  Applied: 'Resume/CGPA',
+  Application: 'Resume/CGPA',
+  Shortlisting: 'Resume/CGPA',
+  Resume: 'Resume/CGPA',
+  CGPA: 'Resume/CGPA',
+  'Online Assessment': 'Online Coding Round',
+  'Coding Round': 'Online Coding Round',
+  'Aptitude Test': 'Online Coding Round',
+  'Culture Fit': 'Online Coding Round',
+  'Culture Fit Assessment': 'Online Coding Round',
+  Interview: 'Technical Interview',
+  Technical: 'Technical Interview',
+  HR: 'HR Interview',
+}
+
+const STATUS_ALIASES: Record<string, PipelineState> = {
+  Applied: 'Preparing',
+  Scheduled: 'Preparing',
+  Pending: 'Preparing',
+  'Not Started': 'Preparing',
+  'Awaiting Result': 'Waiting',
+  Cleared: 'Done',
+  Passed: 'Done',
+  Completed: 'Done',
+  Selected: 'Done',
+}
+
+/**
+ * Preserves `notes` and `time`. Dropping them here silently deleted every note
+ * typed into the row on the next load, because migration re-runs on every read.
+ */
 function coerceEntry(e: any): StageEntry | null {
   if (!e || typeof e !== 'object') return null
-  const stage = PIPELINE_STAGES.includes(e.stage) ? (e.stage as PipelineStage) : null
-  const status = PIPELINE_STATES.includes(e.status) ? (e.status as PipelineState) : null
-  if (!stage || !status) return null
-  return { stage, status, date: typeof e.date === 'string' ? e.date : todayISO() }
+  const stage = PIPELINE_STAGES.includes(e.stage)
+    ? (e.stage as PipelineStage)
+    : (STAGE_ALIASES[e.stage] ?? null)
+  const status = PIPELINE_STATES.includes(e.status)
+    ? (e.status as PipelineState)
+    : (STATUS_ALIASES[e.status] ?? null)
+  if (!stage) return null
+  return {
+    stage,
+    status: status ?? 'Preparing',
+    date: typeof e.date === 'string' ? e.date : todayISO(),
+    time: typeof e.time === 'string' ? e.time : '',
+    notes: typeof e.notes === 'string' ? e.notes : typeof e.note === 'string' ? e.note : '',
+  }
+}
+
+/**
+ * The Notes column shows the COMPANY note, but earlier builds wrote notes onto
+ * the newest journey entry instead. When the company note is empty, lift the
+ * most recent entry note up so nothing typed under the old model disappears.
+ * Non-destructive: the entry keeps its own copy for the journey timeline.
+ */
+function hoistNotes(companyNotes: unknown, history: StageEntry[]): string {
+  const own = typeof companyNotes === 'string' ? companyNotes : ''
+  if (own.trim()) return own
+  for (let i = history.length - 1; i >= 0; i--) {
+    const n = history[i].notes
+    if (n && n.trim()) return n
+  }
+  return ''
 }
 
 export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
@@ -163,19 +271,22 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       // Still normalise history and id — a record can be new-shape but carry a
       // string id from an interrupted migration.
       const id = typeof rec.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId()
+      const history = buildJourney(rec.history, rec.schedule, [])
       return {
         ...rec,
         id,
         year: coerceYear(rec),
         kind: coerceKind(rec),
-        history: (rec.history as any[]).map(coerceEntry).filter(Boolean) as StageEntry[],
-        schedule: coerceSchedule(rec.schedule),
+        history,
+        schedule: [],
+        notes: hoistNotes(rec.notes, history),
         aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
         registrationLink: typeof rec.registrationLink === 'string' ? rec.registrationLink : '',
       } as PlacementCompany
     }
 
     const { deadlineDate, deadlineTime } = splitDeadline(rec?.applicationDeadline)
+    const journey = buildJourney(rec?.history, rec?.schedule, historyFromLegacy(rec))
 
     return {
       id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
@@ -204,13 +315,14 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
           ? rec.skills.map(String)
           : [],
       // Old notes were { content, lastEdited }; the new model is plain text.
-      notes: typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? ''),
+      notes: hoistNotes(
+        typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? ''),
+        journey,
+      ),
       aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
       registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
-      history: Array.isArray(rec?.history) && rec.history.length
-        ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
-        : historyFromLegacy(rec),
-      schedule: coerceSchedule(rec?.schedule),
+      history: journey,
+      schedule: [],
     }
   })
 }
@@ -223,6 +335,8 @@ export function needsMigration(raw: unknown): boolean {
       !isAlreadyMigrated(rec) ||
       typeof rec?.id !== 'number' ||
       !Array.isArray(rec?.schedule) ||
+      // Legacy scheduled rounds still waiting to be folded into the journey.
+      rec.schedule.length > 0 ||
       typeof rec?.year !== 'string' ||
       typeof rec?.kind !== 'string',
   )
@@ -238,14 +352,18 @@ export function monthsBetween(startDate: string, endDate: string): number {
   return months > 0 ? months : 0
 }
 
-export function makeScheduledEvent(): ScheduledEvent {
-  return {
-    id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    stage: FIRST_STAGE,
-    date: '',
-    time: '',
-    note: '',
-  }
+/**
+ * A round added by hand from the Journey panel. It starts undated and
+ * 'Preparing' — i.e. announced but not yet reached, which is exactly what an
+ * upcoming round is. The user fills in the date once the company gives one.
+ */
+export function makeRound(stage: PipelineStage = FIRST_STAGE): StageEntry {
+  return { stage, status: 'Preparing', date: '', time: '', notes: '' }
+}
+
+/** Re-sorts a journey after an edit changed a date. Exported for the panel. */
+export function orderJourney(entries: StageEntry[]): StageEntry[] {
+  return sortJourney(entries)
 }
 
 export function nextCompanyId(companies: PlacementCompany[]): number {
@@ -257,7 +375,7 @@ export function makeStageEntry(
   status: PipelineState,
   date = todayISO(),
 ): StageEntry {
-  return { stage, status, date }
+  return { stage, status, date, time: '', notes: '' }
 }
 
 export { todayISO }

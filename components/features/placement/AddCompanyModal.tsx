@@ -167,7 +167,7 @@ export function AddCompanyModal({ defaultKind, onCreate, onClose }: AddCompanyMo
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className={labelClass} htmlFor="ac-package">Compensation</label>
+              <label className={labelClass} htmlFor="ac-package">Package</label>
               <div className="flex items-center gap-1.5">
                 <input
                   id="ac-package"
@@ -180,7 +180,7 @@ export function AddCompanyModal({ defaultKind, onCreate, onClose }: AddCompanyMo
                   placeholder={unit === 'LPA' ? '12.5' : '135000'}
                 />
                 <select
-                  aria-label="Compensation unit"
+                  aria-label="Package unit"
                   value={unit}
                   onChange={(e) => setUnit(e.target.value as CompensationUnit)}
                   className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1.5 font-mono text-[10px] text-foreground"

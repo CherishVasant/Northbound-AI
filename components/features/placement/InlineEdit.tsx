@@ -26,6 +26,13 @@ interface InlineEditProps {
   mono?: boolean;
   /** Rendered after the value, e.g. "LPA". */
   suffix?: string;
+  /**
+   * Number fields only. Shown at rest INSTEAD of the raw value and suffix, so a
+   * stipend can read "1.35L/mo" while still being edited as 135000. Focusing
+   * swaps back to the raw number — reformatting under the cursor would fight
+   * whoever is typing.
+   */
+  display?: string;
   /** Table-cell styling: no visible box until hovered or focused. */
   bare?: boolean;
   className?: string;
@@ -39,13 +46,16 @@ export function InlineEdit({
   type = 'text',
   mono = false,
   suffix,
+  display,
   bare = false,
   className = '',
 }: InlineEditProps) {
   const [draft, setDraft] = useState(value);
+  const [focused, setFocused] = useState(false);
   const draftRef = useRef(draft);
   const committedRef = useRef(value);
   const areaRef = useRef<HTMLTextAreaElement | null>(null);
+  const numberRef = useRef<HTMLInputElement | null>(null);
 
   draftRef.current = draft;
 
@@ -93,9 +103,27 @@ export function InlineEdit({
   } ${className}`;
 
   if (type === 'number') {
+    if (display && !focused) {
+      return (
+        <button
+          type="button"
+          aria-label={ariaLabel}
+          onClick={() => {
+            setFocused(true);
+            // The input only exists after this re-render.
+            requestAnimationFrame(() => numberRef.current?.focus());
+          }}
+          className={`w-full text-left ${shared}`}
+        >
+          {display}
+        </button>
+      );
+    }
+
     return (
       <div className="flex items-baseline gap-0.5">
         <input
+          ref={numberRef}
           type="number"
           inputMode="decimal"
           min={0}
@@ -104,7 +132,11 @@ export function InlineEdit({
           aria-label={ariaLabel}
           placeholder={placeholder}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
+          onFocus={() => setFocused(true)}
+          onBlur={() => {
+            setFocused(false);
+            commit();
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();

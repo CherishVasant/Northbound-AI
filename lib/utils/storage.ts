@@ -406,12 +406,20 @@ export interface PlacementNotes {
 export interface StageEntry {
   stage: PipelineStage;
   status: PipelineState;
-  /** ISO date (yyyy-mm-dd) */
+  /** ISO date (yyyy-mm-dd). '' when the round is announced but undated. */
   date: string;
+  /** HH:mm (24h), '' when only a date is known. Rendered as 12-hour. */
+  time?: string;
   notes?: string;
 }
 
-/** A round the company has already scheduled — what's coming, not what happened. */
+/**
+ * @deprecated Scheduled rounds are no longer a separate list — an announced
+ * round is just a `StageEntry` with a future date and status 'Preparing', so it
+ * sits in the same journey as everything that already happened. The field is
+ * retained only so migration can fold legacy records into `history`; nothing
+ * writes to it.
+ */
 export interface ScheduledEvent {
   id: string;
   stage: PipelineStage;
@@ -464,9 +472,12 @@ export interface PlacementCompany {
   notes: string;
   aboutCompany?: string;
   registrationLink?: string;
-  /** Ordered oldest-first; last entry is the current status */
+  /**
+   * The company's whole journey, ordered oldest-first: rounds already done AND
+   * rounds merely announced. The last entry is the current status.
+   */
   history: StageEntry[];
-  /** Known upcoming rounds, distinct from the history log */
+  /** @deprecated Folded into `history` on load; always []. */
   schedule: ScheduledEvent[];
 }
 

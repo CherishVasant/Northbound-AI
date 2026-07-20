@@ -1,33 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  X,
-  Plus,
-  Building2,
-  CalendarClock,
-  CalendarRange,
-  GraduationCap,
-  NotebookPen,
-  Route,
-  Timer,
-} from 'lucide-react';
-import type { PlacementCompany, ScheduledEvent } from '@/lib/utils/storage';
+import { X, Plus, Building2, Route } from 'lucide-react';
+import type { PlacementCompany, StageEntry } from '@/lib/utils/storage';
 import {
   STATE_LABEL,
   stateColorVar,
   isRejected,
   COMPENSATION_UNITS,
   KINDS,
-  YEARS,
   PIPELINE_STAGES,
+  PIPELINE_STATES,
   STAGE_COLOR_VAR,
+  formatTime12h,
   type CompensationUnit,
   type OpportunityKind,
-  type OpportunityYear,
   type PipelineStage,
+  type PipelineState,
 } from '@/lib/constants/placement';
-import { makeScheduledEvent, monthsBetween } from '@/lib/utils/placementMigration';
+import { makeRound, orderJourney, monthsBetween } from '@/lib/utils/placementMigration';
 import { InlineEdit } from './InlineEdit';
 
 interface CompanyDetailPanelProps {
@@ -174,27 +165,28 @@ function SkillsEditor({
   );
 }
 
-function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: string) => void }) {
-  const [draft, setDraft] = useState(value);
-  const [lastSeen, setLastSeen] = useState(value);
-
-  // Adopt external updates without interrupting typing.
-  if (value !== lastSeen) {
-    setLastSeen(value);
-    setDraft(value);
-  }
-
-  return (
-    <textarea
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => draft !== value && onCommit(draft)}
-      rows={4}
-      placeholder="Interview feedback, referrals, prep reminders…"
-      aria-label="Notes"
-      className="pill-soft w-full resize-y bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
-    />
+/**
+ * Which entry is happening NOW.
+ *
+ * Not simply the last one: the journey holds announced-but-unreached rounds
+ * alongside finished ones, so the newest entry is often something that hasn't
+ * started. The current round is the latest one that isn't still 'Preparing' —
+ * failing that, the earliest 'Preparing' round, i.e. what's up next.
+ */
+/** Guesses the stage a newly added round is for: the one after the furthest reached. */
+function nextStage(history: StageEntry[]): PipelineStage {
+  const furthest = history.reduce(
+    (max, e) => Math.max(max, PIPELINE_STAGES.indexOf(e.stage)),
+    -1,
   );
+  return PIPELINE_STAGES[Math.min(furthest + 1, PIPELINE_STAGES.length - 1)];
+}
+
+function currentIndex(history: StageEntry[]): number {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].status !== 'Preparing') return i;
+  }
+  return history.length ? 0 : -1;
 }
 
 export function CompanyDetailPanel({
@@ -204,14 +196,23 @@ export function CompanyDetailPanel({
 }: CompanyDetailPanelProps) {
   // A company that isn't opted in has no pipeline. The log stays in storage so
   // re-opting in resumes where it left off, but it isn't shown.
-  const timeline = company.optedIn ? [...(company.history ?? [])].reverse() : [];
+  const history = company.history ?? [];
+  const timeline = company.optedIn ? history : [];
+  const nowIndex = currentIndex(history);
   const skills = company.skills ?? [];
   const derivedMonths = monthsBetween(company.startDate ?? '', company.endDate ?? '');
 
-  const updateEvent = (id: string, patch: Partial<ScheduledEvent>) =>
+  /**
+   * Edits re-sort the journey, since changing a date can move a round past its
+   * neighbours. Indices are therefore only valid within a single call.
+   */
+  const updateRound = (index: number, patch: Partial<StageEntry>) =>
     onFieldChange({
-      schedule: (company.schedule ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)),
+      history: orderJourney(history.map((e, i) => (i === index ? { ...e, ...patch } : e))),
     });
+
+  const addRound = () =>
+    onFieldChange({ history: [...history, makeRound(nextStage(history))] });
 
   return (
     <div className="px-3 py-4 sm:px-5">
@@ -220,30 +221,34 @@ export function CompanyDetailPanel({
         <div className="md:col-span-2 xl:col-span-1">
           <Section icon={Route} title="Journey">
             {timeline.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
+              <p className="mb-2 text-xs text-muted-foreground">
                 {company.optedIn
-                  ? 'No stages recorded yet — set the stage and state in the row above.'
+                  ? 'No rounds yet — add one below, or set the stage in the row above.'
                   : 'Not applying to this company.'}
               </p>
             ) : (
-              <ol className="relative flex flex-col gap-3">
+              <ol className="relative mb-3 flex flex-col gap-3">
                 <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
                 {timeline.map((entry, i) => {
                   const color = `var(${stateColorVar(entry.stage, entry.status)})`;
                   const rejected = isRejected(entry.stage, entry.status);
-                  const isCurrent = i === 0;
-                  // Displayed newest-first; convert back to the stored index.
-                  const storedIndex = timeline.length - 1 - i;
+                  const isCurrent = i === nowIndex;
                   return (
-                    <li key={`${entry.stage}-${entry.date}-${i}`} className="group/entry relative flex gap-3">
+                    <li
+                      key={`${entry.stage}-${entry.date}-${i}`}
+                      // Rounds that aren't the live one are dimmed rather than
+                      // greyed out — still fully legible, just clearly not the
+                      // thing demanding attention right now.
+                      className={`group/entry relative flex gap-3 transition-opacity ${
+                        isCurrent ? '' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
                       <span
                         className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
                         style={{
                           ...(rejected
                             ? { backgroundImage: 'var(--aurora-solid)' }
                             : { backgroundColor: color }),
-                          // Only the newest entry is live; halo it so the current
-                          // position is findable without reading dates.
                           boxShadow: isCurrent
                             ? `0 0 0 3px color-mix(in srgb, ${
                                 rejected ? 'var(--lavender)' : color
@@ -251,9 +256,23 @@ export function CompanyDetailPanel({
                             : undefined,
                         }}
                       />
-                      <div className="flex min-w-0 flex-col gap-0.5 pb-0.5">
-                        <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-foreground">
-                          {entry.stage}
+                      <div className="flex min-w-0 flex-1 flex-col gap-1 pb-0.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <select
+                            aria-label={`Stage for round ${i + 1}`}
+                            value={entry.stage}
+                            onChange={(e) =>
+                              updateRound(i, { stage: e.target.value as PipelineStage })
+                            }
+                            className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[11px] font-semibold"
+                            style={{ color: `var(${STAGE_COLOR_VAR[entry.stage]})` }}
+                          >
+                            {PIPELINE_STAGES.map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
+                          </select>
                           {isCurrent && (
                             <span
                               className="rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
@@ -265,27 +284,60 @@ export function CompanyDetailPanel({
                               now
                             </span>
                           )}
-                        </span>
-                        {rejected ? (
-                          <span className="aurora-text text-[11px] font-semibold">
-                            {STATE_LABEL[entry.status]}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-medium" style={{ color }}>
-                            {STATE_LABEL[entry.status]}
-                          </span>
-                        )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <select
+                            aria-label={`Status for round ${i + 1}`}
+                            value={entry.status}
+                            onChange={(e) =>
+                              updateRound(i, { status: e.target.value as PipelineState })
+                            }
+                            className={`pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium ${
+                              rejected ? 'aurora-text' : ''
+                            }`}
+                            style={rejected ? undefined : { color }}
+                          >
+                            {PIPELINE_STATES.map((st) => (
+                              <option key={st} value={st}>
+                                {STATE_LABEL[st]}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="date"
+                            value={entry.date}
+                            onChange={(e) => updateRound(i, { date: e.target.value })}
+                            aria-label={`Date for round ${i + 1}`}
+                            className="pill-soft bg-secondary/40 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
+                          />
+                          <input
+                            type="time"
+                            value={entry.time ?? ''}
+                            onChange={(e) => updateRound(i, { time: e.target.value })}
+                            aria-label={`Time for round ${i + 1}`}
+                            className="pill-soft bg-secondary/40 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
+                          />
+                        </div>
+
                         <span className="font-mono text-[10px] text-muted-foreground">
-                          {formatDate(entry.date)}
-                          {relativeDate(entry.date) && (
+                          {entry.date ? formatDate(entry.date) : 'Date to be announced'}
+                          {entry.time && (
+                            <span className="text-muted-foreground/70">
+                              {' · '}
+                              {formatTime12h(entry.time)}
+                            </span>
+                          )}
+                          {entry.date && relativeDate(entry.date) && (
                             <span className="text-muted-foreground/70">
                               {' · '}
                               {relativeDate(entry.date)}
                             </span>
                           )}
                         </span>
+
                         {entry.notes && (
-                          <p className="mt-1 max-w-[280px] sm:max-w-md rounded bg-secondary/30 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 font-sans">
+                          <p className="mt-1 max-w-[280px] whitespace-pre-wrap rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[11px] leading-relaxed text-muted-foreground sm:max-w-md">
                             {entry.notes}
                           </p>
                         )}
@@ -293,9 +345,9 @@ export function CompanyDetailPanel({
 
                       <button
                         type="button"
-                        onClick={() => onDeleteHistoryEntry(storedIndex)}
-                        title="Remove this entry"
-                        aria-label={`Remove ${entry.stage} entry`}
+                        onClick={() => onDeleteHistoryEntry(i)}
+                        title="Remove this round"
+                        aria-label={`Remove ${entry.stage} round`}
                         className="ml-auto mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-100 transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2 sm:opacity-0 sm:group-hover/entry:opacity-100 sm:focus-visible:opacity-100"
                       >
                         <X className="h-3 w-3" />
@@ -305,77 +357,25 @@ export function CompanyDetailPanel({
                 })}
               </ol>
             )}
+
+            {company.optedIn && (
+              <button
+                type="button"
+                onClick={addRound}
+                className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                <Plus className="h-3 w-3" />
+                Add round
+              </button>
+            )}
           </Section>
         </div>
 
-        {/* Column 2: Scheduled Rounds */}
+        {/* Column 2: Company Info. Scheduled rounds used to live here; an
+            announced round is now just a journey entry with a future date, so
+            there is one list to read instead of two to reconcile. */}
         <div>
-          <Section icon={CalendarRange} title="Scheduled rounds">
-            {(company.schedule ?? []).length === 0 ? (
-              <p className="mb-2 text-xs text-muted-foreground">
-                Nothing scheduled yet. Add a round once they give you a date.
-              </p>
-            ) : (
-              <ul className="mb-2 flex flex-col gap-2">
-                {(company.schedule ?? []).map((ev) => (
-                  <li key={ev.id} className="flex flex-wrap items-center gap-1.5">
-                    <select
-                      aria-label="Stage for scheduled round"
-                      value={ev.stage}
-                      onChange={(e) => updateEvent(ev.id, { stage: e.target.value as PipelineStage })}
-                      className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-1 text-[10px] font-semibold"
-                      style={{ color: `var(${STAGE_COLOR_VAR[ev.stage]})` }}
-                    >
-                      {PIPELINE_STAGES.map((st) => (
-                        <option key={st} value={st} style={{ color: `var(${STAGE_COLOR_VAR[st]})` }}>
-                          {st}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="date"
-                      value={ev.date}
-                      onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
-                      aria-label="Scheduled date"
-                      className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-                    />
-                    <input
-                      type="time"
-                      value={ev.time}
-                      onChange={(e) => updateEvent(ev.id, { time: e.target.value })}
-                      aria-label="Scheduled time"
-                      className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onFieldChange({
-                          schedule: (company.schedule ?? []).filter((x) => x.id !== ev.id),
-                        })
-                      }
-                      aria-label="Remove scheduled round"
-                      className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button
-              type="button"
-              onClick={() =>
-                onFieldChange({ schedule: [...(company.schedule ?? []), makeScheduledEvent()] })
-              }
-              className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-            >
-              <Plus className="h-3 w-3" />
-              Add round
-            </button>
-          </Section>
-
-          <div className="mt-3">
-            <Section icon={Building2} title="Company Info">
+          <Section icon={Building2} title="Company Info">
               <div className="space-y-3">
                 <Field label="About the Company">
                   <textarea
@@ -409,8 +409,7 @@ export function CompanyDetailPanel({
                   </div>
                 </Field>
               </div>
-            </Section>
-          </div>
+          </Section>
         </div>
 
         {/* Column 3: Details & Duration */}
@@ -440,7 +439,7 @@ export function CompanyDetailPanel({
                 </select>
               </Field>
               
-              <Field label="Compensation">
+              <Field label="Package">
                 <div className="flex items-center gap-1.5">
                   <InlineEdit
                     value={company.compensation?.amount ? String(company.compensation.amount) : ''}
@@ -452,13 +451,13 @@ export function CompanyDetailPanel({
                         },
                       })
                     }
-                    ariaLabel="Compensation amount"
+                    ariaLabel="Package amount"
                     placeholder="0"
                     type="number"
                     mono
                   />
                   <select
-                    aria-label="Compensation unit"
+                    aria-label="Package unit"
                     value={company.compensation?.unit ?? 'LPA'}
                     onChange={(e) =>
                       onFieldChange({

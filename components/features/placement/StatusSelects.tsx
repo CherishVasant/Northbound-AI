@@ -20,6 +20,13 @@ import { ColorSelect, type ColorOption } from './ColorSelect';
 interface StatusSelectsProps {
   history: StageEntry[];
   onChange: (stage: PipelineStage, state: PipelineState) => void;
+  /**
+   * Stack the two dropdowns vertically instead of side by side. Set by the
+   * table when the column is too narrow to seat them in a row — squeezing them
+   * horizontally truncates both labels to uselessness, whereas stacking keeps
+   * each one fully readable at the cost of a taller row.
+   */
+  stacked?: boolean;
 }
 
 const AURORA = 'var(--aurora-solid)';
@@ -36,7 +43,7 @@ const AURORA = 'var(--aurora-solid)';
  * list is drawn by the operating system, which discards per-option colour — the
  * closed control was tinted while the list that opened from it was plain text.
  */
-export function StatusSelects({ history, onChange }: StatusSelectsProps) {
+export function StatusSelects({ history, onChange, stacked = false }: StatusSelectsProps) {
   const entries = Array.isArray(history) ? history : [];
   const last = entries.length ? entries[entries.length - 1] : null;
   const committedStage: PipelineStage = last?.stage ?? FIRST_STAGE;
@@ -77,14 +84,20 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
 
   const ring = dirty ? 'ring-1 ring-primary/50' : '';
 
+  const fill = stacked ? 'w-full' : '';
+
   return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
+    <div
+      className={`flex min-w-0 gap-1.5 ${
+        stacked ? 'flex-col items-stretch' : 'flex-wrap items-center'
+      }`}
+    >
       <ColorSelect
         value={stage}
         options={stageOptions}
         onChange={setStage}
         ariaLabel="Pipeline stage"
-        className={ring}
+        className={`${ring} ${fill}`}
         triggerStyle={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar) }}
       />
 
@@ -93,7 +106,7 @@ export function StatusSelects({ history, onChange }: StatusSelectsProps) {
         options={stateOptions}
         onChange={setState}
         ariaLabel="Stage status"
-        className={ring}
+        className={`${ring} ${fill}`}
         triggerStyle={
           rejected
             ? {
