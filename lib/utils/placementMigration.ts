@@ -316,6 +316,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         // CURRENT round now, so leaving a copy here would show stale text.
         notes: '',
         aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
+        jobDescription: typeof rec.jobDescription === 'string' ? rec.jobDescription : '',
         registrationLink: typeof rec.registrationLink === 'string' ? rec.registrationLink : '',
       } as PlacementCompany
     }
@@ -355,6 +356,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       // string. Both are folded into the first round by buildJourney.
       notes: '',
       aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
+      jobDescription: typeof rec?.jobDescription === 'string' ? rec.jobDescription : '',
       registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
       history: journey,
       schedule: [],

@@ -189,6 +189,7 @@ const PlacementCompanySchema = new Schema(
     history: { type: [StageEntrySchema], default: [] },
     schedule: { type: [ScheduledEventSchema], default: [] },
     aboutCompany: { type: String, default: '' },
+    jobDescription: { type: String, default: '' },
     registrationLink: { type: String, default: '' },
 
     // ── Legacy fields, retained so migratePlacementCompanies() can still read

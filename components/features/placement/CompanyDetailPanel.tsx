@@ -432,6 +432,18 @@ export function CompanyDetailPanel({
           </Section>
 
           <div className="mt-3">
+            <Section icon={Building2} title="Job Description / Role">
+              <textarea
+                value={company.jobDescription ?? ''}
+                onChange={(e) => onFieldChange({ jobDescription: e.target.value })}
+                rows={6}
+                placeholder="Details about the job role, responsibilities, what they will be doing..."
+                className="pill-soft max-h-48 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+              />
+            </Section>
+          </div>
+
+          <div className="mt-3">
             <Section icon={Sparkles} title="Skills Required">
               <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
             </Section>

@@ -99,13 +99,13 @@ function AIAssistantInner({
   }, [chatInput]);
 
   // Load all storage modules for reactive execution of actions
-  const [, setDsaProblems] = useLocalStorage<any[]>(STORAGE_KEYS.DSA_PROBLEMS, []);
+  const [dsaProblems, setDsaProblems] = useLocalStorage<any[]>(STORAGE_KEYS.DSA_PROBLEMS, []);
   const [, setSavedConcepts] = useLocalStorage<any[]>(STORAGE_KEYS.CONCEPTS, SEED_CONCEPTS);
   const [, setSubjects] = useLocalStorage<any[]>(STORAGE_KEYS.SUBJECTS, []);
-  const [, setProjects] = useLocalStorage<any[]>(STORAGE_KEYS.PROJECTS, SEED_PROJECTS);
-  const [, setCertifications] = useLocalStorage<any[]>(STORAGE_KEYS.CERTIFICATIONS, SEED_CERTIFICATIONS);
-  const [, setHRQuestions] = useLocalStorage<any[]>(STORAGE_KEYS.HR_QUESTIONS, SEED_HR_QUESTIONS);
-  const [, setPlacementCompanies] = useLocalStorage<any[]>(STORAGE_KEYS.PLACEMENT_COMPANIES, []);
+  const [projects, setProjects] = useLocalStorage<any[]>(STORAGE_KEYS.PROJECTS, SEED_PROJECTS);
+  const [certifications, setCertifications] = useLocalStorage<any[]>(STORAGE_KEYS.CERTIFICATIONS, SEED_CERTIFICATIONS);
+  const [hrQuestions, setHRQuestions] = useLocalStorage<any[]>(STORAGE_KEYS.HR_QUESTIONS, SEED_HR_QUESTIONS);
+  const [placementCompanies, setPlacementCompanies] = useLocalStorage<any[]>(STORAGE_KEYS.PLACEMENT_COMPANIES, []);
 
   // Unified Chat Persistence via STORAGE_KEYS.AI_CHATS
   const [chats, setChats, isChatsLoaded] = useLocalStorage<ChatSession[]>(STORAGE_KEYS.AI_CHATS, []);
@@ -183,9 +183,11 @@ function AIAssistantInner({
         if (operation === 'create' || operation === 'update') {
           setPlacementCompanies((prev) => {
             const updated = [...(prev || [])];
-            const existingIdx = updated.findIndex(
-              (c: any) => c.name?.toLowerCase() === payload.name?.toLowerCase()
-            );
+            const existingIdx = operation === 'update'
+              ? updated.findIndex(
+                  (c: any) => c.id === payload.id || (c.name?.toLowerCase() === payload.name?.toLowerCase() && !payload.id)
+                )
+              : -1;
             if (existingIdx > -1) {
               const existing = updated[existingIdx];
               const mergedSkills = Array.from(new Set([
@@ -254,11 +256,14 @@ function AIAssistantInner({
         if (operation === 'create' || operation === 'update') {
           setDsaProblems((prev) => {
             const updated = [...(prev || [])];
-            const existingIdx = updated.findIndex(
-              (p: any) =>
-                p.problemName?.toLowerCase() === payload.problemName?.toLowerCase() ||
-                p.link === payload.link
-            );
+            const existingIdx = operation === 'update'
+              ? updated.findIndex(
+                  (p: any) =>
+                    p.id === payload.id ||
+                    (p.problemName?.toLowerCase() === payload.problemName?.toLowerCase() && !payload.id) ||
+                    (p.link === payload.link && !payload.id)
+                )
+              : -1;
             const fresh = {
               id: existingIdx > -1 ? updated[existingIdx].id : generateId(),
               ...payload,
@@ -351,9 +356,11 @@ function AIAssistantInner({
         if (operation === 'create' || operation === 'update') {
           setProjects((prev) => {
             const updated = [...(prev || [])];
-            const existingIdx = updated.findIndex(
-              (p: any) => p.name?.toLowerCase() === payload.name?.toLowerCase()
-            );
+            const existingIdx = operation === 'update'
+              ? updated.findIndex(
+                  (p: any) => p.id === payload.id || (p.name?.toLowerCase() === payload.name?.toLowerCase() && !payload.id)
+                )
+              : -1;
             const fresh = {
               id: existingIdx > -1 ? updated[existingIdx].id : generateId(),
               ...payload,
@@ -371,9 +378,11 @@ function AIAssistantInner({
         if (operation === 'create' || operation === 'update') {
           setCertifications((prev) => {
             const updated = [...(prev || [])];
-            const existingIdx = updated.findIndex(
-              (c: any) => c.name?.toLowerCase() === payload.name?.toLowerCase()
-            );
+            const existingIdx = operation === 'update'
+              ? updated.findIndex(
+                  (c: any) => c.id === payload.id || (c.name?.toLowerCase() === payload.name?.toLowerCase() && !payload.id)
+                )
+              : -1;
             const fresh = {
               id: existingIdx > -1 ? updated[existingIdx].id : generateId(),
               ...payload,
@@ -390,9 +399,11 @@ function AIAssistantInner({
         if (operation === 'create' || operation === 'update') {
           setHRQuestions((prev) => {
             const updated = [...(prev || [])];
-            const existingIdx = updated.findIndex(
-              (q: any) => q.question?.toLowerCase() === payload.question?.toLowerCase()
-            );
+            const existingIdx = operation === 'update'
+              ? updated.findIndex(
+                  (q: any) => q.id === payload.id || (q.question?.toLowerCase() === payload.question?.toLowerCase() && !payload.id)
+                )
+              : -1;
             const fresh = {
               id: existingIdx > -1 ? updated[existingIdx].id : generateId(),
               ...payload,
@@ -412,7 +423,12 @@ function AIAssistantInner({
     }
   };
 
-  const handleActionResponseState = (messageId: string, status: 'approved' | 'cancelled') => {
+  const handleActionResponseState = (
+    messageId: string,
+    status: 'approved' | 'cancelled',
+    forcedOperation?: 'create' | 'update',
+    targetId?: any
+  ) => {
     // Commit approval state locally to message metadata and sync
     setChats((prev) =>
       (prev || []).map((c) => {
@@ -421,7 +437,15 @@ function AIAssistantInner({
             if (m.id === messageId) {
               const actionObj = m.payload;
               if (status === 'approved' && actionObj) {
-                executeOrchestratedAction(actionObj);
+                const finalAction = {
+                  ...actionObj,
+                  operation: forcedOperation || actionObj.operation,
+                  payload: {
+                    ...actionObj.payload,
+                    id: targetId !== undefined ? targetId : actionObj.payload?.id,
+                  }
+                };
+                executeOrchestratedAction(finalAction);
               }
               return {
                 ...m,
@@ -683,6 +707,46 @@ function AIAssistantInner({
     const preview = action.preview;
     const status = message.metadata?.confirmationStatus || 'pending';
 
+    // Identify matches to let user pick between create/update
+    const entityList =
+      action.entity === 'placement' ? (placementCompanies || []) :
+      action.entity === 'leetcode' ? (dsaProblems || []) :
+      action.entity === 'project' ? (projects || []) :
+      action.entity === 'certification' ? (certifications || []) :
+      action.entity === 'hr_question' ? (hrQuestions || []) : [];
+
+    const getMatchedName = (item: any) => {
+      if (action.entity === 'leetcode') return item.problemName;
+      if (action.entity === 'hr_question') return item.question;
+      return item.name;
+    };
+
+    const getPayloadName = () => {
+      if (action.entity === 'leetcode') return action.payload?.problemName;
+      if (action.entity === 'hr_question') return action.payload?.question;
+      return action.payload?.name;
+    };
+
+    const getDisplayDetails = (item: any) => {
+      if (action.entity === 'placement') return `${item.role || '—'} (${item.kind || 'placement'})`;
+      if (action.entity === 'leetcode') return `Pattern: ${item.pattern || '—'}`;
+      if (action.entity === 'project') return `Tech: ${item.techStack?.join(', ') || '—'}`;
+      if (action.entity === 'certification') return `Provider: ${item.provider || '—'}`;
+      return '';
+    };
+
+    const payloadName = getPayloadName();
+    const matches = payloadName
+      ? entityList
+          .map((item: any, idx: number) => ({
+            ...item,
+            serial: idx + 1,
+            matchedName: getMatchedName(item),
+            details: getDisplayDetails(item),
+          }))
+          .filter((item: any) => item.matchedName?.toLowerCase() === payloadName.toLowerCase())
+      : [];
+
     return (
       <div className="mt-3 bg-secondary/10 border border-border/60 rounded-lg p-3.5 space-y-2.5 text-xs w-full max-w-[95%]">
         <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
@@ -710,22 +774,41 @@ function AIAssistantInner({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-1">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
           {status === 'pending' ? (
             <>
               <button
                 onClick={() => handleActionResponseState(message.id, 'cancelled')}
-                className="px-2 py-1 rounded bg-secondary/50 hover:bg-secondary text-[10.5px] font-semibold text-muted-foreground transition-colors cursor-pointer"
+                className="px-2 py-1 rounded bg-secondary/50 hover:bg-rose-500/10 text-rose-600 hover:text-rose-700 text-[10.5px] font-semibold transition-colors cursor-pointer"
               >
-                Cancel
+                Reject
               </button>
+              
               <button
-                onClick={() => handleActionResponseState(message.id, 'approved')}
-                className="px-2.5 py-1 rounded bg-primary hover:bg-primary/90 text-[10.5px] font-semibold text-primary-foreground flex items-center gap-1 transition-colors cursor-pointer"
+                onClick={() => handleActionResponseState(message.id, 'approved', 'create')}
+                className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-[10.5px] font-semibold text-white transition-colors cursor-pointer"
               >
-                <ThumbsUp className="w-3 h-3" />
-                Approve
+                Create New Entry
               </button>
+
+              {matches.map((match: any) => (
+                <button
+                  key={match.id}
+                  onClick={() => handleActionResponseState(message.id, 'approved', 'update', match.id)}
+                  className="px-2.5 py-1 rounded bg-primary hover:bg-primary/90 text-[10.5px] font-semibold text-primary-foreground flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  Update Row #{match.serial} ({match.details})
+                </button>
+              ))}
+
+              {matches.length === 0 && (
+                <button
+                  onClick={() => handleActionResponseState(message.id, 'approved', 'update')}
+                  className="px-2.5 py-1 rounded bg-secondary/80 hover:bg-secondary text-[10.5px] font-semibold text-foreground transition-colors cursor-pointer"
+                >
+                  Update Existing
+                </button>
+              )}
             </>
           ) : status === 'approved' ? (
             <span className="text-[10.5px] font-bold text-emerald-500 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">

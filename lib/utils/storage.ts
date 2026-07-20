@@ -471,6 +471,7 @@ export interface PlacementCompany {
   skills: string[];
   notes: string;
   aboutCompany?: string;
+  jobDescription?: string;
   registrationLink?: string;
   /**
    * The company's whole journey, ordered oldest-first: rounds already done AND
