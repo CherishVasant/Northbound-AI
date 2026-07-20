@@ -1,30 +1,14 @@
 import { NextResponse } from 'next/server'
+import { getSystemPrompt } from '@/lib/ai/orchestrator'
 
-/**
- * Vercel caps function duration (10s by default). The fallback chain below can
- * try several models in sequence, so raise the ceiling — and keep the chain
- * short enough that it cannot run past it.
- */
 export const maxDuration = 60
 
-/**
- * Ordered fallback chain, ported from the retired Express backend.
- *
- * Deliberately trimmed from the original seven: each failed attempt costs a
- * full round-trip, and seven could exceed the function timeout, turning a
- * degraded-but-working request into a hard failure. Four covers the realistic
- * cases (rate limit, model outage) while staying inside the budget.
- */
 const MODELS = [
   'google/gemini-2.5-flash',
-  'nvidia/nemotron-nano-9b-v2',
-  'meta-llama/llama-3-8b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
+  'openrouter/free',
 ]
 
-/** Overridable so the fallback chain can be exercised against a stub. */
-const OPENROUTER_URL =
-  process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1/chat/completions'
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 interface HistoryMessage {
   role: 'user' | 'assistant'

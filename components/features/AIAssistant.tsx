@@ -83,6 +83,19 @@ function AIAssistantInner({
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustTextareaHeight = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [chatInput]);
 
   // Load all storage modules for reactive execution of actions
   const [, setDsaProblems] = useLocalStorage<any[]>(STORAGE_KEYS.DSA_PROBLEMS, []);
@@ -815,13 +828,19 @@ function AIAssistantInner({
       {!showChatList && (
         <div className="border-t border-border p-3.5 bg-card shrink-0 space-y-2">
           <div className="flex gap-2">
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
+              rows={1}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
               placeholder="Ask Northbound AI anything..."
-              className="flex-1 px-3 py-2 pill-soft bg-secondary/80 text-foreground placeholder-muted-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-3 py-2 bg-secondary/80 text-foreground placeholder-muted-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary resize-none overflow-y-auto max-h-[120px] rounded-lg leading-normal"
               disabled={isLoading}
             />
             <Button
