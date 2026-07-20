@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
@@ -18,10 +18,18 @@ interface NotesCellProps {
 
 function NotesCell({ value, onChange }: NotesCellProps) {
   const [draft, setDraft] = useState(value);
+  const areaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
+
+  useEffect(() => {
+    const el = areaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft]);
 
   const commit = () => {
     if (draft !== value) {
@@ -30,19 +38,21 @@ function NotesCell({ value, onChange }: NotesCellProps) {
   };
 
   return (
-    <input
-      type="text"
+    <textarea
+      ref={areaRef}
+      rows={1}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
           commit();
-          (e.target as HTMLInputElement).blur();
+          (e.target as HTMLTextAreaElement).blur();
         }
       }}
       placeholder="Add stage notes..."
-      className="w-full bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
+      className="w-full resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
     />
   );
 }

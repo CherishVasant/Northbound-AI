@@ -217,7 +217,7 @@ export function CompanyDetailPanel({
     <div className="flex flex-col gap-3 px-3 py-4 sm:px-5">
       {/* Row 1 — where it stands, and what's due */}
       <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr]">
-        <Section icon={Route} title="Pipeline">
+        <Section icon={Route} title="Journey">
           {timeline.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               {company.optedIn
@@ -306,199 +306,6 @@ export function CompanyDetailPanel({
           )}
         </Section>
 
-        <Section icon={CalendarClock} title="Application">
-          <div className="grid grid-cols-2 gap-3">
-            {company.optedIn ? (
-              <>
-                <Field label="Deadline date">
-                  <input
-                    type="date"
-                    value={company.deadlineDate ?? ''}
-                    onChange={(e) => onFieldChange({ deadlineDate: e.target.value })}
-                    aria-label="Deadline date"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                  />
-                </Field>
-                <Field label="Deadline time">
-                  <input
-                    type="time"
-                    value={company.deadlineTime ?? ''}
-                    onChange={(e) => onFieldChange({ deadlineTime: e.target.value })}
-                    aria-label="Deadline time"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                  />
-                </Field>
-                <Field label="Registered">
-                  <button
-                    type="button"
-                    onClick={() => onFieldChange({ registered: !company.registered })}
-                    aria-pressed={company.registered}
-                    className="pill-soft pill-soft-interactive w-full bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
-                  >
-                    {company.registered ? 'Yes' : 'Not yet'}
-                  </button>
-                </Field>
-              </>
-            ) : (
-              <div className="col-span-2">
-                <Field label="Reason for not opting in">
-                  <InlineEdit
-                    value={company.reason ?? ''}
-                    onCommit={(reason) => onFieldChange({ reason })}
-                    ariaLabel="Reason for not opting in"
-                    placeholder="e.g. Package below target"
-                  />
-                </Field>
-              </div>
-            )}
-          </div>
-        </Section>
-      </div>
-
-      {/* Row 2 — the company's own facts */}
-      <Section icon={Building2} title="Company details">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Field label="Company">
-            <InlineEdit
-              value={company.name ?? ''}
-              onCommit={(name) => onFieldChange({ name })}
-              ariaLabel="Company name"
-              placeholder="Company name"
-            />
-          </Field>
-          <Field label="Role">
-            <InlineEdit
-              value={company.role ?? ''}
-              onCommit={(role) => onFieldChange({ role })}
-              ariaLabel="Role"
-              placeholder="e.g. SDE"
-            />
-          </Field>
-          <Field label="Compensation">
-            <div className="flex items-center gap-1.5">
-              <InlineEdit
-                value={company.compensation?.amount ? String(company.compensation.amount) : ''}
-                // Blank or unparseable clears to 0 rather than storing NaN.
-                onCommit={(v) =>
-                  onFieldChange({
-                    compensation: {
-                      amount: Number(v) || 0,
-                      unit: company.compensation?.unit ?? 'LPA',
-                    },
-                  })
-                }
-                ariaLabel="Compensation amount"
-                placeholder="0"
-                type="number"
-                mono
-              />
-              <select
-                aria-label="Compensation unit"
-                value={company.compensation?.unit ?? 'LPA'}
-                onChange={(e) =>
-                  onFieldChange({
-                    compensation: {
-                      amount: company.compensation?.amount ?? 0,
-                      unit: e.target.value as CompensationUnit,
-                    },
-                  })
-                }
-                className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-              >
-                {COMPENSATION_UNITS.map((u) => (
-                  <option key={u.value} value={u.value}>
-                    {u.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </Field>
-          <Field label="Location">
-            <InlineEdit
-              value={company.location ?? ''}
-              onCommit={(location) => onFieldChange({ location })}
-              ariaLabel="Location"
-              placeholder="e.g. Bangalore"
-            />
-          </Field>
-
-          <Field label="Type">
-            <select
-              aria-label="Opportunity type"
-              value={company.kind ?? 'placement'}
-              onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
-              className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
-            >
-              {KINDS.map((k) => (
-                <option key={k.value} value={k.value}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Year">
-            <select
-              aria-label="Year"
-              value={company.year ?? 'fourth'}
-              // Changing this moves the row to the other tab.
-              onChange={(e) => onFieldChange({ year: e.target.value as OpportunityYear })}
-              className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
-            >
-              {YEARS.map((y) => (
-                <option key={y.value} value={y.value}>
-                  {y.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-      </Section>
-
-      {/* Row 3 - duration and known upcoming rounds */}
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Section icon={Timer} title="Duration">
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="Start">
-              <input
-                type="date"
-                value={company.startDate ?? ''}
-                onChange={(e) => onFieldChange({ startDate: e.target.value })}
-                aria-label="Start date"
-                className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-              />
-            </Field>
-            <Field label="End">
-              <input
-                type="date"
-                value={company.endDate ?? ''}
-                onChange={(e) => onFieldChange({ endDate: e.target.value })}
-                aria-label="End date"
-                className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-              />
-            </Field>
-            <Field label="Months">
-              <InlineEdit
-                value={
-                  derivedMonths
-                    ? String(derivedMonths)
-                    : company.durationMonths
-                      ? String(company.durationMonths)
-                      : ''
-                }
-                onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
-                ariaLabel="Duration in months"
-                placeholder="0"
-                type="number"
-                mono
-              />
-            </Field>
-          </div>
-          {derivedMonths > 0 && (
-            <p className="mt-2 text-[10px] text-muted-foreground">Derived from the dates above.</p>
-          )}
-        </Section>
-
         <Section icon={CalendarRange} title="Scheduled rounds">
           {(company.schedule ?? []).length === 0 ? (
             <p className="mb-2 text-xs text-muted-foreground">
@@ -564,14 +371,102 @@ export function CompanyDetailPanel({
         </Section>
       </div>
 
-      {/* Row 4 - preparation */}
+      {/* Row 2 — Skills and Details */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Section icon={GraduationCap} title="Skills required">
           <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
         </Section>
 
-        <Section icon={NotebookPen} title="Notes">
-          <NotesEditor value={company.notes ?? ''} onCommit={(notes) => onFieldChange({ notes })} />
+        <Section icon={Building2} title="Details & Duration">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Location">
+              <InlineEdit
+                value={company.location ?? ''}
+                onCommit={(location) => onFieldChange({ location })}
+                ariaLabel="Location"
+                placeholder="e.g. Bangalore"
+              />
+            </Field>
+            <Field label="Type">
+              <select
+                aria-label="Opportunity type"
+                value={company.kind ?? 'placement'}
+                onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
+                className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+              >
+                {KINDS.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {k.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            {company.optedIn ? (
+              <Field label="Registered">
+                <button
+                  type="button"
+                  onClick={() => onFieldChange({ registered: !company.registered })}
+                  aria-pressed={company.registered}
+                  className="pill-soft pill-soft-interactive w-full bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
+                >
+                  {company.registered ? 'Yes' : 'Not yet'}
+                </button>
+              </Field>
+            ) : (
+              <div className="col-span-2">
+                <Field label="Reason for not opting in">
+                  <InlineEdit
+                    value={company.reason ?? ''}
+                    onCommit={(reason) => onFieldChange({ reason })}
+                    ariaLabel="Reason for not opting in"
+                    placeholder="e.g. Package below target"
+                  />
+                </Field>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 border-t border-border/60 pt-4">
+            <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Duration
+            </h5>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Start">
+                <input
+                  type="date"
+                  value={company.startDate ?? ''}
+                  onChange={(e) => onFieldChange({ startDate: e.target.value })}
+                  aria-label="Start date"
+                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                />
+              </Field>
+              <Field label="End">
+                <input
+                  type="date"
+                  value={company.endDate ?? ''}
+                  onChange={(e) => onFieldChange({ endDate: e.target.value })}
+                  aria-label="End date"
+                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                />
+              </Field>
+              <Field label="Months">
+                <InlineEdit
+                  value={
+                    derivedMonths
+                      ? String(derivedMonths)
+                      : company.durationMonths
+                        ? String(company.durationMonths)
+                        : ''
+                  }
+                  onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
+                  ariaLabel="Duration in months"
+                  placeholder="0"
+                  type="number"
+                  mono
+                />
+              </Field>
+            </div>
+          </div>
         </Section>
       </div>
     </div>

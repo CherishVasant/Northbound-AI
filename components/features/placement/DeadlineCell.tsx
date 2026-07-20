@@ -68,19 +68,19 @@ export function DeadlineCell({
 
   if (editing) {
     return (
-      <div ref={wrapRef} className="flex items-center gap-1.5">
+      <div ref={wrapRef} className="flex flex-col gap-1 py-1">
         <input
           type="date"
           autoFocus
           value={deadlineDate}
           onChange={(e) => onChange(e.target.value, deadlineTime)}
-          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground"
+          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground w-full"
         />
         <input
           type="time"
           value={deadlineTime}
           onChange={(e) => onChange(deadlineDate, e.target.value)}
-          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground"
+          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground w-full"
         />
       </div>
     );
