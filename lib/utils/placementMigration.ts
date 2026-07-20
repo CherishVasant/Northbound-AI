@@ -418,10 +418,7 @@ export function orderJourney(entries: StageEntry[]): StageEntry[] {
  */
 export function currentRoundIndex(history: StageEntry[]): number {
   if (!Array.isArray(history) || history.length === 0) return -1
-  for (let i = history.length - 1; i >= 0; i--) {
-    if (history[i].status !== 'Preparing') return i
-  }
-  return 0
+  return history.length - 1
 }
 
 export function nextCompanyId(companies: PlacementCompany[]): number {

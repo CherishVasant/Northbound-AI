@@ -1,7 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import { X, Plus, Building2, Link as LinkIcon, Route, Sparkles } from 'lucide-react';
+import { X, Plus, Building2, Link as LinkIcon, Route, Sparkles, Briefcase } from 'lucide-react';
 import type { PlacementCompany, StageEntry } from '@/lib/utils/storage';
 import {
   STATE_LABEL,
@@ -419,25 +419,25 @@ export function CompanyDetailPanel({
           </Section>
         </div>
 
-        {/* Column 2: About the Company & Skills Required */}
+        {/* Column 2: Role / Job Description, About the Company, & Skills Required */}
         <div>
-          <Section icon={Building2} title="About the Company">
+          <Section icon={Briefcase} title="Role / Job Description">
             <textarea
-              value={company.aboutCompany ?? ''}
-              onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
-              rows={8}
-              placeholder="Brief description of the company..."
-              className="pill-soft max-h-64 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+              value={company.jobDescription ?? ''}
+              onChange={(e) => onFieldChange({ jobDescription: e.target.value })}
+              rows={6}
+              placeholder="Details about the job role, responsibilities, what they will be doing..."
+              className="pill-soft max-h-48 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
             />
           </Section>
 
           <div className="mt-3">
-            <Section icon={Building2} title="Job Description / Role">
+            <Section icon={Building2} title="About the Company">
               <textarea
-                value={company.jobDescription ?? ''}
-                onChange={(e) => onFieldChange({ jobDescription: e.target.value })}
+                value={company.aboutCompany ?? ''}
+                onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
                 rows={6}
-                placeholder="Details about the job role, responsibilities, what they will be doing..."
+                placeholder="Brief description of the company..."
                 className="pill-soft max-h-48 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
               />
             </Section>
