@@ -44,7 +44,13 @@ export function PlacementTable({
   selectionMode = false,
 }: PlacementTableProps) {
   const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
-  const { ref: shellRef, columns, widths, statusWidth } = useTableColumns(selectionMode);
+  const {
+    ref: shellRef,
+    columns,
+    widths,
+    statusWidth,
+    maxWidth,
+  } = useTableColumns(selectionMode);
   const visibleIds = columns.map((c) => c.id);
   const stackStatus = statusWidth > 0 && statusWidth < STATUS_STACK_BELOW;
 
@@ -65,7 +71,13 @@ export function PlacementTable({
       {/* No overflow-x anywhere on this path, by design. Columns are chosen to
           fit the measured width, so there is never anything to scroll to. */}
       <div className={draggingId !== null ? 'select-none' : ''}>
-        <table className="w-full table-fixed border-collapse text-left">
+        {/* Stops at maxWidth instead of stretching: past that point the extra
+            room lands as whitespace inside cells rather than as useful width,
+            which is what left short values sitting far from the next column. */}
+        <table
+          style={{ maxWidth }}
+          className="w-full table-fixed border-collapse text-left"
+        >
           <colgroup>
             {columns.map((c, i) => (
               <col key={c.id} style={{ width: widths[i] }} />

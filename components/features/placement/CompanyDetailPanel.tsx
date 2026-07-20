@@ -220,7 +220,7 @@ function RoundNotes({
       placeholder="Notes for this round…"
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== value && onCommit(draft)}
-      className="mt-1 w-full resize-none overflow-hidden rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[11px] leading-relaxed text-muted-foreground outline-none transition-colors placeholder:text-muted-foreground/30 focus:bg-secondary/50 focus:text-foreground"
+      className="mt-1 w-full resize-none overflow-hidden rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[11px] leading-relaxed text-muted-foreground outline-none transition-colors placeholder:italic placeholder:text-muted-foreground/25 focus:bg-secondary/50 focus:text-foreground"
     />
   );
 }

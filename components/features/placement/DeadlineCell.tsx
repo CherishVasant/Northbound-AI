@@ -60,7 +60,7 @@ export function DeadlineCell({
 
   if (!optedIn) {
     return (
-      <span className="text-xs italic text-muted-foreground block truncate max-w-[140px]" title={reason}>
+      <span className="block w-full truncate text-xs italic text-muted-foreground" title={reason}>
         {reason?.trim() ? reason : '—'}
       </span>
     );
@@ -93,7 +93,10 @@ export function DeadlineCell({
       type="button"
       onClick={() => setEditing(true)}
       title="Click to edit deadline"
-      className="rounded px-1 py-0.5 text-xs font-mono text-foreground hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors truncate max-w-[140px] block text-left"
+      // w-full, not a hardcoded max-width. The column is sized by the table;
+      // a fixed 140px here was wider than the cell it sat in, so the label
+      // spilled out from under Deadline and across the next column.
+      className="block w-full truncate rounded px-1 py-0.5 text-left font-mono text-xs text-foreground transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       {label || <span className="text-muted-foreground">—</span>}
     </button>

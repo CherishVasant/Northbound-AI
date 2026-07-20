@@ -66,9 +66,12 @@ function NotesCell({ value, onChange }: NotesCellProps) {
           (e.target as HTMLTextAreaElement).blur();
         }
       }}
-      placeholder="Notes for this round..."
+      placeholder="Notes for this round…"
       style={{ minHeight: NOTES_MIN_HEIGHT }}
-      className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-xs leading-relaxed text-foreground outline-none transition-colors placeholder:text-muted-foreground/30 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
+      // Placeholder is a watermark, not content: it should be legible enough to
+      // tell you the cell is editable and faint enough that a row of empty
+      // notes doesn't read as a column full of text.
+      className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-xs leading-relaxed text-foreground outline-none transition-colors placeholder:italic placeholder:text-muted-foreground/25 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
     />
   );
 }
@@ -313,11 +316,19 @@ export function PlacementRow({
           type="number"
           bare
           mono
-          // Editing works on the raw number; at rest it reads as "1.35L/mo".
-          display={formatPackage(
-            company.compensation?.amount ?? 0,
-            company.compensation?.unit ?? 'LPA',
-          )}
+          /*
+           * Editing works on the raw number; at rest it reads as "1.35L/mo".
+           * The em-dash fallback matters: formatPackage returns '' for an
+           * unset package, and an empty display fell through to the raw input,
+           * which showed a lone "0" placeholder stranded a fixed 44px away
+           * from its "LPA" suffix.
+           */
+          display={
+            formatPackage(
+              company.compensation?.amount ?? 0,
+              company.compensation?.unit ?? 'LPA',
+            ) || '—'
+          }
           suffix={packageSuffix(company.compensation?.unit ?? 'LPA')}
           className="text-xs text-muted-foreground"
         />

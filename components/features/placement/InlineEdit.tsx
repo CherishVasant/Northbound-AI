@@ -147,9 +147,15 @@ export function InlineEdit({
               (e.target as HTMLInputElement).blur();
             }
           }}
-          // Sized to the value and left-aligned so the unit sits beside the
-          // digits rather than at the far edge of the cell.
-          className={`w-11 shrink-0 text-left ${shared}`}
+          /*
+           * Width tracks the digits actually typed, so the suffix sits beside
+           * the number instead of at the far end of a fixed-width box — "0"
+           * followed by 40px of nothing and then "LPA" read as two unrelated
+           * things. `ch` is the width of a digit in the current font, and the
+           * lower bound keeps an empty field clickable.
+           */
+          style={{ width: `${Math.max(2, draft.length + 0.5)}ch` }}
+          className={`shrink-0 text-left ${shared}`}
         />
         {suffix && (
           <span className="shrink-0 font-mono text-[10px] leading-none text-muted-foreground">

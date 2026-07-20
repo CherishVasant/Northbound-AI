@@ -21,12 +21,17 @@ export interface ColumnSpec {
   /** Narrowest width at which the column is still readable. */
   min: number;
   /**
+   * Widest width the column's content can actually use. Growth stops here and
+   * the space goes to a column that can still use it.
+   */
+  max?: number;
+  /**
    * 0 = structural, never dropped. Higher numbers are dropped sooner, so this
    * is the reverse of importance: 1 is the first thing added back.
    */
   priority: number;
-  /** Share of leftover space. Omit for columns that gain nothing from extra width. */
-  flex?: number;
+  /** Relative rate of growth between min and max. */
+  flex: number;
 }
 
 /**
@@ -44,19 +49,33 @@ export interface ColumnSpec {
  * rather than as information: at 34px it costs almost nothing, and a row you
  * can't cite by number is harder to talk about. Everything genuinely absent
  * from the row is reachable in the expanded panel, which holds every field.
+ *
+ * `max` is what stops the row from spreading itself thin. Without it, every
+ * column carrying `flex` swallowed an equal share of ALL the leftover space
+ * while every column without it stayed pinned at its minimum forever — so on a
+ * wide screen Company sat at 292px holding the word "UBS" and Deadline stayed
+ * at 100px trying to render "26 Jul, 5:00 PM". Growth now stops at the width
+ * the content can actually use, and what remains goes to a column that can
+ * still use it.
+ *
+ * Every column has a max, including Notes — leaving one uncapped absorber made
+ * it 709px on a wide screen, which is the same "short text marooned in a huge
+ * cell" problem one column over. When the container is wider than every column
+ * can use, the TABLE stops growing (see `maxWidth`) rather than stretching
+ * columns past the point where extra width helps.
  */
 export const COLUMN_SPECS: ColumnSpec[] = [
-  { id: 'expand', label: '', min: 28, priority: 0 },
-  { id: 'serial', label: '#', min: 34, priority: 0 },
-  { id: 'company', label: 'Company', min: 96, priority: 0, flex: 1 },
-  { id: 'role', label: 'Role', min: 84, priority: 0, flex: 1 },
-  { id: 'package', label: 'Package', min: 74, priority: 4 },
-  { id: 'status', label: 'Status', min: 124, priority: 0, flex: 1.6 },
-  { id: 'notes', label: 'Notes', min: 128, priority: 2, flex: 2.2 },
-  { id: 'skills', label: 'Skills Required', min: 112, priority: 3, flex: 1.4 },
-  { id: 'deadline', label: 'Deadline', min: 100, priority: 1 },
-  { id: 'optedIn', label: 'Opted In', min: 64, priority: 5 },
-  { id: 'select', label: '', min: 30, priority: 0 },
+  { id: 'expand', label: '', min: 28, max: 32, priority: 0, flex: 0 },
+  { id: 'serial', label: '#', min: 34, max: 48, priority: 0, flex: 0.2 },
+  { id: 'company', label: 'Company', min: 96, max: 190, priority: 0, flex: 1 },
+  { id: 'role', label: 'Role', min: 84, max: 180, priority: 0, flex: 1 },
+  { id: 'package', label: 'Package', min: 74, max: 120, priority: 4, flex: 0.5 },
+  { id: 'status', label: 'Status', min: 124, max: 300, priority: 0, flex: 1.5 },
+  { id: 'notes', label: 'Notes', min: 128, max: 560, priority: 2, flex: 2.5 },
+  { id: 'skills', label: 'Skills Required', min: 112, max: 420, priority: 3, flex: 1.5 },
+  { id: 'deadline', label: 'Deadline', min: 100, max: 170, priority: 1, flex: 0.9 },
+  { id: 'optedIn', label: 'Opted In', min: 64, max: 90, priority: 5, flex: 0.3 },
+  { id: 'select', label: '', min: 30, max: 34, priority: 0, flex: 0 },
 ];
 
 /** Below this the Status cell stacks its two dropdowns instead of sitting them side by side. */
@@ -70,8 +89,26 @@ export interface ColumnPlan {
   widths: string[];
   /** Resolved px width of the Status column, so the cell can pick its layout. */
   statusWidth: number;
+  /**
+   * Widest the table should ever draw itself: the sum of every visible column's
+   * ceiling. Past this the container has more room than the content can use, so
+   * the table stops rather than stretching columns into whitespace.
+   */
+  maxWidth: number;
   /** False until the first measurement lands. */
   measured: boolean;
+}
+
+/**
+ * The width at which every column has stopped growing.
+ *
+ * A zero-flex column never leaves its min, so summing `max` across the board
+ * overshoots by however much those columns were nominally allowed — and the
+ * table would then stretch a few pixels past what the layout can actually
+ * reach, scaling every column just over its ceiling.
+ */
+function saturatedWidth(columns: ColumnSpec[]): number {
+  return columns.reduce((sum, c) => sum + (c.flex > 0 ? (c.max ?? c.min) : c.min), 0);
 }
 
 function plan(width: number, selectionMode: boolean): Omit<ColumnPlan, 'ref'> {
@@ -102,12 +139,37 @@ function plan(width: number, selectionMode: boolean): Omit<ColumnPlan, 'ref'> {
   }
 
   const columns = available.filter((c) => chosen.has(c.id));
-  const slack = Math.max(0, width - used);
-  const totalFlex = columns.reduce((sum, c) => sum + (c.flex ?? 0), 0);
+  const px = columns.map((c) => c.min);
 
-  const px = columns.map(
-    (c) => c.min + (totalFlex > 0 ? (slack * (c.flex ?? 0)) / totalFlex : 0),
-  );
+  /**
+   * Water-filling: hand out the leftover space in proportion to flex, but stop
+   * each column at its max and redistribute what it couldn't take. A single
+   * proportional pass would park space in columns that have no use for it while
+   * a starved column two positions over still needs it.
+   *
+   * Bounded iterations because each pass either caps at least one column or
+   * exhausts the remainder; the loop guard is belt-and-braces, not a real bound.
+   */
+  let remaining = Math.max(0, width - used);
+  for (let pass = 0; pass < columns.length + 1 && remaining > 0.5; pass++) {
+    const growable = columns
+      .map((c, i) => ({ c, i }))
+      .filter(({ c, i }) => c.flex > 0 && px[i] < (c.max ?? Infinity) - 0.01);
+    if (growable.length === 0) break;
+
+    const totalFlex = growable.reduce((sum, { c }) => sum + c.flex, 0);
+    const before = remaining;
+    for (const { c, i } of growable) {
+      const share = (before * c.flex) / totalFlex;
+      const room = (c.max ?? Infinity) - px[i];
+      const give = Math.min(share, room);
+      px[i] += give;
+      remaining -= give;
+    }
+    // Everything hit its ceiling this pass; nothing left to hand the rest to.
+    if (before - remaining < 0.01) break;
+  }
+
   const total = px.reduce((a, b) => a + b, 0) || 1;
 
   return {
@@ -118,6 +180,7 @@ function plan(width: number, selectionMode: boolean): Omit<ColumnPlan, 'ref'> {
     // proportionally and squeeze below their min rather than spilling sideways.
     widths: px.map((w) => `${((w / total) * 100).toFixed(4)}%`),
     statusWidth: px[columns.findIndex((c) => c.id === 'status')] ?? 0,
+    maxWidth: saturatedWidth(columns),
     measured: true,
   };
 }
@@ -171,6 +234,7 @@ export function useTableColumns(selectionMode: boolean): ColumnPlan {
       columns,
       widths: columns.map(() => each),
       statusWidth: 0,
+      maxWidth: saturatedWidth(columns),
       measured: false,
     };
   }
