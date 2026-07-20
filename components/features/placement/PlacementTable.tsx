@@ -56,7 +56,7 @@ export function PlacementTable({
 
   if (companies.length === 0) {
     return (
-      <div className="card-soft mx-3 mb-6 flex flex-col items-center justify-center gap-2 bg-card px-6 py-16 text-center sm:mx-6">
+      <div className="card-soft mb-6 flex flex-col items-center justify-center gap-2 bg-card px-6 py-16 text-center w-full">
         <Building2 className="h-6 w-6 text-muted-foreground" />
         <p className="text-sm font-semibold text-foreground">No companies yet</p>
         <p className="text-xs text-muted-foreground">
@@ -67,7 +67,7 @@ export function PlacementTable({
   }
 
   return (
-    <div ref={shellRef} className="card-soft mx-auto max-w-[1500px] mb-6 overflow-hidden bg-card w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)]">
+    <div ref={shellRef} className="card-soft mb-6 overflow-hidden bg-card w-full">
       {/* No overflow-x anywhere on this path, by design. Columns are chosen to
           fit the measured width, so there is never anything to scroll to. */}
       <div className={draggingId !== null ? 'select-none' : ''}>

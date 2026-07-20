@@ -284,18 +284,9 @@ export default function PlacementPage() {
         icon={Building2}
         description="Track and manage your placement applications end-to-end."
         accentColor="--color-primary"
-      >
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Company
-        </button>
-      </PageHeader>
+      />
 
-      <div className="mt-6 space-y-6">
+      <div className="mx-auto max-w-[1500px] w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] mt-6 space-y-6">
         <PlacementStatsStrip companies={companies.filter((c) => c.year === year)} />
 
         <PlacementToolbar
@@ -320,10 +311,11 @@ export default function PlacementPage() {
           }
           selectionMode={selectionMode}
           onSelectionModeChange={handleSelectionModeChange}
+          onAddCompany={() => setShowAddModal(true)}
         />
 
         {selectedIds.length > 0 && (
-          <div className="mx-3 mb-2 flex flex-wrap items-center gap-2 px-1 sm:mx-6">
+          <div className="mb-2 flex flex-wrap items-center gap-2 px-1">
             <span className="text-xs font-semibold text-foreground">
               {selectedIds.length} selected
             </span>

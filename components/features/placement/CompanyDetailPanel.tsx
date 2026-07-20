@@ -296,7 +296,7 @@ export function CompanyDetailPanel({
                       onChange={(e) => updateRound(i, { notes: e.target.value })}
                       placeholder="Notes for this round..."
                       aria-label={`Notes for round ${i + 1}`}
-                      className="w-full bg-[var(--surface-2)] border border-border rounded-lg p-2.5 text-[13px] text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none resize-none overflow-hidden min-h-[50px] leading-relaxed"
+                      className="w-full bg-[var(--surface-2)] border border-border rounded-lg p-2.5 text-[13px] text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none resize-none overflow-y-auto min-h-[50px] max-h-[100px] leading-relaxed"
                     />
                   </div>
                 );
@@ -309,10 +309,10 @@ export function CompanyDetailPanel({
               type="button"
               onClick={addRound}
               style={{ border: '1px dashed rgba(255, 255, 255, 0.14)' }}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer mt-2 bg-transparent"
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer mt-2 bg-transparent w-full"
             >
               <Plus className="h-3 w-3" />
-              + Add round
+              Add round
             </button>
           )}
         </div>
@@ -503,7 +503,7 @@ export function CompanyDetailPanel({
           {/* Duration Card */}
           <div className="border border-border bg-[var(--surface-2)] rounded-xl p-4 flex flex-col gap-3">
             <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
-              Duration
+              {company.kind === 'internship' ? 'Duration' : 'Joining Date'}
             </h3>
             
             <div className="flex items-center gap-2">
@@ -518,29 +518,33 @@ export function CompanyDetailPanel({
                   className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
                 />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col gap-1">
-                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
-                  End
-                </label>
-                <input
-                  type="date"
-                  value={company.endDate ?? ''}
-                  onChange={(e) => onFieldChange({ endDate: e.target.value })}
-                  className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
-                />
-              </div>
-              <div className="w-16 flex flex-col gap-1 shrink-0">
-                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)] text-center">
-                  Months
-                </label>
-                <input
-                  type="number"
-                  value={derivedMonths || company.durationMonths || ''}
-                  onChange={(e) => onFieldChange({ durationMonths: Number(e.target.value) || 0 })}
-                  placeholder="6"
-                  className="w-full text-center bg-[var(--surface-2)] border border-border rounded-lg py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
-                />
-              </div>
+              {company.kind === 'internship' && (
+                <>
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                      End
+                    </label>
+                    <input
+                      type="date"
+                      value={company.endDate ?? ''}
+                      onChange={(e) => onFieldChange({ endDate: e.target.value })}
+                      className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                    />
+                  </div>
+                  <div className="w-16 flex flex-col gap-1 shrink-0">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)] text-center">
+                      Months
+                    </label>
+                    <input
+                      type="number"
+                      value={derivedMonths || company.durationMonths || ''}
+                      onChange={(e) => onFieldChange({ durationMonths: Number(e.target.value) || 0 })}
+                      placeholder="6"
+                      className="w-full text-center bg-[var(--surface-2)] border border-border rounded-lg py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,4 @@
-'use client';
-
-import { Search } from 'lucide-react';
-import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { Search, ChevronsDownUp, ChevronsUpDown, Plus } from 'lucide-react';
 import { OPTED_FILTERS, YEARS, type OptedFilter, type OpportunityYear } from '@/lib/constants/placement';
 
 interface PlacementToolbarProps {
@@ -16,6 +13,7 @@ interface PlacementToolbarProps {
   counts: Record<OpportunityYear, number>;
   selectionMode: boolean;
   onSelectionModeChange: (val: boolean) => void;
+  onAddCompany: () => void;
 }
 
 export function PlacementToolbar({
@@ -30,42 +28,56 @@ export function PlacementToolbar({
   counts,
   selectionMode,
   onSelectionModeChange,
+  onAddCompany,
 }: PlacementToolbarProps) {
   return (
     <>
       {/* Track tabs sit above the other controls: they scope everything below,
           including which companies the stats strip counts. */}
       <div
-        role="tablist"
-        aria-label="Year"
-        className="flex items-center gap-1 px-4 pb-3 sm:px-6"
+        className="flex flex-wrap items-center justify-between gap-3 pb-3"
       >
-        {YEARS.map((t) => {
-          const active = year === t.value;
-          return (
-            <button
-              key={t.value}
-              role="tab"
-              aria-selected={active}
-              onClick={() => onYearChange(t.value)}
-              className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors ${active
-                  ? 'bg-[var(--nav-active-bg)] text-primary'
-                  : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
-                }`}
-            >
-              {t.label}
-              <span
-                className={`font-mono text-[12px] ${active ? 'text-primary/70' : 'text-muted-foreground/70'
+        <div
+          role="tablist"
+          aria-label="Year"
+          className="flex items-center gap-1"
+        >
+          {YEARS.map((t) => {
+            const active = year === t.value;
+            return (
+              <button
+                key={t.value}
+                role="tab"
+                aria-selected={active}
+                onClick={() => onYearChange(t.value)}
+                className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors ${active
+                    ? 'bg-[var(--nav-active-bg)] text-primary'
+                    : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
                   }`}
               >
-                {counts[t.value]}
-              </span>
-            </button>
-          );
-        })}
+                {t.label}
+                <span
+                  className={`font-mono text-[12px] ${active ? 'text-primary/70' : 'text-muted-foreground/70'
+                    }`}
+                >
+                  {counts[t.value]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={onAddCompany}
+          className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add Company
+        </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
+      <div className="flex flex-wrap items-center gap-3 pb-4">
         <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
