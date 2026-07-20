@@ -32,12 +32,12 @@ export const HEADERS: { id: string; label: string; cls: string }[] = [
   { id: 'serial', label: '#', cls: 'w-10' },
   { id: 'company', label: 'Company', cls: 'w-[120px]' },
   { id: 'role', label: 'Role', cls: 'w-[100px]' },
-  { id: 'package', label: 'Package', cls: 'hidden xl:table-cell w-[85px]' },
+  { id: 'package', label: 'Package', cls: 'hidden 2xl:table-cell w-[85px]' },
   { id: 'status', label: 'Status', cls: 'w-full lg:w-[240px] pl-4' },
-  { id: 'notes', label: 'Notes', cls: 'hidden lg:table-cell w-[180px] xl:w-full pl-2' },
+  { id: 'notes', label: 'Notes', cls: 'hidden xl:table-cell w-[180px] 2xl:w-full pl-2' },
   { id: 'skills', label: 'Skills Required', cls: 'hidden 2xl:table-cell 2xl:w-full pl-2' },
-  { id: 'deadline', label: 'Deadline', cls: 'hidden lg:table-cell w-[150px]' },
-  { id: 'optedIn', label: 'Opted In', cls: 'hidden xl:table-cell w-[80px]' },
+  { id: 'deadline', label: 'Deadline', cls: 'hidden xl:table-cell w-[150px]' },
+  { id: 'optedIn', label: 'Opted In', cls: 'hidden 2xl:table-cell w-[80px]' },
   { id: 'select', label: '', cls: 'w-9' },
 ];
 
@@ -80,7 +80,7 @@ export function PlacementTable({
       {/* Horizontal scroll is a fallback for narrow screens only — the table is
           designed to fit without it. */}
       <div className={`overflow-x-auto ${draggingId !== null ? "select-none" : ""}`}>
-        <table className="w-full table-fixed border-collapse text-left min-w-[760px] lg:min-w-[980px] xl:min-w-[1140px]">
+        <table className="w-full table-fixed border-collapse text-left">
           <thead>
             <tr className="border-b border-border">
               {headers.map((h, i) => (
