@@ -112,7 +112,42 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
                   console.warn(
                     `[Sync] Server had newer data for ${key}; adopting the server copy.`,
                   )
-                  adoptServerValue(key, body.serverValue, body.serverUpdatedAt)
+                  
+                  let valueToAdopt = body.serverValue;
+                  if (key === 'ai_chats' && Array.isArray(valueToStore) && Array.isArray(body.serverValue)) {
+                    try {
+                      const mergedMap = new Map<string, any>();
+                      body.serverValue.forEach((c) => {
+                        if (c && c.id) mergedMap.set(c.id, c);
+                      });
+                      valueToStore.forEach((c) => {
+                        if (c && c.id) {
+                          const existing = mergedMap.get(c.id);
+                          if (existing) {
+                            const mergedMsgs = [...(existing.messages || [])];
+                            (c.messages || []).forEach((m: any) => {
+                              if (!mergedMsgs.some((em: any) => em.id === m.id)) {
+                                  mergedMsgs.push(m);
+                              }
+                            });
+                            mergedMap.set(c.id, {
+                              ...existing,
+                              ...c,
+                              messages: mergedMsgs,
+                              updatedAt: new Date(c.updatedAt || 0) > new Date(existing.updatedAt || 0) ? c.updatedAt : existing.updatedAt,
+                            });
+                          } else {
+                            mergedMap.set(c.id, c);
+                          }
+                        }
+                      });
+                      valueToAdopt = Array.from(mergedMap.values());
+                    } catch (e) {
+                      // ignore
+                    }
+                  }
+                  
+                  adoptServerValue(key, valueToAdopt, body.serverUpdatedAt)
                 }
                 updateGlobalSyncStatus(key, 'saved')
                 return

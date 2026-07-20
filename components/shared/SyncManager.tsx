@@ -123,21 +123,53 @@ export function SyncManager() {
         Object.entries(syncData).forEach(([key, value]) => {
           if (key === SYNC_META_KEY) return;
 
+          let finalValue = value;
+
           // Safeguard: do not overwrite non-empty local data with empty server data
           try {
             const localItem = window.localStorage.getItem(key);
             const localValue = localItem ? JSON.parse(localItem) : null;
             const localIsEmpty = !localValue || (Array.isArray(localValue) && localValue.length === 0);
-            const serverIsEmpty = !value || (Array.isArray(value) && value.length === 0);
+            const serverIsEmpty = !finalValue || (Array.isArray(finalValue) && finalValue.length === 0);
             if (serverIsEmpty && !localIsEmpty) {
               return; // Keep local data and bypass adopting server's empty value
+            }
+
+            // For AI chats, merge client and server histories instead of overwriting
+            if (key === 'ai_chats' && Array.isArray(localValue) && Array.isArray(finalValue)) {
+              const mergedMap = new Map<string, any>();
+              finalValue.forEach((c) => {
+                if (c && c.id) mergedMap.set(c.id, c);
+              });
+              localValue.forEach((c) => {
+                if (c && c.id) {
+                  const existing = mergedMap.get(c.id);
+                  if (existing) {
+                    const mergedMsgs = [...(existing.messages || [])];
+                    (c.messages || []).forEach((m: any) => {
+                      if (!mergedMsgs.some((em: any) => em.id === m.id)) {
+                        mergedMsgs.push(m);
+                      }
+                    });
+                    mergedMap.set(c.id, {
+                      ...existing,
+                      ...c,
+                      messages: mergedMsgs,
+                      updatedAt: new Date(c.updatedAt || 0) > new Date(existing.updatedAt || 0) ? c.updatedAt : existing.updatedAt,
+                    });
+                  } else {
+                    mergedMap.set(c.id, c);
+                  }
+                }
+              });
+              finalValue = Array.from(mergedMap.values());
             }
           } catch (e) {
             // ignore
           }
 
           if (serverIsAhead(key, meta[key])) {
-            adoptServerValue(key, value, meta[key]);
+            adoptServerValue(key, finalValue, meta[key]);
             adopted += 1;
           } else if (meta[key]) {
             setSyncedAt(key, meta[key]);
