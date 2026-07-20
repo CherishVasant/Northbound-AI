@@ -12,7 +12,7 @@ const jetBrainsMono = JetBrains_Mono({ variable: '--font-jetbrains-mono', subset
 const spaceGrotesk = Space_Grotesk({ variable: '--font-space-grotesk', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Northbound - Placement Preparation Tracker',
+  title: 'Northbound AI',
   description: 'Track your placement exam preparation with DSA problems, subjects, projects, and certifications',
   generator: 'v0.app',
   icons: {

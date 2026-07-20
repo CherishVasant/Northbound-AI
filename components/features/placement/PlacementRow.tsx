@@ -226,7 +226,7 @@ export function PlacementRow({
    */
   const cells: Record<string, { cls: string; content: React.ReactNode }> = {
     expand: {
-      cls: 'py-2.5 pl-3 pr-1 align-middle sm:pl-4',
+      cls: 'py-2.5 pl-3 pr-2 align-middle sm:pl-4',
       content: (
         <button
           type="button"
@@ -243,7 +243,7 @@ export function PlacementRow({
     },
 
     serial: {
-      cls: 'py-2.5 pr-2 align-middle',
+      cls: 'py-2.5 pl-2 pr-2 align-middle',
       content: (
         <div className="flex items-center gap-1">
           <span
@@ -263,7 +263,7 @@ export function PlacementRow({
     },
 
     company: {
-      cls: 'py-2.5 pr-1 align-top',
+      cls: 'py-2.5 pl-4 pr-1 align-middle',
       content: (
         <>
           <InlineEdit
@@ -285,7 +285,7 @@ export function PlacementRow({
 
     // Role is the bright identity field; package is deliberately muted.
     role: {
-      cls: 'py-2.5 pr-1 align-top',
+      cls: 'py-2.5 pl-1 pr-1 align-middle',
       content: (
         <InlineEdit
           value={company.role ?? ''}
@@ -299,7 +299,7 @@ export function PlacementRow({
     },
 
     package: {
-      cls: 'py-2.5 pr-2 align-top',
+      cls: 'py-2.5 pr-6 align-middle',
       content: (
         <InlineEdit
           value={company.compensation?.amount ? String(company.compensation.amount) : ''}
@@ -378,7 +378,7 @@ export function PlacementRow({
     },
 
     deadline: {
-      cls: 'py-2.5 pr-3 align-middle',
+      cls: 'py-2.5 pl-2 pr-3 align-middle',
       content: (
         <DeadlineCell
           optedIn={company.optedIn}
@@ -391,7 +391,7 @@ export function PlacementRow({
     },
 
     optedIn: {
-      cls: 'py-2.5 pr-3 align-middle',
+      cls: 'py-2.5 pl-2 pr-3 align-middle',
       content: (
         <ToggleSwitch
           checked={company.optedIn}

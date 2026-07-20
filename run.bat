@@ -1,8 +1,8 @@
 @echo off
-title Northbound Placement OS
+title Northbound AI - Placement OS
 
 echo ==================================================
-echo   Northbound Placement OS - Dev Server
+echo   Northbound AI - Placement OS - Dev Server
 echo ==================================================
 echo.
 

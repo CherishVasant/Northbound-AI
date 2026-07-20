@@ -65,16 +65,16 @@ export interface ColumnSpec {
  * columns past the point where extra width helps.
  */
 export const COLUMN_SPECS: ColumnSpec[] = [
-  { id: 'expand', label: '', min: 28, max: 32, priority: 0, flex: 0 },
-  { id: 'serial', label: '#', min: 34, max: 48, priority: 0, flex: 0.2 },
-  { id: 'company', label: 'Company', min: 96, max: 190, priority: 0, flex: 1 },
-  { id: 'role', label: 'Role', min: 84, max: 180, priority: 0, flex: 1 },
-  { id: 'package', label: 'Package', min: 74, max: 120, priority: 4, flex: 0.5 },
-  { id: 'status', label: 'Status', min: 124, max: 300, priority: 0, flex: 1.5 },
-  { id: 'notes', label: 'Notes', min: 128, max: 560, priority: 2, flex: 2.5 },
-  { id: 'skills', label: 'Skills Required', min: 112, max: 420, priority: 3, flex: 1.5 },
-  { id: 'deadline', label: 'Deadline', min: 100, max: 170, priority: 1, flex: 0.9 },
-  { id: 'optedIn', label: 'Opted In', min: 64, max: 90, priority: 5, flex: 0.3 },
+  { id: 'expand', label: '', min: 36, max: 40, priority: 0, flex: 0 },
+  { id: 'serial', label: '#', min: 44, max: 54, priority: 0, flex: 0.2 },
+  { id: 'company', label: 'Company', min: 100, max: 140, priority: 0, flex: 1 },
+  { id: 'role', label: 'Role', min: 90, max: 130, priority: 0, flex: 1 },
+  { id: 'package', label: 'Package', min: 80, max: 110, priority: 4, flex: 0.5 },
+  { id: 'status', label: 'Status', min: 130, max: 200, priority: 0, flex: 1.5 },
+  { id: 'notes', label: 'Notes', min: 120, max: 320, priority: 2, flex: 2.5 },
+  { id: 'skills', label: 'Skills Required', min: 110, max: 240, priority: 3, flex: 1.5 },
+  { id: 'deadline', label: 'Deadline', min: 120, max: 170, priority: 1, flex: 1.2 },
+  { id: 'optedIn', label: 'Opted In', min: 70, max: 90, priority: 5, flex: 0.3 },
   { id: 'select', label: '', min: 30, max: 34, priority: 0, flex: 0 },
 ];
 
@@ -108,7 +108,8 @@ export interface ColumnPlan {
  * reach, scaling every column just over its ceiling.
  */
 function saturatedWidth(columns: ColumnSpec[]): number {
-  return columns.reduce((sum, c) => sum + (c.flex > 0 ? (c.max ?? c.min) : c.min), 0);
+  const rawSum = columns.reduce((sum, c) => sum + (c.flex > 0 ? (c.max ?? c.min) : c.min), 0);
+  return Math.min(rawSum, 1500);
 }
 
 function plan(width: number, selectionMode: boolean): Omit<ColumnPlan, 'ref'> {
@@ -209,10 +210,10 @@ export function useTableColumns(selectionMode: boolean): ColumnPlan {
     if (!node) return;
 
     // Measure immediately so the first paint with data is already correct.
-    setWidth(node.clientWidth);
+    setWidth(Math.min(node.clientWidth, 1500));
 
     const observer = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.width ?? 0;
+      const next = Math.min(entries[0]?.contentRect.width ?? 0, 1500);
       // Sub-pixel churn during the AI panel's slide transition would otherwise
       // re-plan on every animation frame.
       setWidth((prev) => (Math.abs(prev - next) < 1 ? prev : next));
@@ -234,10 +235,10 @@ export function useTableColumns(selectionMode: boolean): ColumnPlan {
       columns,
       widths: columns.map(() => each),
       statusWidth: 0,
-      maxWidth: saturatedWidth(columns),
+      maxWidth: Math.min(saturatedWidth(columns), 1500),
       measured: false,
     };
   }
 
-  return { ref: measuredRef, ...plan(width, selectionMode) };
+  return { ref: measuredRef, ...plan(Math.min(width, 1500), selectionMode) };
 }

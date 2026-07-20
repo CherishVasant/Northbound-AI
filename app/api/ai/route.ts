@@ -96,8 +96,8 @@ export async function POST(req: Request) {
           headers: {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://github.com/user/preptrack',
-            'X-Title': 'PrepTrack Placement Tracker',
+            'HTTP-Referer': 'https://github.com/user/northbound-ai',
+            'X-Title': 'Northbound AI',
           },
           body: JSON.stringify({
             model,

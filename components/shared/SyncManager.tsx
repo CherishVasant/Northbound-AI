@@ -424,7 +424,7 @@ export function SyncManager() {
           <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px] flex items-center justify-center rounded-2xl">
             <div className="text-center space-y-2 flex flex-col items-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <p className="text-xs text-muted-foreground font-medium">Synchronizing prep tracker collections...</p>
+              <p className="text-xs text-muted-foreground font-medium">Synchronizing Northbound AI workspace...</p>
             </div>
           </div>
         )}

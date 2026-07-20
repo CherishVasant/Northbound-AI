@@ -371,7 +371,7 @@ function ProjectsPageContent() {
                   value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-1.5 pill-soft bg-background text-foreground"
-                  placeholder="e.g. PrepTrack Dashboard"
+                  placeholder="e.g. Northbound AI Dashboard"
                 />
               </div>
 

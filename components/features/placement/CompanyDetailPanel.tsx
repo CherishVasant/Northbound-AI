@@ -419,184 +419,145 @@ export function CompanyDetailPanel({
           </Section>
         </div>
 
-        {/* Column 2: what you need in order to APPLY — the skills to prepare
-            and the link to go through. Notes and Deadline used to have cards
-            here; notes now belong to individual journey rounds, and the
-            deadline sits with the other company details in column 3. */}
+        {/* Column 2: About the Company & Skills Required */}
         <div>
-          <Section icon={Sparkles} title="Skills Required">
-            <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
+          <Section icon={Building2} title="About the Company">
+            <textarea
+              value={company.aboutCompany ?? ''}
+              onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
+              rows={8}
+              placeholder="Brief description of the company..."
+              className="pill-soft max-h-64 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+            />
           </Section>
 
           <div className="mt-3">
-            <Section icon={LinkIcon} title="Registration / Apply Link">
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1">
-                  <InlineEdit
-                    value={company.registrationLink ?? ''}
-                    onCommit={(link) => onFieldChange({ registrationLink: link })}
-                    ariaLabel="Registration link"
-                    placeholder="e.g. https://careers.company.com/..."
-                  />
-                </div>
-                {company.registrationLink && (
-                  <a
-                    href={
-                      company.registrationLink.startsWith('http')
-                        ? company.registrationLink
-                        : `https://${company.registrationLink}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
-                  >
-                    Visit
-                  </a>
-                )}
-              </div>
+            <Section icon={Sparkles} title="Skills Required">
+              <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
             </Section>
           </div>
         </div>
 
-        {/* Column 3: Details & Duration */}
+        {/* Column 3: Registration Link, Details & Duration */}
         <div>
-          <Section icon={Building2} title="About & Details">
-            {/* Sized to show roughly eight lines before it needs to scroll —
-                three was not enough to read a company blurb without dragging
-                the resize handle every time. */}
-            <div className="mb-4 border-b border-border/60 pb-4">
-              <Field label="About the Company">
-                <textarea
-                  value={company.aboutCompany ?? ''}
-                  onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
-                  rows={8}
-                  placeholder="Brief description of the company..."
-                  className="pill-soft max-h-64 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
-                />
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Location">
+          <Section icon={LinkIcon} title="Registration / Apply Link">
+            <div className="flex gap-2">
+              <div className="min-w-0 flex-1">
                 <InlineEdit
-                  value={company.location ?? ''}
-                  onCommit={(location) => onFieldChange({ location })}
-                  ariaLabel="Location"
-                  placeholder="e.g. Bangalore"
+                  value={company.registrationLink ?? ''}
+                  onCommit={(link) => onFieldChange({ registrationLink: link })}
+                  ariaLabel="Registration link"
+                  placeholder="e.g. https://careers.company.com/..."
                 />
-              </Field>
-              <Field label="Type">
-                <select
-                  aria-label="Opportunity type"
-                  value={company.kind ?? 'placement'}
-                  onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
-                  className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+              </div>
+              {company.registrationLink && (
+                <a
+                  href={
+                    company.registrationLink.startsWith('http')
+                      ? company.registrationLink
+                      : `https://${company.registrationLink}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
                 >
-                  {KINDS.map((k) => (
-                    <option key={k.value} value={k.value}>
-                      {k.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              
-              <Field label="Package">
-                <div className="flex items-center gap-1.5">
+                  Visit
+                </a>
+              )}
+            </div>
+          </Section>
+
+          <div className="mt-3">
+            <Section icon={Building2} title="Details">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Location">
                   <InlineEdit
-                    value={company.compensation?.amount ? String(company.compensation.amount) : ''}
-                    onCommit={(v) =>
-                      onFieldChange({
-                        compensation: {
-                          amount: Number(v) || 0,
-                          unit: company.compensation?.unit ?? 'LPA',
-                        },
-                      })
-                    }
-                    ariaLabel="Package amount"
-                    placeholder="0"
-                    type="number"
-                    mono
+                    value={company.location ?? ''}
+                    onCommit={(location) => onFieldChange({ location })}
+                    ariaLabel="Location"
+                    placeholder="e.g. Bangalore"
                   />
+                </Field>
+                <Field label="Type">
                   <select
-                    aria-label="Package unit"
-                    value={company.compensation?.unit ?? 'LPA'}
-                    onChange={(e) =>
-                      onFieldChange({
-                        compensation: {
-                          amount: company.compensation?.amount ?? 0,
-                          unit: e.target.value as CompensationUnit,
-                        },
-                      })
-                    }
-                    className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                    aria-label="Opportunity type"
+                    value={company.kind ?? 'placement'}
+                    onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
+                    className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
                   >
-                    {COMPENSATION_UNITS.map((u) => (
-                      <option key={u.value} value={u.value}>
-                        {u.label}
+                    {KINDS.map((k) => (
+                      <option key={k.value} value={k.value}>
+                        {k.label}
                       </option>
                     ))}
                   </select>
-                </div>
-              </Field>
-
-              <Field label="Opted In">
-                <ToggleSwitch
-                  checked={company.optedIn}
-                  onChange={(optedIn) => onFieldChange({ optedIn })}
-                  label={company.optedIn ? 'Opted in' : 'Not opted in'}
-                />
-              </Field>
-
-              {/* "Registered" used to be a yes/no field here. It is a round in
-                  the journey now: registering on the company's own site is a
-                  step you take at a point in time, and the timeline records
-                  when, which a boolean never could. */}
-
-              {!company.optedIn && (
-                <div className="col-span-2">
-                  <Field label="Reason for not opting in">
+                </Field>
+                
+                <Field label="Package">
+                  <div className="flex items-center gap-1.5">
                     <InlineEdit
-                      value={company.reason ?? ''}
-                      onCommit={(reason) => onFieldChange({ reason })}
-                      ariaLabel="Reason for not opting in"
-                      placeholder="e.g. Package below target"
+                      value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+                      onCommit={(v) =>
+                        onFieldChange({
+                          compensation: {
+                            amount: Number(v) || 0,
+                            unit: company.compensation?.unit ?? 'LPA',
+                          },
+                        })
+                      }
+                      ariaLabel="Package amount"
+                      placeholder="0"
+                      type="number"
+                      mono
                     />
-                  </Field>
-                </div>
-              )}
+                    <select
+                      aria-label="Package unit"
+                      value={company.compensation?.unit ?? 'LPA'}
+                      onChange={(e) =>
+                        onFieldChange({
+                          compensation: {
+                            amount: company.compensation?.amount ?? 0,
+                            unit: e.target.value as CompensationUnit,
+                          },
+                        })
+                      }
+                      className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                    >
+                      {COMPENSATION_UNITS.map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </Field>
 
-              <div className="col-span-2 grid grid-cols-2 gap-3 border-t border-border/60 pt-3">
-                <Field label="Deadline date">
-                  <input
-                    type="date"
-                    value={company.deadlineDate ?? ''}
-                    onChange={(e) => onFieldChange({ deadlineDate: e.target.value })}
-                    aria-label="Deadline date"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                <Field label="Opted In">
+                  <ToggleSwitch
+                    checked={company.optedIn}
+                    onChange={(optedIn) => onFieldChange({ optedIn })}
+                    label={company.optedIn ? 'Opted in' : 'Not opted in'}
                   />
                 </Field>
-                <Field label="Deadline time">
-                  <input
-                    type="time"
-                    value={company.deadlineTime ?? ''}
-                    onChange={(e) => onFieldChange({ deadlineTime: e.target.value })}
-                    aria-label="Deadline time"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                  />
-                </Field>
-                {company.deadlineDate && (
-                  <p className="col-span-2 font-mono text-[10px] text-muted-foreground">
-                    {formatDate(company.deadlineDate)}
-                    {company.deadlineTime && ` · ${formatTime12h(company.deadlineTime)}`}
-                  </p>
+
+                {!company.optedIn && (
+                  <div className="col-span-2">
+                    <Field label="Reason for not opting in">
+                      <InlineEdit
+                        value={company.reason ?? ''}
+                        onCommit={(reason) => onFieldChange({ reason })}
+                        ariaLabel="Reason for not opting in"
+                        placeholder="e.g. Package below target"
+                      />
+                    </Field>
+                  </div>
                 )}
               </div>
-            </div>
+            </Section>
+          </div>
 
-            <div className="mt-4 border-t border-border/60 pt-4">
-              <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Duration
-              </h5>
+          <div className="mt-3">
+            <Section icon={Building2} title="Duration">
               <div className="grid grid-cols-3 gap-3">
                 <Field label="Start">
                   <input
@@ -633,9 +594,8 @@ export function CompanyDetailPanel({
                   />
                 </Field>
               </div>
-            </div>
-
-          </Section>
+            </Section>
+          </div>
         </div>
       </div>
     </div>

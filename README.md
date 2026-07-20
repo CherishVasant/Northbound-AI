@@ -1,6 +1,6 @@
-# PrepTrack - Placement Preparation Tracker
+# Northbound AI - Placement Preparation Tracker
 
-A comprehensive web application for tracking your placement exam preparation journey. PrepTrack helps you manage DSA problems, technical subjects, projects, aptitude tests, HR interview questions, and professional certifications all in one place.
+A comprehensive web application for tracking your placement exam preparation journey. Northbound AI helps you manage DSA problems, technical subjects, projects, aptitude tests, HR interview questions, and professional certifications all in one place.
 
 ## Features
 
@@ -260,7 +260,7 @@ pnpm format
 - Clearing browser data will delete all tracked information
 - To backup data, use the browser's developer tools
 
-## Tips for Using PrepTrack
+## Tips for Using Northbound AI
 
 1. **DSA Tracker**: Mark problems as you complete them. Update status progressively (Not Started → In Progress → Reviewed → Mastered)
 

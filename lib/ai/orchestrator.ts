@@ -36,7 +36,7 @@ export function getSystemPrompt(pageContext: string): string {
       agentPrompt = placementPrompt;
   }
 
-  return `You are Northbound AI, a unified workspace assistant for the PrepTrack application. 
+  return `You are Northbound AI, a unified workspace assistant for the Northbound application. 
 You must help the user accomplish their tasks with minimal friction by automatically extracting details, generating values, and drafting actions.
 
 Your active sub-agent module is defined by the following instructions:
