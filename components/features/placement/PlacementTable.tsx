@@ -79,7 +79,7 @@ export function PlacementTable({
       {/* Horizontal scroll is a fallback for narrow screens only — the table is
           designed to fit without it. */}
       <div className={`overflow-x-auto ${draggingId !== null ? "select-none" : ""}`}>
-        <table className="w-full table-fixed border-collapse text-left lg:min-w-[860px]">
+        <table className="w-full table-fixed border-collapse text-left min-w-[760px] lg:min-w-[980px] xl:min-w-[1140px]">
           <thead>
             <tr className="border-b border-border">
               {HEADERS.map((h, i) => (

@@ -119,8 +119,13 @@ function AIAssistantInner({
   }, [isChatsLoaded, chats, activeChatId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chats, activeChatId]);
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, chats, activeChatId]);
 
   const activeChat = chats?.find((c) => c.id === activeChatId) || null;
   const messages = activeChat ? activeChat.messages : [];
@@ -417,11 +422,15 @@ function AIAssistantInner({
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
 
+    const currentContext = getPageContextKey();
     const userMsg: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: chatInput,
       timestamp: new Date().toISOString(),
+      metadata: {
+        pageContext: currentContext,
+      },
     };
 
     let currentChatId = activeChatId;
@@ -451,6 +460,10 @@ function AIAssistantInner({
     setIsLoading(true);
 
     try {
+      const filteredHistory = messages.filter(
+        (m) => !m.metadata?.pageContext || m.metadata.pageContext === currentContext
+      );
+
       const response = await fetch(getApiUrl('/api/ai'), {
         method: 'POST',
         headers: {
@@ -458,8 +471,8 @@ function AIAssistantInner({
         },
         body: JSON.stringify({
           prompt: promptToSend,
-          pageContext: getPageContextKey(),
-          history: messages,
+          pageContext: currentContext,
+          history: filteredHistory,
           generateTitle: isNewChat,
         }),
       });
@@ -484,11 +497,12 @@ function AIAssistantInner({
         timestamp: new Date().toISOString(),
         action: actionObj ? `${actionObj.entity}:${actionObj.operation}` : undefined,
         payload: actionObj || undefined,
-        metadata: actionObj
-          ? {
-              confirmationStatus: actionObj.requiresConfirmation ? 'pending' : 'approved',
-            }
-          : undefined,
+        metadata: {
+          pageContext: currentContext,
+          confirmationStatus: actionObj
+            ? (actionObj.requiresConfirmation ? 'pending' : 'approved')
+            : undefined,
+        },
       };
 
       setChats((prev) =>

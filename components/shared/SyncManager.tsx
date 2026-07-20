@@ -122,6 +122,20 @@ export function SyncManager() {
         let adopted = 0;
         Object.entries(syncData).forEach(([key, value]) => {
           if (key === SYNC_META_KEY) return;
+
+          // Safeguard: do not overwrite non-empty local data with empty server data
+          try {
+            const localItem = window.localStorage.getItem(key);
+            const localValue = localItem ? JSON.parse(localItem) : null;
+            const localIsEmpty = !localValue || (Array.isArray(localValue) && localValue.length === 0);
+            const serverIsEmpty = !value || (Array.isArray(value) && value.length === 0);
+            if (serverIsEmpty && !localIsEmpty) {
+              return; // Keep local data and bypass adopting server's empty value
+            }
+          } catch (e) {
+            // ignore
+          }
+
           if (serverIsAhead(key, meta[key])) {
             adoptServerValue(key, value, meta[key]);
             adopted += 1;
