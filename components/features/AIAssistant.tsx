@@ -169,24 +169,54 @@ function AIAssistantInner({
 
     try {
       if (entity === 'placement') {
-        if (operation === 'create') {
+        if (operation === 'create' || operation === 'update') {
           setPlacementCompanies((prev) => {
             const updated = [...(prev || [])];
-            const fresh = {
-              id: generateId(),
-              ...payload,
-              createdAt: new Date().toISOString(),
-              history: [
-                {
-                  stage: 'Applied',
-                  status: 'Applied',
-                  date: new Date().toISOString().split('T')[0],
-                  notes: 'Added by Northbound AI',
-                },
-              ],
-              schedule: [],
-            };
-            updated.push(fresh);
+            const existingIdx = updated.findIndex(
+              (c: any) => c.name?.toLowerCase() === payload.name?.toLowerCase()
+            );
+            if (existingIdx > -1) {
+              const existing = updated[existingIdx];
+              const mergedSkills = Array.from(new Set([
+                ...(existing.skills || []),
+                ...(payload.skills || []),
+              ]));
+              const mergedHistory = [...(existing.history || [])];
+              if (payload.history && Array.isArray(payload.history)) {
+                payload.history.forEach((h: any) => {
+                  if (!mergedHistory.some((eh: any) => eh.stage === h.stage && eh.status === h.status)) {
+                    mergedHistory.push(h);
+                  }
+                });
+              }
+              updated[existingIdx] = {
+                ...existing,
+                ...payload,
+                skills: mergedSkills,
+                notes: payload.notes
+                  ? (existing.notes && !existing.notes.includes(payload.notes)
+                      ? `${existing.notes}\n${payload.notes}`
+                      : payload.notes)
+                  : existing.notes,
+                history: mergedHistory,
+              };
+            } else {
+              const fresh = {
+                id: generateId(),
+                ...payload,
+                createdAt: new Date().toISOString(),
+                history: payload.history || [
+                  {
+                    stage: 'Applied',
+                    status: 'Applied',
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Added by Northbound AI',
+                  },
+                ],
+                schedule: payload.schedule || [],
+              };
+              updated.push(fresh);
+            }
             return updated;
           });
         }
@@ -615,7 +645,7 @@ function AIAssistantInner({
     const status = message.metadata?.confirmationStatus || 'pending';
 
     return (
-      <div className="mt-3 bg-secondary/10 border border-border/60 rounded-lg p-3 space-y-2 text-xs w-full max-w-[90%]">
+      <div className="mt-3 bg-secondary/10 border border-border/60 rounded-lg p-3.5 space-y-2.5 text-xs w-full max-w-[95%]">
         <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
           <div>
             <h4 className="font-bold text-foreground">{preview.title}</h4>
@@ -627,13 +657,13 @@ function AIAssistantInner({
         </div>
 
         {preview.details && Object.keys(preview.details).length > 0 && (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10.5px] py-1 border-b border-border/40">
+          <div className="flex flex-col gap-2.5 text-[10.5px] py-1.5 border-b border-border/40 max-h-[300px] overflow-y-auto pr-1">
             {Object.entries(preview.details).map(([key, val]) => (
-              <div key={key} className="flex flex-col">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 font-semibold">
+              <div key={key} className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">
                   {key}
                 </span>
-                <span className="text-foreground font-medium truncate" title={String(val)}>
+                <span className="text-foreground font-medium whitespace-pre-wrap break-words leading-relaxed">
                   {String(val) || '—'}
                 </span>
               </div>

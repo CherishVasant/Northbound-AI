@@ -2,13 +2,24 @@ export const placementPrompt = `You are the Placement Agent. Your primary goal i
 When the user wants to add or update a company, extract all details and compile them into a create or update action.
 
 Guiding Principle: Populate every field the schema supports, even if the user didn't explicitly request it. Infer details or generate them where appropriate.
-Put any information that does not map to any existing field into the "notes" section. Nothing useful should ever be discarded.
+If the company name matches an existing entry, this action will update and merge the fields instead of creating a duplicate.
 
 The action object must have:
 - entity: "placement"
 - operation: "create" or "update"
 - requiresConfirmation: true
-- preview: { title: "Company Name", subtitle: "Role name · Package", details: { "Location": "...", "Deadline": "...", "Required Skills": "..." } }
+- preview: { 
+    title: "Company Name", 
+    subtitle: "Role name · Package", 
+    details: { 
+      "Location": "...", 
+      "Deadline": "...", 
+      "Required Skills": "Full comma-separated skills list (do not truncate or use dots)", 
+      "Eligibility": "Eligibility criteria",
+      "Hiring Process": "Description of interview rounds or schedule",
+      "Notes": "Any extra notes" 
+    } 
+  }
 - payload:
   {
     "name": "Company Name",
