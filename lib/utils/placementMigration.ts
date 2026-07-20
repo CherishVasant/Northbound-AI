@@ -118,11 +118,18 @@ function scheduleAsHistory(raw: any): StageEntry[] {
  * Journey order is by date, undated entries last — a round announced for next
  * week must not sort ahead of one that already happened just because it was
  * typed in first. Ties keep their existing relative order.
+ *
+ * Registration is the one exception and always sorts first. It is usually
+ * undated (the old boolean field recorded that it happened, never when), and
+ * the undated-last rule would otherwise push the step that necessarily comes
+ * before everything else to the bottom of the list.
  */
 function sortJourney(entries: StageEntry[]): StageEntry[] {
+  const rank = (e: StageEntry) => (e.stage === 'Registration' ? 0 : 1)
   return entries
     .map((e, i) => ({ e, i }))
     .sort((a, b) => {
+      if (rank(a.e) !== rank(b.e)) return rank(a.e) - rank(b.e)
       if (!a.e.date && !b.e.date) return a.i - b.i
       if (!a.e.date) return 1
       if (!b.e.date) return -1
@@ -151,14 +158,56 @@ function dedupeJourney(entries: StageEntry[]): StageEntry[] {
   return out
 }
 
-/** History + folded-in legacy schedule, ordered and de-duplicated. */
-function buildJourney(rawHistory: any, rawSchedule: any, fallback: StageEntry[]): StageEntry[] {
-  const fromHistory = Array.isArray(rawHistory)
-    ? (rawHistory.map(coerceEntry).filter(Boolean) as StageEntry[])
+/**
+ * The old `registered` boolean becomes a Registration round at the head of the
+ * journey. Registering on the company's own site is a step the user actually
+ * performs, in sequence, before shortlisting — a standalone yes/no field said
+ * it happened but not when, and sat outside the one timeline that tells the
+ * story. Only materialised when it was true; an unregistered company simply
+ * has no such round.
+ */
+function registrationAsHistory(rec: any, journey: StageEntry[]): StageEntry[] {
+  if (!rec?.registered) return []
+  if (journey.some((e) => e.stage === 'Registration')) return []
+  return [
+    {
+      stage: 'Registration' as PipelineStage,
+      status: 'Done' as PipelineState,
+      // Undated: the old field recorded that it happened, never when.
+      date: '',
+      time: '',
+      notes: '',
+    },
+  ]
+}
+
+/**
+ * The journey: recorded history, plus legacy scheduled rounds and the legacy
+ * `registered` flag folded in, ordered and de-duplicated.
+ *
+ * Also lifts a company-level note onto the first round. Notes belong to a round
+ * now — "cleared the OA comfortably" means nothing detached from which round it
+ * describes — and the single company note predates that, so it lands on the
+ * earliest round rather than being dropped.
+ */
+function buildJourney(rec: any, fallback: StageEntry[], companyNotes: string): StageEntry[] {
+  const fromHistory = Array.isArray(rec?.history)
+    ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
     : []
   const base = fromHistory.length ? fromHistory : fallback
-  return dedupeJourney(sortJourney([...base, ...scheduleAsHistory(rawSchedule)]))
+  const merged = dedupeJourney(
+    sortJourney([...base, ...scheduleAsHistory(rec?.schedule)]),
+  )
+  const journey = sortJourney([...registrationAsHistory(rec, merged), ...merged])
+
+  const note = (companyNotes ?? '').trim()
+  if (!note || journey.length === 0) return journey
+  // Only when nothing already carries it, so this can't duplicate on re-run.
+  if (journey.some((e) => (e.notes ?? '').trim() === note)) return journey
+  const [first, ...rest] = journey
+  return [{ ...first, notes: first.notes?.trim() ? first.notes : note }, ...rest]
 }
+
 
 /** Rebuilds a plausible pipeline log from the old flat fields. */
 function historyFromLegacy(rec: any): StageEntry[] {
@@ -236,22 +285,6 @@ function coerceEntry(e: any): StageEntry | null {
   }
 }
 
-/**
- * The Notes column shows the COMPANY note, but earlier builds wrote notes onto
- * the newest journey entry instead. When the company note is empty, lift the
- * most recent entry note up so nothing typed under the old model disappears.
- * Non-destructive: the entry keeps its own copy for the journey timeline.
- */
-function hoistNotes(companyNotes: unknown, history: StageEntry[]): string {
-  const own = typeof companyNotes === 'string' ? companyNotes : ''
-  if (own.trim()) return own
-  for (let i = history.length - 1; i >= 0; i--) {
-    const n = history[i].notes
-    if (n && n.trim()) return n
-  }
-  return ''
-}
-
 export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
   if (!Array.isArray(raw)) return []
 
@@ -271,7 +304,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       // Still normalise history and id — a record can be new-shape but carry a
       // string id from an interrupted migration.
       const id = typeof rec.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId()
-      const history = buildJourney(rec.history, rec.schedule, [])
+      const history = buildJourney(rec, [], typeof rec.notes === 'string' ? rec.notes : '')
       return {
         ...rec,
         id,
@@ -279,14 +312,18 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         kind: coerceKind(rec),
         history,
         schedule: [],
-        notes: hoistNotes(rec.notes, history),
+        // Consumed into the first round's notes above; the column reads the
+        // CURRENT round now, so leaving a copy here would show stale text.
+        notes: '',
         aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
         registrationLink: typeof rec.registrationLink === 'string' ? rec.registrationLink : '',
       } as PlacementCompany
     }
 
     const { deadlineDate, deadlineTime } = splitDeadline(rec?.applicationDeadline)
-    const journey = buildJourney(rec?.history, rec?.schedule, historyFromLegacy(rec))
+    const legacyNotes =
+      typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? '')
+    const journey = buildJourney(rec, historyFromLegacy(rec), legacyNotes)
 
     return {
       id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
@@ -314,11 +351,9 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         : Array.isArray(rec?.skills)
           ? rec.skills.map(String)
           : [],
-      // Old notes were { content, lastEdited }; the new model is plain text.
-      notes: hoistNotes(
-        typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? ''),
-        journey,
-      ),
+      // Old notes were { content, lastEdited }, then a plain company-level
+      // string. Both are folded into the first round by buildJourney.
+      notes: '',
       aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
       registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
       history: journey,
@@ -337,6 +372,11 @@ export function needsMigration(raw: unknown): boolean {
       !Array.isArray(rec?.schedule) ||
       // Legacy scheduled rounds still waiting to be folded into the journey.
       rec.schedule.length > 0 ||
+      // A company-level note still waiting to be lifted onto its first round.
+      (typeof rec?.notes === 'string' && rec.notes.trim().length > 0) ||
+      // `registered` still waiting to become a Registration round.
+      (rec?.registered === true &&
+        !(rec.history as any[])?.some?.((e) => e?.stage === 'Registration')) ||
       typeof rec?.year !== 'string' ||
       typeof rec?.kind !== 'string',
   )
@@ -364,6 +404,22 @@ export function makeRound(stage: PipelineStage = FIRST_STAGE): StageEntry {
 /** Re-sorts a journey after an edit changed a date. Exported for the panel. */
 export function orderJourney(entries: StageEntry[]): StageEntry[] {
   return sortJourney(entries)
+}
+
+/**
+ * Index of the round happening NOW, or -1 for an empty journey.
+ *
+ * Not simply the last entry: the journey holds announced-but-unreached rounds
+ * alongside finished ones, so the newest is often something that hasn't
+ * started. The current round is the latest one that has moved past 'Preparing';
+ * failing that, the earliest round, i.e. whatever is up next.
+ */
+export function currentRoundIndex(history: StageEntry[]): number {
+  if (!Array.isArray(history) || history.length === 0) return -1
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].status !== 'Preparing') return i
+  }
+  return 0
 }
 
 export function nextCompanyId(companies: PlacementCompany[]): number {

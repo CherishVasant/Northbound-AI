@@ -138,6 +138,7 @@
      design was authored against. */
   /* Stages follow the brand gradient in reverse (pink -> green), so the colour
      itself says how far through the pipeline a company got. */
+  --stage-registration: #c2410c;
   --stage-resume: #db2777;
   --stage-coding: #9333ea;
   --stage-gd: #6366f1;
@@ -244,6 +245,7 @@ html[data-theme='dark'],
   --nav-active-bg: color-mix(in srgb, var(--primary) 12%, var(--surface));
 
   /* Stage + state colors as authored for the dark design. */
+  --stage-registration: #fb923c;
   --stage-resume: #f472b6;
   --stage-coding: #c084fc;
   --stage-gd: #818cf8;

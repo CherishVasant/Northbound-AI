@@ -5,6 +5,7 @@ import { ChevronRight, GripVertical } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
 import { packageSuffix, formatPackage } from '@/lib/constants/placement';
+import { currentRoundIndex } from '@/lib/utils/placementMigration';
 import { ToggleSwitch } from './ToggleSwitch';
 import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
@@ -65,7 +66,7 @@ function NotesCell({ value, onChange }: NotesCellProps) {
           (e.target as HTMLTextAreaElement).blur();
         }
       }}
-      placeholder="Add company notes..."
+      placeholder="Notes for this round..."
       style={{ minHeight: NOTES_MIN_HEIGHT }}
       className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-xs leading-relaxed text-foreground outline-none transition-colors placeholder:text-muted-foreground/30 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
     />
@@ -210,6 +211,8 @@ export function PlacementRow({
   visibleIds,
   stackStatus,
 }: PlacementRowProps) {
+  const nowIndex = currentRoundIndex(company.history);
+
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
 
@@ -332,10 +335,25 @@ export function PlacementRow({
       ),
     },
 
+    /**
+     * Shows the CURRENT round's notes, not a company-level note. Notes belong
+     * to a round — the same company has different things worth remembering
+     * about its OA and its HR interview — so the column tracks whichever round
+     * is live, and the rest are one click away in the journey.
+     */
     notes: {
       cls: 'py-2.5 pl-2 pr-3 align-middle',
-      content: (
-        <NotesCell value={company.notes ?? ''} onChange={(notes) => onFieldChange({ notes })} />
+      content: company.optedIn && nowIndex >= 0 ? (
+        <NotesCell
+          value={company.history[nowIndex].notes ?? ''}
+          onChange={(notes) =>
+            onFieldChange({
+              history: company.history.map((e, i) => (i === nowIndex ? { ...e, notes } : e)),
+            })
+          }
+        />
+      ) : (
+        <span className="text-xs text-muted-foreground/30">—</span>
       ),
     },
 

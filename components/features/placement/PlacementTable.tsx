@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { Building2 } from 'lucide-react';
 import type { PlacementCompany } from '@/lib/utils/storage';
 import type { PipelineStage, PipelineState } from '@/lib/constants/placement';
@@ -45,8 +44,7 @@ export function PlacementTable({
   selectionMode = false,
 }: PlacementTableProps) {
   const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
-  const shellRef = useRef<HTMLDivElement>(null);
-  const { columns, widths, statusWidth } = useTableColumns(shellRef, selectionMode);
+  const { ref: shellRef, columns, widths, statusWidth } = useTableColumns(selectionMode);
   const visibleIds = columns.map((c) => c.id);
   const stackStatus = statusWidth > 0 && statusWidth < STATUS_STACK_BELOW;
 

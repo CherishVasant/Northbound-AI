@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useState, type RefObject } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /**
  * Which columns fit, decided from the table's MEASURED width rather than from
@@ -63,6 +63,8 @@ export const COLUMN_SPECS: ColumnSpec[] = [
 export const STATUS_STACK_BELOW = 175;
 
 export interface ColumnPlan {
+  /** Attach to the element whose width the columns should fit. */
+  ref: (node: HTMLElement | null) => void;
   columns: ColumnSpec[];
   /** Percentage width per visible column, index-aligned with `columns`. */
   widths: string[];
@@ -72,7 +74,7 @@ export interface ColumnPlan {
   measured: boolean;
 }
 
-function plan(width: number, selectionMode: boolean): ColumnPlan {
+function plan(width: number, selectionMode: boolean): Omit<ColumnPlan, 'ref'> {
   const available = COLUMN_SPECS.filter((c) => c.id !== 'select' || selectionMode);
   const required = available.filter((c) => c.priority === 0);
   const optional = available
@@ -120,29 +122,41 @@ function plan(width: number, selectionMode: boolean): ColumnPlan {
   };
 }
 
-export function useTableColumns(
-  ref: RefObject<HTMLElement | null>,
-  selectionMode: boolean,
-): ColumnPlan {
+export function useTableColumns(selectionMode: boolean): ColumnPlan {
   const [width, setWidth] = useState(0);
+  const observerRef = useRef<ResizeObserver | null>(null);
 
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  /**
+   * A CALLBACK ref, not useLayoutEffect over a RefObject.
+   *
+   * The effect version ran once on mount and never again, because a ref object
+   * is stable and can't be a dependency that changes. On the first render the
+   * company list is still empty (localStorage hasn't been read yet), so the
+   * table renders its empty state and the measured element does not exist —
+   * the effect found `ref.current === null`, returned early, and no observer
+   * was ever attached. Width stayed 0 for the lifetime of the page, which is
+   * the pre-measurement fallback: structural columns only, on any screen.
+   *
+   * A callback ref fires whenever the node itself appears or disappears, so it
+   * attaches at the moment the real table replaces the empty state.
+   */
+  const measuredRef = useCallback((node: HTMLElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (!node) return;
 
-    // Measure synchronously on mount so the first paint is already correct;
-    // waiting for the observer's first callback shows a wrong layout for a frame.
-    setWidth(el.clientWidth);
+    // Measure immediately so the first paint with data is already correct.
+    setWidth(node.clientWidth);
 
     const observer = new ResizeObserver((entries) => {
       const next = entries[0]?.contentRect.width ?? 0;
-      // Sub-pixel churn during the panel's slide transition would otherwise
+      // Sub-pixel churn during the AI panel's slide transition would otherwise
       // re-plan on every animation frame.
       setWidth((prev) => (Math.abs(prev - next) < 1 ? prev : next));
     });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [ref]);
+    observer.observe(node);
+    observerRef.current = observer;
+  }, []);
 
   if (width === 0) {
     // Pre-measurement: structural columns only. Rendering the full set and
@@ -153,6 +167,7 @@ export function useTableColumns(
     );
     const each = `${(100 / columns.length).toFixed(4)}%`;
     return {
+      ref: measuredRef,
       columns,
       widths: columns.map(() => each),
       statusWidth: 0,
@@ -160,5 +175,5 @@ export function useTableColumns(
     };
   }
 
-  return plan(width, selectionMode);
+  return { ref: measuredRef, ...plan(width, selectionMode) };
 }

@@ -38,16 +38,22 @@ Extraction Rules:
    - Monthly figures -> unit "per-month", amount in RUPEES. "1,35,000 per month" -> { "amount": 135000, "unit": "per-month" }.
    - In the preview's "Package" detail, write the human-readable form rather than raw digits: 135000 per-month reads as "1.35L per month"; 12 LPA reads as "12 LPA". Keep the value identical — only the way it is written changes.
 
-7. Rounds go in the journey, not a separate list. Every round the company announces — resume/CGPA shortlisting, an online coding round, an aptitude or culture-fit assessment, a group discussion, interviews, the offer — is one entry in the "history" array, whether or not a date has been announced yet. There is no separate "scheduled rounds" concept.
-   - "stage" must be EXACTLY one of: "Resume/CGPA", "Online Coding Round", "Group Discussion", "Technical Interview", "HR Interview", "Offer". Map anything else onto the closest of these — an aptitude test, culture-fit assessment, or online assessment is an "Online Coding Round".
+7. Rounds go in the journey, not a separate list. Every round the company announces — registration, resume/CGPA shortlisting, an online coding round, an aptitude or culture-fit assessment, a group discussion, interviews, the offer — is one entry in the "history" array, whether or not a date has been announced yet. There is no separate "scheduled rounds" concept and no separate "registered" flag.
+   - "stage" must be EXACTLY one of: "Registration", "Resume/CGPA", "Online Coding Round", "Group Discussion", "Technical Interview", "HR Interview", "Offer". Map anything else onto the closest of these — an aptitude test, culture-fit assessment, or online assessment is an "Online Coding Round".
+   - "Registration" means registering on the COMPANY's own site or portal, which is separate from opting in on the college portal. Include it as the first round only when the posting actually asks the candidate to register or apply somewhere; if shortlisting is the first thing that happens, start at "Resume/CGPA" instead. Do not invent a Registration round just to have one.
    - "status" must be EXACTLY one of: "Preparing", "Waiting", "Done", "Rejected". A round that has been announced but hasn't happened yet is "Preparing".
-   - Order entries oldest-first, in the sequence the process runs. Resume/CGPA shortlisting is almost always the first round.
+   - Order entries oldest-first, in the sequence the process runs.
    - "date" is "yyyy-mm-dd", or "" when the round is announced without a date. Never invent a date.
    - "time" is 24-hour "HH:mm", or "" when no time was given.
+   - "notes" on a round is for what is specific to THAT round: its format, duration, question count, platform, topics, venue, what to prepare. Put the online-assessment details on the Online Coding Round, not on the company.
 
 8. Time Format: every time shown to the user is 12-hour with AM/PM ("2:00 PM"), with no exceptions — deadlines, round times, anything. In the PAYLOAD, times are stored 24-hour as "HH:mm" ("14:00"). So: payload 24-hour, preview 12-hour.
 
-9. Clean & Crisp Notes: Do NOT repeat fields that are already stored in separate attributes (name, role, package, location, skills, dates, links, rounds, aboutCompany). "notes" is for what has no field of its own, and should stay short.
+9. Notes are BULLET POINTS, never a paragraph. Every line starts with "- " and is one short fact. They are read at a glance in a narrow table cell, so a wall of prose is unusable there.
+   Do NOT repeat anything already stored in its own field (name, role, package, location, skills, dates, links, rounds, aboutCompany) — that is duplication, not a note. Keep each bullet under about ten words, and prefer three sharp bullets to eight vague ones.
+   Round-specific facts belong on that round's "notes" (rule 7). The top-level "notes" is only for things that fit no field and no single round — a bond or service agreement, a travel or relocation requirement, an unusual eligibility catch, a referral. If there is nothing like that, return "".
+   Example of the expected shape:
+     "- 2-year service bond, ₹2L penalty\\n- Onsite from day one, Hyderabad\\n- Referral from senior available"
 
 The action object must have:
 - entity: "placement"
@@ -81,7 +87,6 @@ The action object must have:
     "durationMonths": number (0 if unknown),
     "location": "Job Location",
     "optedIn": true,
-    "registered": false,
     "deadlineDate": "yyyy-mm-dd",
     "deadlineTime": "HH:mm (24-hour)",
     "reason": "Reason for not opting in (if applicable)",
@@ -89,9 +94,10 @@ The action object must have:
     "aboutCompany": "2-3 sentences description of what the company does",
     "registrationLink": "https://careers.company.com/...",
     "history": [
-      { "stage": "Resume/CGPA", "status": "Done", "date": "2026-07-10", "time": "", "notes": "" },
-      { "stage": "Online Coding Round", "status": "Preparing", "date": "2026-07-22", "time": "14:00", "notes": "90 minutes, 2 DSA questions" }
+      { "stage": "Registration", "status": "Preparing", "date": "", "time": "", "notes": "- Register on company portal before the deadline" },
+      { "stage": "Resume/CGPA", "status": "Done", "date": "2026-07-10", "time": "", "notes": "- Shortlist by CGPA cutoff 7.5" },
+      { "stage": "Online Coding Round", "status": "Preparing", "date": "2026-07-22", "time": "14:00", "notes": "- 90 minutes on HackerRank\\n- 2 DSA questions, medium\\n- Focus: arrays, graphs" }
     ],
-    "notes": "Anything with no field of its own. Keep it very crisp."
+    "notes": "Bullet points only, or \\"\\" when nothing qualifies. See rule 9."
   }
 `;

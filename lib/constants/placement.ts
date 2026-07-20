@@ -26,6 +26,7 @@ export const LOCATIONS_DEFAULT = [
 // field, and deliberately no priority concept anywhere in this feature.
 
 export type PipelineStage =
+  | 'Registration'
   | 'Resume/CGPA'
   | 'Online Coding Round'
   | 'Group Discussion'
@@ -34,6 +35,7 @@ export type PipelineStage =
   | 'Offer';
 
 export const PIPELINE_STAGES: PipelineStage[] = [
+  'Registration',
   'Resume/CGPA',
   'Online Coding Round',
   'Group Discussion',
@@ -42,11 +44,19 @@ export const PIPELINE_STAGES: PipelineStage[] = [
   'Offer',
 ];
 
-/** The stage a freshly opted-in company starts at. */
+/**
+ * The stage a freshly opted-in company starts at.
+ *
+ * Deliberately NOT 'Registration'. Opting in happens on the college's portal;
+ * registering separately on the company's own site is a real step but not a
+ * universal one. Companies that need it get a Registration round added ahead of
+ * this one; companies that don't start here and never show an empty step.
+ */
 export const FIRST_STAGE: PipelineStage = 'Resume/CGPA';
 
 /** CSS custom property holding each stage's identity colour (theme-aware). */
 export const STAGE_COLOR_VAR: Record<PipelineStage, string> = {
+  Registration: '--stage-registration',
   'Resume/CGPA': '--stage-resume',
   'Online Coding Round': '--stage-coding',
   'Group Discussion': '--stage-gd',
