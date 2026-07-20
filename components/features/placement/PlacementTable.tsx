@@ -66,8 +66,22 @@ export function PlacementTable({
     );
   }
 
+  const COLUMN_PADDING: Record<string, string> = {
+    expand: 'pl-3 pr-2 sm:pl-4',
+    serial: 'pl-2 pr-2',
+    company: 'pl-4 pr-0.5 relative',
+    role: 'pl-0 pr-1',
+    package: 'pl-3 pr-4',
+    status: 'pl-1 pr-1',
+    notes: 'pl-0.5 pr-2',
+    skills: 'pl-2 pr-3',
+    deadline: 'pl-2 pr-3',
+    optedIn: 'pl-2 pr-2',
+    select: 'pl-2 pr-3',
+  };
+
   return (
-    <div ref={shellRef} className="card-soft mb-6 overflow-hidden bg-card w-full">
+    <div ref={shellRef} style={maxWidth ? { maxWidth } : undefined} className="card-soft mb-6 overflow-hidden bg-card w-full">
       {/* No overflow-x anywhere on this path, by design. Columns are chosen to
           fit the measured width, so there is never anything to scroll to. */}
       <div className={draggingId !== null ? 'select-none' : ''}>
@@ -85,12 +99,13 @@ export function PlacementTable({
           </colgroup>
           <thead>
             <tr className="border-b border-border">
-              {columns.map((h, i) => (
+              {columns.map((h) => (
                 <th
                   key={h.id}
                   scope="col"
-                  className={`overflow-hidden truncate py-2.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground ${i === 0 ? 'pl-3 sm:pl-4' : ''
-                    } ${i === columns.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'}`}
+                  className={`overflow-hidden truncate py-2.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground ${
+                    COLUMN_PADDING[h.id] ?? ''
+                  }`}
                 >
                   {h.label}
                 </th>

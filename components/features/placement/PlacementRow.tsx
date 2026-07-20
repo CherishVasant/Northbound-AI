@@ -273,9 +273,9 @@ export function PlacementRow({
     },
 
     company: {
-      cls: 'py-2.5 pl-4 pr-1 align-middle',
+      cls: 'py-2.5 pl-4 pr-0.5 align-middle',
       content: (
-        <>
+        <div className="flex items-center gap-2">
           <InlineEdit
             value={company.name ?? ''}
             onCommit={(name) => onFieldChange({ name })}
@@ -285,17 +285,19 @@ export function PlacementRow({
             className="text-[14px] placeholder:text-[12px] font-semibold text-foreground"
           />
           {company.kind === 'internship' && (
-            <span className="ml-1 inline-block rounded-full bg-accent/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-accent">
-              Intern
-            </span>
+            <span
+              title="Internship opportunity"
+              className="h-1.5 w-1.5 rounded-full shrink-0"
+              style={{ backgroundColor: 'var(--lavender)' }}
+            />
           )}
-        </>
+        </div>
       ),
     },
 
     // Role is the bright identity field; package is deliberately muted.
     role: {
-      cls: 'py-2.5 pl-1 pr-1 align-middle',
+      cls: 'py-2.5 pl-0 pr-1 align-middle',
       content: (
         <InlineEdit
           value={company.role ?? ''}
@@ -309,7 +311,7 @@ export function PlacementRow({
     },
 
     package: {
-      cls: 'py-2.5 pr-6 align-middle',
+      cls: 'py-2.5 pl-3 pr-4 align-middle',
       content: (
         <InlineEdit
           value={company.compensation?.amount ? String(company.compensation.amount) : ''}
@@ -346,7 +348,7 @@ export function PlacementRow({
     },
 
     status: {
-      cls: 'py-2.5 pl-2 pr-2 align-middle',
+      cls: 'py-2.5 pl-1 pr-1 align-middle',
       content: company.optedIn ? (
         <StatusSelects history={company.history} onChange={onStatusChange} stacked={false} activeRoundIndex={nowIndex} />
       ) : (
@@ -363,7 +365,7 @@ export function PlacementRow({
      * is live, and the rest are one click away in the journey.
      */
     notes: {
-      cls: 'py-2.5 pl-2 pr-3 align-middle',
+      cls: 'py-2.5 pl-0.5 pr-2 align-middle',
       content: company.optedIn && nowIndex >= 0 ? (
         <NotesCell
           value={company.history[nowIndex].notes ?? ''}

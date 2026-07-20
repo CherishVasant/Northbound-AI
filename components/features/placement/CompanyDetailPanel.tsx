@@ -308,8 +308,13 @@ export function CompanyDetailPanel({
             <button
               type="button"
               onClick={addRound}
-              style={{ border: '1px dashed rgba(255, 255, 255, 0.14)' }}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer mt-2 bg-transparent w-full"
+              style={{
+                borderColor: tint('--sky', 35),
+                color: cssVar('--sky'),
+                borderStyle: 'dashed',
+                borderWidth: '1px',
+              }}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold hover:opacity-80 cursor-pointer mt-2 bg-transparent w-full"
             >
               <Plus className="h-3 w-3" />
               Add round
@@ -381,9 +386,9 @@ export function CompanyDetailPanel({
                   if (!company.registrationLink) e.preventDefault();
                 }}
                 style={{
-                  backgroundColor: tint('--primary', 12),
-                  borderColor: tint('--primary', 35),
-                  color: cssVar('--primary'),
+                  backgroundColor: tint('--pink', 12),
+                  borderColor: tint('--pink', 35),
+                  color: cssVar('--pink'),
                 }}
                 className={`flex items-center justify-center rounded-md border px-4 text-xs font-semibold hover:opacity-85 transition-all ${
                   !company.registrationLink ? 'opacity-40 pointer-events-none' : ''

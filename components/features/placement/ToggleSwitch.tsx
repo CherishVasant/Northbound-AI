@@ -13,8 +13,8 @@ export function ToggleSwitch({ checked, onChange, label, disabled = false }: Tog
   
   const trackStyle = checked
     ? {
-        backgroundColor: tint('--primary', 12),
-        borderColor: tint('--primary', 35),
+        backgroundColor: tint('--sky', 12),
+        borderColor: tint('--sky', 35),
       }
     : {
         backgroundColor: 'var(--surface-2)',
@@ -23,7 +23,7 @@ export function ToggleSwitch({ checked, onChange, label, disabled = false }: Tog
 
   const thumbStyle = checked
     ? {
-        backgroundColor: 'var(--primary)',
+        backgroundColor: 'var(--sky)',
       }
     : {
         backgroundColor: 'var(--text-dim)',
