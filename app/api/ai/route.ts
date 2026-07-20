@@ -129,17 +129,30 @@ export async function POST(req: Request) {
 
         let replyJson: any = null;
         let cleanText = replyText.trim();
-        if (cleanText.startsWith('```')) {
-          cleanText = cleanText.replace(/^```(json)?\n/, '').replace(/\n```$/, '').trim();
+        
+        // Find JSON block using regex matching curly braces
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            replyJson = JSON.parse(jsonMatch[0]);
+          } catch (e) {
+            console.warn('[AI] Failed to parse matched JSON block:', e);
+          }
         }
-        try {
-          replyJson = JSON.parse(cleanText);
-        } catch (e) {
-          console.warn('[AI] Failed to parse reply as JSON:', cleanText);
-          replyJson = {
-            response: replyText,
-            action: null
-          };
+
+        if (!replyJson) {
+          if (cleanText.startsWith('```')) {
+            cleanText = cleanText.replace(/^```(json)?\n/, '').replace(/\n```$/, '').trim();
+          }
+          try {
+            replyJson = JSON.parse(cleanText);
+          } catch (e) {
+            console.warn('[AI] Failed to parse reply as JSON:', cleanText);
+            replyJson = {
+              response: replyText,
+              action: null
+            };
+          }
         }
 
         return NextResponse.json({ ...replyJson, model, title: generatedTitle })

@@ -40,4 +40,4 @@ echo   Press Ctrl+C here to stop the server when you are done.
 echo.
 
 start http://localhost:3000
-call corepack pnpm dev
+call corepack pnpm dev --port 3000
