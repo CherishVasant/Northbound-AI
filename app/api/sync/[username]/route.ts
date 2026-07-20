@@ -137,15 +137,25 @@ export async function POST(
       const stale =
         !baseUpdatedAt || new Date(baseUpdatedAt).getTime() < new Date(serverUpdatedAt).getTime()
       if (stale) {
-        return NextResponse.json(
-          {
-            conflict: true,
-            error: 'The server has newer data for this key.',
-            serverValue: userData[dbField] ?? [],
-            serverUpdatedAt,
-          },
-          { status: 409 },
-        )
+        // If the client has no timestamp (initial sync) and the server's database holds no data,
+        // we can safely allow the client to populate the database without a 409 conflict rejection.
+        const serverDataValue = userData[dbField]
+        const serverIsEmpty =
+          !serverDataValue || (Array.isArray(serverDataValue) && serverDataValue.length === 0)
+
+        if (!baseUpdatedAt && serverIsEmpty) {
+          // Allow the write to proceed
+        } else {
+          return NextResponse.json(
+            {
+              conflict: true,
+              error: 'The server has newer data for this key.',
+              serverValue: userData[dbField] ?? [],
+              serverUpdatedAt,
+            },
+            { status: 409 },
+          )
+        }
       }
     }
 
