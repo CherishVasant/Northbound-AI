@@ -37,8 +37,8 @@ export const HEADERS: { id: string; label: string; cls: string }[] = [
   { id: 'status', label: 'Status', cls: 'w-full lg:w-[240px] pl-4' },
   { id: 'notes', label: 'Notes', cls: 'hidden lg:table-cell lg:w-full 2xl:w-[240px] pl-2' },
   { id: 'skills', label: 'Skills Required', cls: 'hidden 2xl:table-cell 2xl:w-full pl-2' },
-  { id: 'deadline', label: 'Deadline', cls: 'hidden sm:table-cell w-[150px]' },
-  { id: 'optedIn', label: 'Opted In', cls: 'w-[80px]' },
+  { id: 'deadline', label: 'Deadline', cls: 'hidden lg:table-cell w-[150px]' },
+  { id: 'optedIn', label: 'Opted In', cls: 'hidden xl:table-cell w-[80px]' },
   { id: 'select', label: '', cls: 'w-9' },
 ];
 
