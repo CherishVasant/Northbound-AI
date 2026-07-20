@@ -1,6 +1,5 @@
-'use client';
-
 import { useId } from 'react';
+import { tint } from '@/lib/constants/placement';
 
 interface ToggleSwitchProps {
   checked: boolean;
@@ -11,6 +10,25 @@ interface ToggleSwitchProps {
 
 export function ToggleSwitch({ checked, onChange, label, disabled = false }: ToggleSwitchProps) {
   const id = useId();
+  
+  const trackStyle = checked
+    ? {
+        backgroundColor: tint('--primary', 12),
+        borderColor: tint('--primary', 35),
+      }
+    : {
+        backgroundColor: 'var(--surface-2)',
+        borderColor: 'var(--border)',
+      };
+
+  const thumbStyle = checked
+    ? {
+        backgroundColor: 'var(--primary)',
+      }
+    : {
+        backgroundColor: 'var(--text-dim)',
+      };
+
   return (
     <label
       htmlFor={id}
@@ -27,14 +45,14 @@ export function ToggleSwitch({ checked, onChange, label, disabled = false }: Tog
           disabled={disabled}
         />
         <div
-          className={`w-9 h-5 rounded-full transition-colors duration-200 ${
-            checked ? 'bg-primary' : 'bg-muted-foreground/30'
-          }`}
+          className="w-9 h-5 rounded-full border transition-colors duration-200"
+          style={trackStyle}
         />
         <div
-          className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+          className={`absolute top-1 left-1 w-3 h-3 rounded-full transition-transform duration-200 ${
             checked ? 'translate-x-4' : 'translate-x-0'
           }`}
+          style={thumbStyle}
         />
       </div>
     </label>

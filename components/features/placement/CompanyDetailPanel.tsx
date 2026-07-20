@@ -13,6 +13,8 @@ import {
   PIPELINE_STATES,
   STAGE_COLOR_VAR,
   formatTime12h,
+  tint,
+  cssVar,
   type CompensationUnit,
   type OpportunityKind,
   type PipelineStage,
@@ -24,7 +26,6 @@ import {
   monthsBetween,
   currentRoundIndex,
 } from '@/lib/utils/placementMigration';
-import { InlineEdit } from './InlineEdit';
 import { ToggleSwitch } from './ToggleSwitch';
 
 interface CompanyDetailPanelProps {
@@ -57,7 +58,7 @@ function relativeDate(iso: string) {
   const now = new Date();
   const days = Math.round(
     (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - then.getTime()) /
-    86_400_000,
+      86_400_000,
   );
   if (days === 0) return 'today';
   if (days === 1) return 'yesterday';
@@ -65,40 +66,6 @@ function relativeDate(iso: string) {
   if (days < 14) return `${days} days ago`;
   if (days < 60) return `${Math.round(days / 7)} wks ago`;
   return `${Math.round(days / 30)} mo ago`;
-}
-
-/** A titled block, so the panel reads as grouped sections rather than one grid. */
-function Section({
-  icon: Icon,
-  title,
-  children,
-  className = '',
-}: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={`card-soft bg-card/60 p-4 ${className}`}>
-      <h4 className="mb-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-        <Icon className="h-3 w-3" />
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/80">
-        {label}
-      </span>
-      <div className="min-w-0 text-xs text-foreground">{children}</div>
-    </div>
-  );
 }
 
 function SkillsEditor({
@@ -129,16 +96,21 @@ function SkillsEditor({
           {skills.map((s) => (
             <span
               key={s}
-              className="pill-soft inline-flex items-center gap-1 bg-secondary/60 py-0.5 pl-2 pr-1 font-mono text-[10px] text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-sans text-xs border"
+              style={{
+                backgroundColor: tint('--lavender', 12),
+                borderColor: tint('--lavender', 35),
+                color: cssVar('--lavender'),
+              }}
             >
               {s}
               <button
                 type="button"
                 onClick={() => onChange(skills.filter((x) => x !== s))}
                 aria-label={`Remove ${s}`}
-                className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                className="text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer ml-1"
               >
-                <X className="h-2.5 w-2.5" />
+                ×
               </button>
             </span>
           ))}
@@ -155,75 +127,13 @@ function SkillsEditor({
               add();
             }
           }}
-          placeholder="Add a skill…"
+          placeholder="Add a skill..."
           aria-label="Add a skill"
-          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[14px] text-foreground placeholder:text-[12px] placeholder:text-muted-foreground/10"
+          style={{ border: '1px dashed rgba(255, 255, 255, 0.14)' }}
+          className="w-full bg-[var(--surface-2)] text-[13px] text-[var(--text)] placeholder:text-[var(--text-dim)] rounded-lg px-3 py-1.5 outline-none"
         />
-        <button
-          type="button"
-          onClick={add}
-          disabled={!draft.trim()}
-          aria-label="Add skill"
-          className="pill-soft pill-soft-interactive flex h-6 w-6 shrink-0 items-center justify-center bg-secondary/60 text-muted-foreground hover:text-foreground disabled:opacity-40"
-        >
-          <Plus className="h-3 w-3" />
-        </button>
       </div>
     </div>
-  );
-}
-
-/**
- * Which entry is happening NOW.
- *
- * Not simply the last one: the journey holds announced-but-unreached rounds
- * alongside finished ones, so the newest entry is often something that hasn't
- * started. The current round is the latest one that isn't still 'Preparing' —
- * failing that, the earliest 'Preparing' round, i.e. what's up next.
- */
-/**
- * Notes for one round of the journey. Auto-grows so a long note is readable
- * without scrolling inside a small box, and commits on blur rather than per
- * keystroke — every commit persists and schedules a backend sync.
- */
-function RoundNotes({
-  value,
-  onCommit,
-  label,
-}: {
-  value: string;
-  onCommit: (next: string) => void;
-  label: string;
-}) {
-  const [draft, setDraft] = useState(value);
-  const [lastSeen, setLastSeen] = useState(value);
-  const areaRef = useRef<HTMLTextAreaElement>(null);
-
-  if (value !== lastSeen) {
-    setLastSeen(value);
-    setDraft(value);
-  }
-
-  // `auto` before reading scrollHeight is what lets it shrink again:
-  // scrollHeight never reports less than the element's current height.
-  useLayoutEffect(() => {
-    const el = areaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${Math.max(el.scrollHeight, 30)}px`;
-  }, [draft]);
-
-  return (
-    <textarea
-      ref={areaRef}
-      rows={1}
-      value={draft}
-      aria-label={label}
-      placeholder="Notes for this round…"
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => draft !== value && onCommit(draft)}
-      className="mt-1 w-full resize-none overflow-hidden rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[14px] leading-relaxed text-muted-foreground outline-none transition-colors placeholder:italic placeholder:text-[12px] placeholder:text-muted-foreground/10 focus:bg-secondary/50 focus:text-foreground"
-    />
   );
 }
 
@@ -243,18 +153,12 @@ export function CompanyDetailPanel({
   activeRoundIndex,
   onSelectRoundIndex,
 }: CompanyDetailPanelProps) {
-  // A company that isn't opted in has no pipeline. The log stays in storage so
-  // re-opting in resumes where it left off, but it isn't shown.
   const history = company.history ?? [];
   const timeline = company.optedIn ? history : [];
   const nowIndex = typeof activeRoundIndex === 'number' ? activeRoundIndex : currentRoundIndex(history);
   const skills = company.skills ?? [];
   const derivedMonths = monthsBetween(company.startDate ?? '', company.endDate ?? '');
 
-  /**
-   * Edits re-sort the journey, since changing a date can move a round past its
-   * neighbours. Indices are therefore only valid within a single call.
-   */
   const updateRound = (index: number, patch: Partial<StageEntry>) =>
     onFieldChange({
       history: orderJourney(history.map((e, i) => (i === index ? { ...e, ...patch } : e))),
@@ -264,355 +168,383 @@ export function CompanyDetailPanel({
     onFieldChange({ history: [...history, makeRound(nextStage(history))] });
 
   return (
-    <div className="px-3 py-4 sm:px-5">
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+    <div className="px-4 py-5 bg-[var(--surface)] rounded-b-xl border-t border-border/40 text-foreground">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        
         {/* Column 1: Journey */}
-        <div className="md:col-span-2 xl:col-span-1">
-          <Section icon={Route} title="Journey">
-            {timeline.length === 0 ? (
-              <p className="mb-2 text-xs text-muted-foreground">
-                {company.optedIn
-                  ? 'No rounds yet — add one below, or set the stage in the row above.'
-                  : 'Not applying to this company.'}
-              </p>
-            ) : (
-              <ol className="relative mb-3 flex flex-col gap-3">
-                <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
-                {timeline.map((entry, i) => {
-                  const color = `var(${stateColorVar(entry.stage, entry.status)})`;
-                  const rejected = isRejected(entry.stage, entry.status);
-                  const isCurrent = i === nowIndex;
-                  return (
-                    <li
-                      key={`${entry.stage}-${entry.date}-${i}`}
-                      // Rounds that aren't the live one are dimmed rather than
-                      // greyed out — still fully legible, just clearly not the
-                      // thing demanding attention right now.
-                      className={`group/entry relative flex gap-3 transition-opacity ${isCurrent ? '' : 'opacity-70 hover:opacity-100'
-                        }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => onSelectRoundIndex?.(i)}
-                        title={`Select ${entry.stage} round`}
-                        className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full cursor-pointer hover:scale-125 transition-transform"
+        <div className="flex flex-col gap-4 relative">
+          <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+            Journey
+          </h3>
+
+          {timeline.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {company.optedIn
+                ? 'No rounds yet — add one below, or set the stage in the row above.'
+                : 'Not applying to this company.'}
+            </p>
+          ) : (
+            <div className="relative flex flex-col gap-6 pl-5">
+              {/* Connecting line */}
+              <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
+              
+              {timeline.map((entry, i) => {
+                const isCurrent = i === nowIndex;
+                const color = `var(${stateColorVar(entry.stage, entry.status)})`;
+                const rejected = isRejected(entry.stage, entry.status);
+                
+                return (
+                  <div
+                    key={`${entry.stage}-${entry.date}-${i}`}
+                    className="relative flex flex-col gap-3 p-4 rounded-xl border border-border bg-[var(--surface-2)]"
+                  >
+                    {/* Circle dot on the timeline line */}
+                    <span
+                      className="absolute left-[-21px] top-[24px] z-10 h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform"
+                      onClick={() => onSelectRoundIndex?.(i)}
+                      style={
+                        rejected
+                          ? { backgroundImage: 'var(--aurora-solid)' }
+                          : { backgroundColor: color }
+                      }
+                    />
+
+                    {/* Row 1 — Status */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        aria-label={`Stage for round ${i + 1}`}
+                        value={entry.stage}
+                        onChange={(e) =>
+                          updateRound(i, { stage: e.target.value as PipelineStage })
+                        }
+                        className="pill-soft cursor-pointer font-semibold px-2 py-1 text-xs rounded-md outline-none border"
                         style={{
-                          ...(rejected
-                            ? { backgroundImage: 'var(--aurora-solid)' }
-                            : { backgroundColor: color }),
-                          boxShadow: isCurrent
-                            ? `0 0 0 3px color-mix(in srgb, ${rejected ? 'var(--lavender)' : color
-                            } 25%, transparent)`
-                            : undefined,
+                          backgroundColor: tint(STAGE_COLOR_VAR[entry.stage], 12),
+                          borderColor: tint(STAGE_COLOR_VAR[entry.stage], 35),
+                          color: cssVar(STAGE_COLOR_VAR[entry.stage]),
                         }}
-                      />
-                      <div className="flex min-w-0 flex-1 flex-col gap-1 pb-0.5">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <select
-                            aria-label={`Stage for round ${i + 1}`}
-                            value={entry.stage}
-                            onChange={(e) =>
-                              updateRound(i, { stage: e.target.value as PipelineStage })
-                            }
-                            className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[11px] font-semibold"
-                            style={{ color: `var(${STAGE_COLOR_VAR[entry.stage]})` }}
-                          >
-                            {PIPELINE_STAGES.map((st) => (
-                              <option key={st} value={st}>
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                          {isCurrent && (
-                            <span
-                              className="rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
-                              style={{
-                                color,
-                                backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
-                              }}
-                            >
-                              now
-                            </span>
-                          )}
-                        </div>
+                      >
+                        {PIPELINE_STAGES.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
 
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <select
-                            aria-label={`Status for round ${i + 1}`}
-                            value={entry.status}
-                            onChange={(e) =>
-                              updateRound(i, { status: e.target.value as PipelineState })
-                            }
-                            className={`pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium ${rejected ? 'aurora-text' : ''
-                              }`}
-                            style={rejected ? undefined : { color }}
-                          >
-                            {PIPELINE_STATES.map((st) => (
-                              <option key={st} value={st}>
-                                {STATE_LABEL[st]}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            type="date"
-                            value={entry.date}
-                            onChange={(e) => updateRound(i, { date: e.target.value })}
-                            aria-label={`Date for round ${i + 1}`}
-                            className="pill-soft bg-secondary/40 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
-                          />
-                          <input
-                            type="time"
-                            value={entry.time ?? ''}
-                            onChange={(e) => updateRound(i, { time: e.target.value })}
-                            aria-label={`Time for round ${i + 1}`}
-                            className="pill-soft bg-secondary/40 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
-                          />
-                        </div>
+                      <select
+                        aria-label={`Status for round ${i + 1}`}
+                        value={entry.status}
+                        onChange={(e) =>
+                          updateRound(i, { status: e.target.value as PipelineState })
+                        }
+                        className="pill-soft cursor-pointer font-semibold px-2 py-1 text-xs rounded-md outline-none border"
+                        style={
+                          rejected
+                            ? { backgroundImage: 'var(--aurora-soft)', color: 'var(--text)', border: 'none' }
+                            : {
+                                backgroundColor: tint(stateColorVar(entry.stage, entry.status), 12),
+                                borderColor: tint(stateColorVar(entry.stage, entry.status), 35),
+                                color: cssVar(stateColorVar(entry.stage, entry.status)),
+                              }
+                        }
+                      >
+                        {PIPELINE_STATES.map((st) => (
+                          <option key={st} value={st}>
+                            {STATE_LABEL[st]}
+                          </option>
+                        ))}
+                      </select>
 
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {entry.date ? formatDate(entry.date) : 'Date to be announced'}
-                          {entry.time && (
-                            <span className="text-muted-foreground/70">
-                              {' · '}
-                              {formatTime12h(entry.time)}
-                            </span>
-                          )}
-                          {entry.date && relativeDate(entry.date) && (
-                            <span className="text-muted-foreground/70">
-                              {' · '}
-                              {relativeDate(entry.date)}
-                            </span>
-                          )}
+                      {isCurrent && (
+                        <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-indigo-400">
+                          NOW
                         </span>
-
-                        {/* Notes belong to the round, not the company: what
-                            you want to remember about the OA is different from
-                            what you want to remember about the HR round. */}
-                        <RoundNotes
-                          value={entry.notes ?? ''}
-                          onCommit={(notes) => updateRound(i, { notes })}
-                          label={`Notes for the ${entry.stage} round`}
-                        />
-                      </div>
+                      )}
 
                       <button
                         type="button"
                         onClick={() => onDeleteHistoryEntry(i)}
                         title="Remove this round"
                         aria-label={`Remove ${entry.stage} round`}
-                        className="ml-auto mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-100 transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2 sm:opacity-0 sm:group-hover/entry:opacity-100 sm:focus-visible:opacity-100"
+                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded cursor-pointer ml-auto"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
+                    </div>
 
-            {company.optedIn && (
-              <button
-                type="button"
-                onClick={addRound}
-                className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-              >
-                <Plus className="h-3 w-3" />
-                Add round
-              </button>
-            )}
-          </Section>
+                    {/* Row 2 — Timing */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={entry.date}
+                        onChange={(e) => updateRound(i, { date: e.target.value })}
+                        aria-label={`Date for round ${i + 1}`}
+                        className="pill-soft bg-[var(--surface-2)] border border-border px-2 py-1 font-mono text-xs text-[var(--text)] rounded-md outline-none"
+                      />
+                      <input
+                        type="time"
+                        value={entry.time ?? ''}
+                        onChange={(e) => updateRound(i, { time: e.target.value })}
+                        aria-label={`Time for round ${i + 1}`}
+                        className="pill-soft bg-[var(--surface-2)] border border-border px-2 py-1 font-mono text-xs text-[var(--text)] rounded-md outline-none"
+                      />
+                    </div>
+
+                    {/* Notes textarea below */}
+                    <textarea
+                      value={entry.notes ?? ''}
+                      onChange={(e) => updateRound(i, { notes: e.target.value })}
+                      placeholder="Notes for this round..."
+                      aria-label={`Notes for round ${i + 1}`}
+                      className="w-full bg-[var(--surface-2)] border border-border rounded-lg p-2.5 text-[13px] text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none resize-none overflow-hidden min-h-[50px] leading-relaxed"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {company.optedIn && (
+            <button
+              type="button"
+              onClick={addRound}
+              style={{ border: '1px dashed rgba(255, 255, 255, 0.14)' }}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer mt-2 bg-transparent"
+            >
+              <Plus className="h-3 w-3" />
+              + Add round
+            </button>
+          )}
         </div>
 
-        {/* Column 2: Job Description & Skills Required */}
-        <div>
-          <Section icon={Briefcase} title="Role / Job Description">
+        {/* Column 2: Role / Job Description & Skills Required */}
+        <div className="flex flex-col gap-4 xl:border-x xl:border-border/50 xl:px-6">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              Role / Job Description
+            </h3>
             <textarea
               value={company.jobDescription ?? ''}
               onChange={(e) => onFieldChange({ jobDescription: e.target.value })}
               rows={8}
-              placeholder="Details about the job role, responsibilities, what they will be doing..."
-              className="pill-soft max-h-60 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+              placeholder="Must be comfortable working with Gen AI and Agentic AI"
+              className="w-full bg-[var(--surface-2)] border border-border rounded-lg p-2.5 text-[13px] leading-relaxed text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none resize-y min-h-[120px]"
             />
-          </Section>
+          </div>
 
-          <div className="mt-3">
-            <Section icon={Sparkles} title="Skills Required">
-              <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
-            </Section>
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              Skills Required
+            </h3>
+            <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
           </div>
         </div>
 
         {/* Column 3: About Company, Links, Details & Duration */}
-        <div>
-          <Section icon={Building2} title="About the Company">
+        <div className="flex flex-col gap-4 xl:pl-6">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              About the Company
+            </h3>
             <textarea
               value={company.aboutCompany ?? ''}
               onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
-              rows={5}
+              rows={3}
               placeholder="Brief description of the company..."
-              className="pill-soft max-h-36 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+              className="w-full bg-[var(--surface-2)] border border-border rounded-lg p-2.5 text-[13px] leading-relaxed text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none resize-y min-h-[75px]"
             />
-          </Section>
-
-          <div className="mt-3">
-            <Section icon={LinkIcon} title="Registration / Apply Link">
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1">
-                  <InlineEdit
-                    value={company.registrationLink ?? ''}
-                    onCommit={(link) => onFieldChange({ registrationLink: link })}
-                    ariaLabel="Registration link"
-                    placeholder="e.g. https://careers.company.com/..."
-                  />
-                </div>
-                {company.registrationLink && (
-                  <a
-                    href={
-                      company.registrationLink.startsWith('http')
-                        ? company.registrationLink
-                        : `https://${company.registrationLink}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
-                  >
-                    Visit
-                  </a>
-                )}
-              </div>
-            </Section>
           </div>
 
-          <div className="mt-3">
-            <Section icon={Building2} title="Details">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Location">
-                  <InlineEdit
-                    value={company.location ?? ''}
-                    onCommit={(location) => onFieldChange({ location })}
-                    ariaLabel="Location"
-                    placeholder="e.g. Bangalore"
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              Registration / Apply Link
+            </h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={company.registrationLink ?? ''}
+                onChange={(e) => onFieldChange({ registrationLink: e.target.value })}
+                placeholder="e.g. https://careers.company.com/..."
+                className="flex-1 bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none"
+              />
+              <a
+                href={
+                  company.registrationLink
+                    ? company.registrationLink.startsWith('http')
+                      ? company.registrationLink
+                      : `https://${company.registrationLink}`
+                    : '#'
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!company.registrationLink) e.preventDefault();
+                }}
+                style={{
+                  backgroundColor: tint('--primary', 12),
+                  borderColor: tint('--primary', 35),
+                  color: cssVar('--primary'),
+                }}
+                className={`flex items-center justify-center rounded-md border px-4 text-xs font-semibold hover:opacity-85 transition-all ${
+                  !company.registrationLink ? 'opacity-40 pointer-events-none' : ''
+                }`}
+              >
+                Visit
+              </a>
+            </div>
+          </div>
+
+          {/* Details Card */}
+          <div className="border border-border bg-[var(--surface-2)] rounded-xl p-4 flex flex-col gap-3">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              Details
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={company.location ?? ''}
+                  onChange={(e) => onFieldChange({ location: e.target.value })}
+                  placeholder="Pune / Hyderabad"
+                  className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal placeholder:text-[var(--text-dim)]/30 outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  Type
+                </label>
+                <select
+                  value={company.kind ?? 'placement'}
+                  onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
+                  className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal cursor-pointer outline-none"
+                >
+                  {KINDS.map((k) => (
+                    <option key={k.value} value={k.value}>
+                      {k.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  Package
+                </label>
+                <div className="flex gap-1">
+                  <input
+                    type="number"
+                    value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+                    onChange={(e) =>
+                      onFieldChange({
+                        compensation: {
+                          amount: Number(e.target.value) || 0,
+                          unit: company.compensation?.unit ?? 'LPA',
+                        },
+                      })
+                    }
+                    placeholder="50000"
+                    className="flex-1 bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none min-w-0"
                   />
-                </Field>
-                <Field label="Type">
                   <select
-                    aria-label="Opportunity type"
-                    value={company.kind ?? 'placement'}
-                    onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
-                    className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+                    value={company.compensation?.unit ?? 'LPA'}
+                    onChange={(e) =>
+                      onFieldChange({
+                        compensation: {
+                          amount: company.compensation?.amount ?? 0,
+                          unit: e.target.value as CompensationUnit,
+                        },
+                      })
+                    }
+                    className="bg-[var(--surface-2)] border border-border rounded-lg px-2 py-1.5 text-[11px] text-[var(--text)] font-normal cursor-pointer outline-none shrink-0"
                   >
-                    {KINDS.map((k) => (
-                      <option key={k.value} value={k.value}>
-                        {k.label}
+                    {COMPENSATION_UNITS.map((u) => (
+                      <option key={u.value} value={u.value}>
+                        {u.label}
                       </option>
                     ))}
                   </select>
-                </Field>
+                </div>
+              </div>
 
-                <Field label="Package">
-                  <div className="flex items-center gap-1.5">
-                    <InlineEdit
-                      value={company.compensation?.amount ? String(company.compensation.amount) : ''}
-                      onCommit={(v) =>
-                        onFieldChange({
-                          compensation: {
-                            amount: Number(v) || 0,
-                            unit: company.compensation?.unit ?? 'LPA',
-                          },
-                        })
-                      }
-                      ariaLabel="Package amount"
-                      placeholder="0"
-                      type="number"
-                      mono
-                    />
-                    <select
-                      aria-label="Package unit"
-                      value={company.compensation?.unit ?? 'LPA'}
-                      onChange={(e) =>
-                        onFieldChange({
-                          compensation: {
-                            amount: company.compensation?.amount ?? 0,
-                            unit: e.target.value as CompensationUnit,
-                          },
-                        })
-                      }
-                      className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-                    >
-                      {COMPENSATION_UNITS.map((u) => (
-                        <option key={u.value} value={u.value}>
-                          {u.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </Field>
-
-                <Field label="Opted In">
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  Opted In
+                </label>
+                <div className="h-8 flex items-center">
                   <ToggleSwitch
                     checked={company.optedIn}
                     onChange={(optedIn) => onFieldChange({ optedIn })}
-                    label={company.optedIn ? 'Opted in' : 'Not opted in'}
+                    label=""
                   />
-                </Field>
-
-                {!company.optedIn && (
-                  <div className="col-span-2">
-                    <Field label="Reason for not opting in">
-                      <InlineEdit
-                        value={company.reason ?? ''}
-                        onCommit={(reason) => onFieldChange({ reason })}
-                        ariaLabel="Reason for not opting in"
-                        placeholder="e.g. Package below target"
-                      />
-                    </Field>
-                  </div>
-                )}
+                </div>
               </div>
-            </Section>
+
+              {!company.optedIn && (
+                <div className="col-span-2 flex flex-col gap-1">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                    Reason for not opting in
+                  </label>
+                  <input
+                    type="text"
+                    value={company.reason ?? ''}
+                    onChange={(e) => onFieldChange({ reason: e.target.value })}
+                    placeholder="e.g. Package below target"
+                    className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="mt-3">
-            <Section icon={Building2} title="Duration">
-              <div className="grid grid-cols-3 gap-3">
-                <Field label="Start">
-                  <input
-                    type="date"
-                    value={company.startDate ?? ''}
-                    onChange={(e) => onFieldChange({ startDate: e.target.value })}
-                    aria-label="Start date"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                  />
-                </Field>
-                <Field label="End">
-                  <input
-                    type="date"
-                    value={company.endDate ?? ''}
-                    onChange={(e) => onFieldChange({ endDate: e.target.value })}
-                    aria-label="End date"
-                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                  />
-                </Field>
-                <Field label="Months">
-                  <InlineEdit
-                    value={
-                      derivedMonths
-                        ? String(derivedMonths)
-                        : company.durationMonths
-                          ? String(company.durationMonths)
-                          : ''
-                    }
-                    onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
-                    ariaLabel="Duration in months"
-                    placeholder="0"
-                    type="number"
-                    mono
-                  />
-                </Field>
+          {/* Duration Card */}
+          <div className="border border-border bg-[var(--surface-2)] rounded-xl p-4 flex flex-col gap-3">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+              Duration
+            </h3>
+            
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  Start
+                </label>
+                <input
+                  type="date"
+                  value={company.startDate ?? ''}
+                  onChange={(e) => onFieldChange({ startDate: e.target.value })}
+                  className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                />
               </div>
-            </Section>
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)]">
+                  End
+                </label>
+                <input
+                  type="date"
+                  value={company.endDate ?? ''}
+                  onChange={(e) => onFieldChange({ endDate: e.target.value })}
+                  className="w-full bg-[var(--surface-2)] border border-border rounded-lg px-3 py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                />
+              </div>
+              <div className="w-16 flex flex-col gap-1 shrink-0">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-dim)] text-center">
+                  Months
+                </label>
+                <input
+                  type="number"
+                  value={derivedMonths || company.durationMonths || ''}
+                  onChange={(e) => onFieldChange({ durationMonths: Number(e.target.value) || 0 })}
+                  placeholder="6"
+                  className="w-full text-center bg-[var(--surface-2)] border border-border rounded-lg py-1.5 text-[13px] text-[var(--text)] font-normal outline-none"
+                />
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );
