@@ -18,8 +18,8 @@ export const maxDuration = 60
 const MODELS = [
   'google/gemini-2.5-flash',
   'nvidia/nemotron-nano-9b-v2',
-  'openai/gpt-oss-20b',
-  'meta-llama/llama-3.3-70b-instruct',
+  'meta-llama/llama-3-8b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
 ]
 
 /** Overridable so the fallback chain can be exercised against a stub. */
@@ -27,13 +27,13 @@ const OPENROUTER_URL =
   process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1/chat/completions'
 
 interface HistoryMessage {
-  role?: string
-  content?: string
+  role: 'user' | 'assistant'
+  content: string
 }
 
 export async function POST(req: Request) {
   try {
-    const { prompt, systemPrompt, history, generateTitle } = await req.json()
+    const { prompt, pageContext, history, generateTitle } = await req.json()
     const apiKey = process.env.OPENROUTER_API_KEY
 
     if (!apiKey) {
@@ -43,17 +43,33 @@ export async function POST(req: Request) {
       )
     }
 
+    const systemPrompt = getSystemPrompt(pageContext || 'dashboard')
+
     // Prior turns give the assistant conversational memory. Error bubbles are
     // dropped so a past failure isn't fed back in as if the model had said it.
     const priorTurns = (Array.isArray(history) ? (history as HistoryMessage[]) : [])
       .filter((m) => m?.content && !m.content.startsWith('⚠️'))
-      .map((m) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content as string,
-      }))
+      .map((m) => {
+        // If content is a structured JSON response, extract only the response text for prior conversation history context.
+        let contentText = m.content;
+        try {
+          if (m.content.startsWith('{') || m.content.includes('"response"')) {
+            const parsed = JSON.parse(m.content);
+            if (parsed && typeof parsed.response === 'string') {
+              contentText = parsed.response;
+            }
+          }
+        } catch {
+          // ignore
+        }
+        return {
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: contentText,
+        };
+      })
 
     const messages = [
-      ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+      { role: 'system', content: systemPrompt },
       ...priorTurns,
       { role: 'user', content: prompt },
     ]
@@ -124,7 +140,22 @@ export async function POST(req: Request) {
           continue
         }
 
-        return NextResponse.json({ text: replyText, model, title: generatedTitle })
+        let replyJson: any = null;
+        let cleanText = replyText.trim();
+        if (cleanText.startsWith('```')) {
+          cleanText = cleanText.replace(/^```(json)?\n/, '').replace(/\n```$/, '').trim();
+        }
+        try {
+          replyJson = JSON.parse(cleanText);
+        } catch (e) {
+          console.warn('[AI] Failed to parse reply as JSON:', cleanText);
+          replyJson = {
+            response: replyText,
+            action: null
+          };
+        }
+
+        return NextResponse.json({ ...replyJson, model, title: generatedTitle })
       } catch (err: any) {
         lastError = err?.message ?? String(err)
         console.warn(`[AI] model ${model} threw: ${lastError}`)
