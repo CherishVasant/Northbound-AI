@@ -17,8 +17,8 @@ interface NotesCellProps {
   onChange: (v: string) => void;
 }
 
-/** Two lines of text plus padding — the resting height of an empty note. */
-const NOTES_MIN_HEIGHT = 46;
+/** One line of text plus padding — the resting height of an empty note. */
+const NOTES_MIN_HEIGHT = 28;
 
 function NotesCell({ value, onChange }: NotesCellProps) {
   const [draft, setDraft] = useState(value);
@@ -55,7 +55,7 @@ function NotesCell({ value, onChange }: NotesCellProps) {
   return (
     <textarea
       ref={areaRef}
-      rows={2}
+      rows={1}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
@@ -71,7 +71,7 @@ function NotesCell({ value, onChange }: NotesCellProps) {
       // Placeholder is a watermark, not content: it should be legible enough to
       // tell you the cell is editable and faint enough that a row of empty
       // notes doesn't read as a column full of text.
-      className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-xs leading-relaxed text-foreground outline-none transition-colors placeholder:italic placeholder:text-muted-foreground/25 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
+      className="w-full resize-none overflow-hidden rounded border border-transparent bg-secondary/20 px-2 py-1 text-[14px] leading-relaxed text-foreground outline-none transition-colors placeholder:italic placeholder:text-[12px] placeholder:text-muted-foreground/10 hover:bg-secondary/40 focus:border-border focus:bg-secondary/50"
     />
   );
 }
@@ -214,7 +214,17 @@ export function PlacementRow({
   visibleIds,
   stackStatus,
 }: PlacementRowProps) {
-  const nowIndex = currentRoundIndex(company.history);
+  const [activeRoundIdx, setActiveRoundIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (activeRoundIdx !== null && activeRoundIdx >= company.history.length) {
+      setActiveRoundIdx(null);
+    }
+  }, [company.history, activeRoundIdx]);
+
+  const nowIndex = activeRoundIdx !== null && activeRoundIdx < company.history.length
+    ? activeRoundIdx
+    : currentRoundIndex(company.history);
 
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
@@ -257,7 +267,7 @@ export function PlacementRow({
           >
             <GripVertical className="h-3.5 w-3.5" />
           </span>
-          <span className="font-mono text-[11px] text-muted-foreground">{serial}</span>
+          <span className="font-mono text-[14px] text-muted-foreground">{serial}</span>
         </div>
       ),
     },
@@ -272,7 +282,7 @@ export function PlacementRow({
             ariaLabel={`Company name for row ${serial}`}
             placeholder="Company name"
             bare
-            className="text-sm font-semibold text-foreground"
+            className="text-[14px] placeholder:text-[12px] font-semibold text-foreground"
           />
           {company.kind === 'internship' && (
             <span className="ml-1 inline-block rounded-full bg-accent/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-accent">
@@ -293,7 +303,7 @@ export function PlacementRow({
           ariaLabel={`Role for row ${serial}`}
           placeholder="Role"
           bare
-          className="text-xs font-medium text-primary"
+          className="text-[14px] placeholder:text-[12px] font-medium text-primary"
         />
       ),
     },
@@ -330,7 +340,7 @@ export function PlacementRow({
             ) || '—'
           }
           suffix={packageSuffix(company.compensation?.unit ?? 'LPA')}
-          className="text-xs text-muted-foreground"
+          className="text-[14px] placeholder:text-[12px] text-muted-foreground"
         />
       ),
     },
@@ -338,9 +348,9 @@ export function PlacementRow({
     status: {
       cls: 'py-2.5 pl-2 pr-2 align-middle',
       content: company.optedIn ? (
-        <StatusSelects history={company.history} onChange={onStatusChange} stacked={stackStatus} />
+        <StatusSelects history={company.history} onChange={onStatusChange} stacked={false} activeRoundIndex={nowIndex} />
       ) : (
-        <span className="inline-flex items-center rounded-[20px] border border-dashed border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+        <span className="inline-flex items-center rounded-[20px] border border-dashed border-border px-2.5 py-1 text-[13px] font-medium text-muted-foreground">
           Not Applying
         </span>
       ),
@@ -442,6 +452,8 @@ export function PlacementRow({
               company={company}
               onFieldChange={onFieldChange}
               onDeleteHistoryEntry={onDeleteHistoryEntry}
+              activeRoundIndex={nowIndex}
+              onSelectRoundIndex={setActiveRoundIdx}
             />
           </td>
         </tr>

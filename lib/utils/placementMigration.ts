@@ -125,25 +125,18 @@ function scheduleAsHistory(raw: any): StageEntry[] {
  * before everything else to the bottom of the list.
  */
 function sortJourney(entries: StageEntry[]): StageEntry[] {
-  const rank = (e: StageEntry) => (e.stage === 'Registration' ? 0 : 1)
-  return entries
-    .map((e, i) => ({ e, i }))
-    .sort((a, b) => {
-      if (rank(a.e) !== rank(b.e)) return rank(a.e) - rank(b.e)
-      if (!a.e.date && !b.e.date) return a.i - b.i
-      if (!a.e.date) return 1
-      if (!b.e.date) return -1
-      if (a.e.date !== b.e.date) return a.e.date < b.e.date ? -1 : 1
-      return a.i - b.i
-    })
-    .map(({ e }) => e)
+  return [...entries].sort((a, b) => {
+    const idxA = PIPELINE_STAGES.indexOf(a.stage);
+    const idxB = PIPELINE_STAGES.indexOf(b.stage);
+    return idxA - idxB;
+  });
 }
 
 /** Drops entries that describe the same stage twice, keeping the richer one. */
 function dedupeJourney(entries: StageEntry[]): StageEntry[] {
   const out: StageEntry[] = []
   for (const entry of entries) {
-    const clash = out.findIndex((o) => o.stage === entry.stage && o.date === entry.date)
+    const clash = out.findIndex((o) => o.stage === entry.stage)
     if (clash === -1) {
       out.push(entry)
       continue
@@ -151,8 +144,10 @@ function dedupeJourney(entries: StageEntry[]): StageEntry[] {
     out[clash] = {
       ...out[clash],
       ...entry,
-      notes: entry.notes || out[clash].notes,
-      time: entry.time || out[clash].time,
+      notes: entry.notes?.trim() || out[clash].notes?.trim() || '',
+      time: entry.time || out[clash].time || '',
+      date: entry.date || out[clash].date || '',
+      status: entry.status !== 'Preparing' ? entry.status : out[clash].status,
     }
   }
   return out
@@ -418,7 +413,14 @@ export function orderJourney(entries: StageEntry[]): StageEntry[] {
  */
 export function currentRoundIndex(history: StageEntry[]): number {
   if (!Array.isArray(history) || history.length === 0) return -1
-  return history.length - 1
+  // Find the latest stage that has moved past 'Preparing'
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].status !== 'Preparing') {
+      return i;
+    }
+  }
+  // Failing that, return the first round
+  return 0;
 }
 
 export function nextCompanyId(companies: PlacementCompany[]): number {

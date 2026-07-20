@@ -30,9 +30,11 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
         color: '--state-done',
       },
       {
-        label: 'Waiting',
-        value: opted.filter((c) => latest(c)?.status === 'Waiting').length,
-        color: '--state-waiting',
+        label: 'Online Test',
+        value: opted.filter((c) =>
+          (c.history ?? []).some((h) => h.stage === 'OA'),
+        ).length,
+        color: '--stage-oa',
       },
       {
         label: 'Interviews',
@@ -42,20 +44,20 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
         color: '--stage-tech',
       },
       {
-        label: 'Offers',
-        value: opted.filter(hasOffer).length,
-        color: '--state-offer',
-      },
-      {
         label: 'Rejected',
         value: opted.filter((c) => latest(c)?.status === 'Rejected').length,
         color: '--state-rejected',
+      },
+      {
+        label: 'Offers',
+        value: opted.filter(hasOffer).length,
+        color: '--state-offer',
       },
     ];
   }, [companies]);
 
   return (
-    <div className="flex snap-x items-center gap-2 overflow-x-auto px-4 pb-3 sm:flex-wrap sm:overflow-visible sm:px-6">
+    <div className="flex snap-x items-center gap-2 overflow-x-auto pb-3 sm:flex-wrap sm:overflow-visible">
       {stats.map((s) => (
         <div
           key={s.label}
@@ -72,8 +74,8 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
                 : { backgroundColor: `var(${s.color})` }
             }
           />
-          <span className="text-[11px] text-muted-foreground">{s.label}</span>
-          <span className="font-mono text-xs font-bold text-foreground">{s.value}</span>
+          <span className="text-[12px] text-muted-foreground">{s.label}</span>
+          <span className="font-mono text-[14px] font-bold text-foreground">{s.value}</span>
         </div>
       ))}
     </div>

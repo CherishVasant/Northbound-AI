@@ -154,7 +154,7 @@ export function InlineEdit({
            * things. `ch` is the width of a digit in the current font, and the
            * lower bound keeps an empty field clickable.
            */
-          style={{ width: `${Math.max(2, draft.length + 0.5)}ch` }}
+          style={{ width: `${Math.max(6, draft.length + 3.5)}ch` }}
           className={`shrink-0 text-left ${shared}`}
         />
         {suffix && (

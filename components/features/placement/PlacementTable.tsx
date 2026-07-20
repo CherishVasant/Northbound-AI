@@ -89,9 +89,8 @@ export function PlacementTable({
                 <th
                   key={h.id}
                   scope="col"
-                  className={`overflow-hidden truncate py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${
-                    i === 0 ? 'pl-3 sm:pl-4' : ''
-                  } ${i === columns.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'}`}
+                  className={`overflow-hidden truncate py-2.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground ${i === 0 ? 'pl-3 sm:pl-4' : ''
+                    } ${i === columns.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'}`}
                 >
                   {h.label}
                 </th>

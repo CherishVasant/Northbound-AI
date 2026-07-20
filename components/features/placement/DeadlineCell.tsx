@@ -26,6 +26,33 @@ export function formatDeadline(date: string, time: string) {
   return `${datePart}, ${h12}:${String(mm ?? 0).padStart(2, '0')} ${suffix}`;
 }
 
+export function getRelativeTimeString(date: string, time: string) {
+  if (!date) return '';
+  const [y, m, d] = date.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  
+  const targetDate = new Date(y, m - 1, d);
+  const today = new Date();
+  
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const targetMidnight = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  
+  const diffTime = targetMidnight.getTime() - todayMidnight.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return 'today';
+  } else if (diffDays === 1) {
+    return 'tomorrow';
+  } else if (diffDays === -1) {
+    return 'yesterday';
+  } else if (diffDays > 1) {
+    return `${diffDays} days left`;
+  } else {
+    return `${Math.abs(diffDays)} days ago`;
+  }
+}
+
 /**
  * Deadline and reason-for-not-opting-in are mutually exclusive and share this
  * one cell: opted-in rows get an editable date+time, opted-out rows get the
@@ -60,7 +87,7 @@ export function DeadlineCell({
 
   if (!optedIn) {
     return (
-      <span className="block w-full truncate text-xs italic text-muted-foreground" title={reason}>
+      <span className="block w-full truncate text-[14px] italic text-muted-foreground" title={reason}>
         {reason?.trim() ? reason : '—'}
       </span>
     );
@@ -74,13 +101,13 @@ export function DeadlineCell({
           autoFocus
           value={deadlineDate}
           onChange={(e) => onChange(e.target.value, deadlineTime)}
-          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground w-full"
+          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[14px] font-mono text-foreground w-full"
         />
         <input
           type="time"
           value={deadlineTime}
           onChange={(e) => onChange(deadlineDate, e.target.value)}
-          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[11px] font-mono text-foreground w-full"
+          className="pill-soft bg-secondary/40 px-1.5 py-1 text-[14px] font-mono text-foreground w-full"
         />
       </div>
     );
@@ -93,12 +120,18 @@ export function DeadlineCell({
       type="button"
       onClick={() => setEditing(true)}
       title="Click to edit deadline"
-      // w-full, not a hardcoded max-width. The column is sized by the table;
-      // a fixed 140px here was wider than the cell it sat in, so the label
-      // spilled out from under Deadline and across the next column.
-      className="block w-full truncate rounded px-1 py-0.5 text-left font-mono text-xs text-foreground transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="flex flex-col items-start w-full rounded px-1 py-1 text-left font-mono text-[14px] text-foreground transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
-      {label || <span className="text-muted-foreground">—</span>}
+      {label ? (
+        <>
+          <span>{label}</span>
+          <span className="text-[12px] text-muted-foreground/60 font-sans mt-0.5">
+            {getRelativeTimeString(deadlineDate, deadlineTime)}
+          </span>
+        </>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      )}
     </button>
   );
 }

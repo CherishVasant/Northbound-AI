@@ -27,6 +27,7 @@ interface StatusSelectsProps {
    * each one fully readable at the cost of a taller row.
    */
   stacked?: boolean;
+  activeRoundIndex?: number;
 }
 
 const AURORA = 'var(--aurora-solid)';
@@ -43,11 +44,14 @@ const AURORA = 'var(--aurora-solid)';
  * list is drawn by the operating system, which discards per-option colour — the
  * closed control was tinted while the list that opened from it was plain text.
  */
-export function StatusSelects({ history, onChange, stacked = false }: StatusSelectsProps) {
+export function StatusSelects({ history, onChange, stacked = false, activeRoundIndex }: StatusSelectsProps) {
   const entries = Array.isArray(history) ? history : [];
-  const last = entries.length ? entries[entries.length - 1] : null;
-  const committedStage: PipelineStage = last?.stage ?? FIRST_STAGE;
-  const committedState: PipelineState = last?.status ?? 'Preparing';
+  const activeIdx = typeof activeRoundIndex === 'number' && activeRoundIndex >= 0 && activeRoundIndex < entries.length
+    ? activeRoundIndex
+    : entries.length - 1;
+  const activeEntry = entries[activeIdx] ?? null;
+  const committedStage: PipelineStage = activeEntry?.stage ?? FIRST_STAGE;
+  const committedState: PipelineState = activeEntry?.status ?? 'Preparing';
 
   const [stage, setStage] = useState<PipelineStage>(committedStage);
   const [state, setState] = useState<PipelineState>(committedState);

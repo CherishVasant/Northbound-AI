@@ -32,6 +32,8 @@ interface CompanyDetailPanelProps {
   onFieldChange: (patch: Partial<PlacementCompany>) => void;
   /** Index into the stored (oldest-first) history array. */
   onDeleteHistoryEntry: (index: number) => void;
+  activeRoundIndex?: number;
+  onSelectRoundIndex?: (index: number) => void;
 }
 
 /** '2026-07-26' → '26 Jul 2026' */
@@ -55,7 +57,7 @@ function relativeDate(iso: string) {
   const now = new Date();
   const days = Math.round(
     (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - then.getTime()) /
-      86_400_000,
+    86_400_000,
   );
   if (days === 0) return 'today';
   if (days === 1) return 'yesterday';
@@ -155,7 +157,7 @@ function SkillsEditor({
           }}
           placeholder="Add a skill…"
           aria-label="Add a skill"
-          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[10px] text-foreground placeholder:text-muted-foreground"
+          className="pill-soft min-w-0 flex-1 bg-secondary/40 px-2 py-1 font-mono text-[14px] text-foreground placeholder:text-[12px] placeholder:text-muted-foreground/10"
         />
         <button
           type="button"
@@ -220,7 +222,7 @@ function RoundNotes({
       placeholder="Notes for this round…"
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== value && onCommit(draft)}
-      className="mt-1 w-full resize-none overflow-hidden rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[11px] leading-relaxed text-muted-foreground outline-none transition-colors placeholder:italic placeholder:text-muted-foreground/25 focus:bg-secondary/50 focus:text-foreground"
+      className="mt-1 w-full resize-none overflow-hidden rounded border-l-2 border-primary/30 bg-secondary/30 px-2 py-1 font-sans text-[14px] leading-relaxed text-muted-foreground outline-none transition-colors placeholder:italic placeholder:text-[12px] placeholder:text-muted-foreground/10 focus:bg-secondary/50 focus:text-foreground"
     />
   );
 }
@@ -238,12 +240,14 @@ export function CompanyDetailPanel({
   company,
   onFieldChange,
   onDeleteHistoryEntry,
+  activeRoundIndex,
+  onSelectRoundIndex,
 }: CompanyDetailPanelProps) {
   // A company that isn't opted in has no pipeline. The log stays in storage so
   // re-opting in resumes where it left off, but it isn't shown.
   const history = company.history ?? [];
   const timeline = company.optedIn ? history : [];
-  const nowIndex = currentRoundIndex(history);
+  const nowIndex = typeof activeRoundIndex === 'number' ? activeRoundIndex : currentRoundIndex(history);
   const skills = company.skills ?? [];
   const derivedMonths = monthsBetween(company.startDate ?? '', company.endDate ?? '');
 
@@ -284,20 +288,21 @@ export function CompanyDetailPanel({
                       // Rounds that aren't the live one are dimmed rather than
                       // greyed out — still fully legible, just clearly not the
                       // thing demanding attention right now.
-                      className={`group/entry relative flex gap-3 transition-opacity ${
-                        isCurrent ? '' : 'opacity-70 hover:opacity-100'
-                      }`}
+                      className={`group/entry relative flex gap-3 transition-opacity ${isCurrent ? '' : 'opacity-70 hover:opacity-100'
+                        }`}
                     >
-                      <span
-                        className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
+                      <button
+                        type="button"
+                        onClick={() => onSelectRoundIndex?.(i)}
+                        title={`Select ${entry.stage} round`}
+                        className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full cursor-pointer hover:scale-125 transition-transform"
                         style={{
                           ...(rejected
                             ? { backgroundImage: 'var(--aurora-solid)' }
                             : { backgroundColor: color }),
                           boxShadow: isCurrent
-                            ? `0 0 0 3px color-mix(in srgb, ${
-                                rejected ? 'var(--lavender)' : color
-                              } 25%, transparent)`
+                            ? `0 0 0 3px color-mix(in srgb, ${rejected ? 'var(--lavender)' : color
+                            } 25%, transparent)`
                             : undefined,
                         }}
                       />
@@ -338,9 +343,8 @@ export function CompanyDetailPanel({
                             onChange={(e) =>
                               updateRound(i, { status: e.target.value as PipelineState })
                             }
-                            className={`pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium ${
-                              rejected ? 'aurora-text' : ''
-                            }`}
+                            className={`pill-soft cursor-pointer bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium ${rejected ? 'aurora-text' : ''
+                              }`}
                             style={rejected ? undefined : { color }}
                           >
                             {PIPELINE_STATES.map((st) => (
@@ -419,29 +423,17 @@ export function CompanyDetailPanel({
           </Section>
         </div>
 
-        {/* Column 2: Role / Job Description, About the Company, & Skills Required */}
+        {/* Column 2: Job Description & Skills Required */}
         <div>
           <Section icon={Briefcase} title="Role / Job Description">
             <textarea
               value={company.jobDescription ?? ''}
               onChange={(e) => onFieldChange({ jobDescription: e.target.value })}
-              rows={6}
+              rows={8}
               placeholder="Details about the job role, responsibilities, what they will be doing..."
-              className="pill-soft max-h-48 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+              className="pill-soft max-h-60 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
             />
           </Section>
-
-          <div className="mt-3">
-            <Section icon={Building2} title="About the Company">
-              <textarea
-                value={company.aboutCompany ?? ''}
-                onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
-                rows={6}
-                placeholder="Brief description of the company..."
-                className="pill-soft max-h-48 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
-              />
-            </Section>
-          </div>
 
           <div className="mt-3">
             <Section icon={Sparkles} title="Skills Required">
@@ -450,34 +442,46 @@ export function CompanyDetailPanel({
           </div>
         </div>
 
-        {/* Column 3: Registration Link, Details & Duration */}
+        {/* Column 3: About Company, Links, Details & Duration */}
         <div>
-          <Section icon={LinkIcon} title="Registration / Apply Link">
-            <div className="flex gap-2">
-              <div className="min-w-0 flex-1">
-                <InlineEdit
-                  value={company.registrationLink ?? ''}
-                  onCommit={(link) => onFieldChange({ registrationLink: link })}
-                  ariaLabel="Registration link"
-                  placeholder="e.g. https://careers.company.com/..."
-                />
-              </div>
-              {company.registrationLink && (
-                <a
-                  href={
-                    company.registrationLink.startsWith('http')
-                      ? company.registrationLink
-                      : `https://${company.registrationLink}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
-                >
-                  Visit
-                </a>
-              )}
-            </div>
+          <Section icon={Building2} title="About the Company">
+            <textarea
+              value={company.aboutCompany ?? ''}
+              onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
+              rows={5}
+              placeholder="Brief description of the company..."
+              className="pill-soft max-h-36 w-full resize-y overflow-y-auto bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+            />
           </Section>
+
+          <div className="mt-3">
+            <Section icon={LinkIcon} title="Registration / Apply Link">
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1">
+                  <InlineEdit
+                    value={company.registrationLink ?? ''}
+                    onCommit={(link) => onFieldChange({ registrationLink: link })}
+                    ariaLabel="Registration link"
+                    placeholder="e.g. https://careers.company.com/..."
+                  />
+                </div>
+                {company.registrationLink && (
+                  <a
+                    href={
+                      company.registrationLink.startsWith('http')
+                        ? company.registrationLink
+                        : `https://${company.registrationLink}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
+                  >
+                    Visit
+                  </a>
+                )}
+              </div>
+            </Section>
+          </div>
 
           <div className="mt-3">
             <Section icon={Building2} title="Details">
@@ -504,7 +508,7 @@ export function CompanyDetailPanel({
                     ))}
                   </select>
                 </Field>
-                
+
                 <Field label="Package">
                   <div className="flex items-center gap-1.5">
                     <InlineEdit

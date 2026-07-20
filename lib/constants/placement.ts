@@ -27,6 +27,7 @@ export const LOCATIONS_DEFAULT = [
 
 export type PipelineStage =
   | 'Registration'
+  | 'PPT'
   | 'Resume/CGPA'
   | 'Online Coding Round'
   | 'Group Discussion'
@@ -36,6 +37,7 @@ export type PipelineStage =
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   'Registration',
+  'PPT',
   'Resume/CGPA',
   'Online Coding Round',
   'Group Discussion',
@@ -57,6 +59,7 @@ export const FIRST_STAGE: PipelineStage = 'Resume/CGPA';
 /** CSS custom property holding each stage's identity colour (theme-aware). */
 export const STAGE_COLOR_VAR: Record<PipelineStage, string> = {
   Registration: '--stage-registration',
+  PPT: '--stage-ppt',
   'Resume/CGPA': '--stage-resume',
   'Online Coding Round': '--stage-coding',
   'Group Discussion': '--stage-gd',

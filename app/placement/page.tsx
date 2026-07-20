@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, Building2 } from 'lucide-react';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, type PlacementCompany } from '@/lib/utils/storage';
 import {
@@ -19,6 +20,7 @@ import {
   nextCompanyId,
   makeStageEntry,
   todayISO,
+  orderJourney,
 } from '@/lib/utils/placementMigration';
 import { PlacementStatsStrip } from '@/components/features/placement/PlacementStatsStrip';
 import { PlacementToolbar } from '@/components/features/placement/PlacementToolbar';
@@ -118,15 +120,16 @@ export default function PlacementPage() {
     (id: number, stage: PipelineStage, state: PipelineState) => {
       updateCompany(id, (c) => {
         const history = [...c.history];
-        const last = history[history.length - 1];
+        const matchIdx = history.findIndex((x) => x.stage === stage);
 
-        if (last && last.stage === stage) {
-          history[history.length - 1] = { ...last, status: state, date: todayISO() };
+        if (matchIdx !== -1) {
+          history[matchIdx] = { ...history[matchIdx], status: state, date: todayISO() };
         } else {
           history.push(makeStageEntry(stage, state));
         }
 
-        return { ...c, history };
+        const sorted = orderJourney(history);
+        return { ...c, history: sorted };
       });
     },
     [updateCompany],
@@ -276,22 +279,12 @@ export default function PlacementPage() {
 
   return (
     <div className="min-h-full bg-background pb-6">
-      {/* Page head */}
-      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-5 sm:px-6">
-        <div>
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Placement Tracker
-            </h1>
-            <span className="text-xs font-medium text-muted-foreground">
-              · {companies.length} compan{companies.length === 1 ? 'y' : 'ies'} tracked
-            </span>
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Track and manage your placement applications end-to-end.
-          </p>
-        </div>
-
+      <PageHeader
+        title="Placement Tracker"
+        icon={Building2}
+        description="Track and manage your placement applications end-to-end."
+        accentColor="--color-primary"
+      >
         <button
           type="button"
           onClick={() => setShowAddModal(true)}
@@ -300,73 +293,75 @@ export default function PlacementPage() {
           <Plus className="h-3.5 w-3.5" />
           Add Company
         </button>
+      </PageHeader>
+
+      <div className="mt-6 space-y-6">
+        <PlacementStatsStrip companies={companies.filter((c) => c.year === year)} />
+
+        <PlacementToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          optedFilter={optedFilter}
+          onOptedFilterChange={setOptedFilter}
+          year={year}
+          onYearChange={(y) => {
+            setYear(y);
+            // Selections and open rows belong to the tab they were made in.
+            setSelectedIds([]);
+            setExpandedIds([]);
+          }}
+          counts={{
+            third: companies.filter((c) => c.year === 'third').length,
+            fourth: companies.filter((c) => c.year === 'fourth').length,
+          }}
+          allExpanded={allExpanded}
+          onToggleExpandAll={() =>
+            setExpandedIds(allExpanded ? [] : visibleCompanies.map((c) => c.id))
+          }
+          selectionMode={selectionMode}
+          onSelectionModeChange={handleSelectionModeChange}
+        />
+
+        {selectedIds.length > 0 && (
+          <div className="mx-3 mb-2 flex flex-wrap items-center gap-2 px-1 sm:mx-6">
+            <span className="text-xs font-semibold text-foreground">
+              {selectedIds.length} selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3" />
+              Clear
+            </button>
+          </div>
+        )}
+
+        <PlacementTable
+          companies={visibleCompanies}
+          onStatusChange={handleStatusChange}
+          onDeadlineChange={handleDeadlineChange}
+          onOptedInChange={handleOptedInChange}
+          onFieldChange={handleFieldChange}
+          onDeleteHistoryEntry={handleDeleteHistoryEntry}
+          serialOf={serialOf}
+          onReorder={handleReorder}
+          selectedIds={selectedIds}
+          onSelectedChange={setSelectedIds}
+          expandedIds={expandedIds}
+          onToggleExpand={handleToggleExpand}
+          selectionMode={selectionMode}
+        />
       </div>
-
-      <PlacementStatsStrip companies={companies.filter((c) => c.year === year)} />
-
-      <PlacementToolbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        optedFilter={optedFilter}
-        onOptedFilterChange={setOptedFilter}
-        year={year}
-        onYearChange={(y) => {
-          setYear(y);
-          // Selections and open rows belong to the tab they were made in.
-          setSelectedIds([]);
-          setExpandedIds([]);
-        }}
-        counts={{
-          third: companies.filter((c) => c.year === 'third').length,
-          fourth: companies.filter((c) => c.year === 'fourth').length,
-        }}
-        allExpanded={allExpanded}
-        onToggleExpandAll={() =>
-          setExpandedIds(allExpanded ? [] : visibleCompanies.map((c) => c.id))
-        }
-        selectionMode={selectionMode}
-        onSelectionModeChange={handleSelectionModeChange}
-      />
-
-      {selectedIds.length > 0 && (
-        <div className="mx-3 mb-2 flex flex-wrap items-center gap-2 px-1 sm:mx-6">
-          <span className="text-xs font-semibold text-foreground">
-            {selectedIds.length} selected
-          </span>
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive"
-          >
-            <Trash2 className="h-3 w-3" />
-            Delete
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedIds([])}
-            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3 w-3" />
-            Clear
-          </button>
-        </div>
-      )}
-
-      <PlacementTable
-        companies={visibleCompanies}
-        onStatusChange={handleStatusChange}
-        onDeadlineChange={handleDeadlineChange}
-        onOptedInChange={handleOptedInChange}
-        onFieldChange={handleFieldChange}
-        onDeleteHistoryEntry={handleDeleteHistoryEntry}
-        serialOf={serialOf}
-        onReorder={handleReorder}
-        selectedIds={selectedIds}
-        onSelectedChange={setSelectedIds}
-        expandedIds={expandedIds}
-        onToggleExpand={handleToggleExpand}
-        selectionMode={selectionMode}
-      />
 
       <ConfirmDialog
         isOpen={confirmDelete}

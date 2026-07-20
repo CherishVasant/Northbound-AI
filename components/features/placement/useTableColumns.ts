@@ -67,14 +67,13 @@ export interface ColumnSpec {
 export const COLUMN_SPECS: ColumnSpec[] = [
   { id: 'expand', label: '', min: 36, max: 40, priority: 0, flex: 0 },
   { id: 'serial', label: '#', min: 44, max: 54, priority: 0, flex: 0.2 },
-  { id: 'company', label: 'Company', min: 100, max: 140, priority: 0, flex: 1 },
-  { id: 'role', label: 'Role', min: 90, max: 130, priority: 0, flex: 1 },
-  { id: 'package', label: 'Package', min: 80, max: 110, priority: 4, flex: 0.5 },
-  { id: 'status', label: 'Status', min: 130, max: 200, priority: 0, flex: 1.5 },
-  { id: 'notes', label: 'Notes', min: 120, max: 320, priority: 2, flex: 2.5 },
-  { id: 'skills', label: 'Skills Required', min: 110, max: 240, priority: 3, flex: 1.5 },
-  { id: 'deadline', label: 'Deadline', min: 120, max: 170, priority: 1, flex: 1.2 },
-  { id: 'optedIn', label: 'Opted In', min: 70, max: 90, priority: 5, flex: 0.3 },
+  { id: 'company', label: 'Company', min: 120, max: 240, priority: 0, flex: 1.2 },
+  { id: 'role', label: 'Role', min: 120, max: 220, priority: 0, flex: 1 },
+  { id: 'package', label: 'Package', min: 80, max: 150, priority: 4, flex: 0.5 },
+  { id: 'status', label: 'Status', min: 200, max: 420, priority: 0, flex: 2.5 },
+  { id: 'notes', label: 'Notes', min: 120, max: 480, priority: 2, flex: 3.2 },
+  { id: 'deadline', label: 'Deadline', min: 120, max: 200, priority: 1, flex: 1.2 },
+  { id: 'optedIn', label: 'Opted In', min: 70, max: 100, priority: 5, flex: 0.3 },
   { id: 'select', label: '', min: 30, max: 34, priority: 0, flex: 0 },
 ];
 

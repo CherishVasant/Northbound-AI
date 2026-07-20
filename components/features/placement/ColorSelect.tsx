@@ -129,7 +129,7 @@ export function ColorSelect<T extends string>({
           setOpen((o) => !o);
         }}
         onKeyDown={onKeyDown}
-        className={`pill-soft flex min-w-0 cursor-pointer items-center justify-between gap-1 px-2 py-1 text-[11px] font-semibold leading-none focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
+        className={`pill-soft flex min-w-0 cursor-pointer items-center justify-between gap-1 px-2 py-1 text-[13px] font-semibold leading-none focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
         style={triggerStyle}
       >
         <span className="truncate">{selected?.label}</span>
