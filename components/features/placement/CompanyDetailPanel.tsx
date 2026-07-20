@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Plus, Building2, Route } from 'lucide-react';
+import { X, Plus, Building2, CalendarClock, NotebookPen, Route } from 'lucide-react';
 import type { PlacementCompany, StageEntry } from '@/lib/utils/storage';
 import {
   STATE_LABEL,
@@ -20,6 +20,7 @@ import {
 } from '@/lib/constants/placement';
 import { makeRound, orderJourney, monthsBetween } from '@/lib/utils/placementMigration';
 import { InlineEdit } from './InlineEdit';
+import { ToggleSwitch } from './ToggleSwitch';
 
 interface CompanyDetailPanelProps {
   company: PlacementCompany;
@@ -173,6 +174,29 @@ function SkillsEditor({
  * started. The current round is the latest one that isn't still 'Preparing' —
  * failing that, the earliest 'Preparing' round, i.e. what's up next.
  */
+function NotesEditor({ value, onCommit }: { value: string; onCommit: (next: string) => void }) {
+  const [draft, setDraft] = useState(value);
+  const [lastSeen, setLastSeen] = useState(value);
+
+  // Adopt external updates (a sync landing, an AI write) without interrupting typing.
+  if (value !== lastSeen) {
+    setLastSeen(value);
+    setDraft(value);
+  }
+
+  return (
+    <textarea
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => draft !== value && onCommit(draft)}
+      rows={4}
+      placeholder="Interview feedback, referrals, prep reminders…"
+      aria-label="Notes"
+      className="pill-soft w-full resize-y bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+    />
+  );
+}
+
 /** Guesses the stage a newly added round is for: the one after the furthest reached. */
 function nextStage(history: StageEntry[]): PipelineStage {
   const furthest = history.reduce(
@@ -410,6 +434,56 @@ export function CompanyDetailPanel({
                 </Field>
               </div>
           </Section>
+
+          {/*
+            Notes and Deadline live here as well as in the row, because the row
+            drops them on a narrow screen. Anything the table can hide has to be
+            reachable somewhere that never hides, or it becomes uneditable at
+            small sizes — the panel is that place, and it holds every field.
+          */}
+          <div className="mt-3">
+            <Section icon={NotebookPen} title="Notes">
+              <NotesEditor
+                value={company.notes ?? ''}
+                onCommit={(notes) => onFieldChange({ notes })}
+              />
+            </Section>
+          </div>
+
+          <div className="mt-3">
+            <Section icon={CalendarClock} title="Deadline">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Date">
+                  <input
+                    type="date"
+                    value={company.deadlineDate ?? ''}
+                    onChange={(e) =>
+                      onFieldChange({ deadlineDate: e.target.value })
+                    }
+                    aria-label="Deadline date"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                  />
+                </Field>
+                <Field label="Time">
+                  <input
+                    type="time"
+                    value={company.deadlineTime ?? ''}
+                    onChange={(e) =>
+                      onFieldChange({ deadlineTime: e.target.value })
+                    }
+                    aria-label="Deadline time"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                  />
+                </Field>
+              </div>
+              {company.deadlineDate && (
+                <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+                  {formatDate(company.deadlineDate)}
+                  {company.deadlineTime && ` · ${formatTime12h(company.deadlineTime)}`}
+                </p>
+              )}
+            </Section>
+          </div>
         </div>
 
         {/* Column 3: Details & Duration */}
@@ -476,6 +550,14 @@ export function CompanyDetailPanel({
                     ))}
                   </select>
                 </div>
+              </Field>
+
+              <Field label="Opted In">
+                <ToggleSwitch
+                  checked={company.optedIn}
+                  onChange={(optedIn) => onFieldChange({ optedIn })}
+                  label={company.optedIn ? 'Opted in' : 'Not opted in'}
+                />
               </Field>
 
               {company.optedIn ? (

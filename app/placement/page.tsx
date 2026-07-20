@@ -157,10 +157,25 @@ export default function PlacementPage() {
     [updateCompany],
   );
 
-  /** Generic patch so every scalar field is editable through one path. */
+  /**
+   * Generic patch so every scalar field is editable through one path.
+   *
+   * Opting in seeds the first stage here rather than only in
+   * handleOptedInChange, because the row's toggle is no longer the only way to
+   * set it — the detail panel has one too (the column is dropped on narrow
+   * screens), and the AI writes the field directly. Centralising it means a
+   * company can't end up opted in with an empty journey depending on which
+   * control was used.
+   */
   const handleFieldChange = useCallback(
     (id: number, patch: Partial<PlacementCompany>) => {
-      updateCompany(id, (c) => ({ ...c, ...patch }));
+      updateCompany(id, (c) => {
+        const next = { ...c, ...patch };
+        if (next.optedIn && next.history.length === 0) {
+          next.history = [makeStageEntry(FIRST_STAGE, 'Preparing')];
+        }
+        return next;
+      });
     },
     [updateCompany],
   );

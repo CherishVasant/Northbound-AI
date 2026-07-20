@@ -30,21 +30,32 @@ export interface ColumnSpec {
 }
 
 /**
- * Order here is display order. Priority is independent of it — Deadline sits
- * late in the row but is worth more than the serial number, so it comes back
- * first when the table grows.
+ * Order in this array is DISPLAY order; `priority` is the independent order in
+ * which columns come back as the table widens:
+ *
+ *   always            company, role, status  (plus the chevron and row number)
+ *   1. a bit wider    Deadline
+ *   2. wider          Notes
+ *   3. wider          Skills
+ *   4. widest         Package
+ *   5. widest         Opted In
+ *
+ * Structural columns are never dropped. The row number counts as structural
+ * rather than as information: at 34px it costs almost nothing, and a row you
+ * can't cite by number is harder to talk about. Everything genuinely absent
+ * from the row is reachable in the expanded panel, which holds every field.
  */
 export const COLUMN_SPECS: ColumnSpec[] = [
   { id: 'expand', label: '', min: 28, priority: 0 },
-  { id: 'serial', label: '#', min: 34, priority: 5 },
+  { id: 'serial', label: '#', min: 34, priority: 0 },
   { id: 'company', label: 'Company', min: 96, priority: 0, flex: 1 },
-  { id: 'role', label: 'Role', min: 84, priority: 1, flex: 1 },
+  { id: 'role', label: 'Role', min: 84, priority: 0, flex: 1 },
   { id: 'package', label: 'Package', min: 74, priority: 4 },
   { id: 'status', label: 'Status', min: 124, priority: 0, flex: 1.6 },
-  { id: 'notes', label: 'Notes', min: 128, priority: 3, flex: 2 },
-  { id: 'skills', label: 'Skills Required', min: 112, priority: 6, flex: 1.4 },
-  { id: 'deadline', label: 'Deadline', min: 100, priority: 2 },
-  { id: 'optedIn', label: 'Opted In', min: 64, priority: 7 },
+  { id: 'notes', label: 'Notes', min: 128, priority: 2, flex: 2.2 },
+  { id: 'skills', label: 'Skills Required', min: 112, priority: 3, flex: 1.4 },
+  { id: 'deadline', label: 'Deadline', min: 100, priority: 1 },
+  { id: 'optedIn', label: 'Opted In', min: 64, priority: 5 },
   { id: 'select', label: '', min: 30, priority: 0 },
 ];
 
@@ -100,7 +111,9 @@ function plan(width: number, selectionMode: boolean): ColumnPlan {
   return {
     columns,
     // Percentages, not pixels: they always sum to 100% of whatever the table
-    // actually gets, so the layout cannot overflow even mid-resize.
+    // actually gets, so the layout cannot overflow even mid-resize — and on a
+    // screen too narrow even for the structural columns, they share the space
+    // proportionally and squeeze below their min rather than spilling sideways.
     widths: px.map((w) => `${((w / total) * 100).toFixed(4)}%`),
     statusWidth: px[columns.findIndex((c) => c.id === 'status')] ?? 0,
     measured: true,
