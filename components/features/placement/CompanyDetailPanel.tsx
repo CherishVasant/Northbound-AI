@@ -373,6 +373,44 @@ export function CompanyDetailPanel({
               Add round
             </button>
           </Section>
+
+          <div className="mt-3">
+            <Section icon={Building2} title="Company Info">
+              <div className="space-y-3">
+                <Field label="About the Company">
+                  <textarea
+                    value={company.aboutCompany ?? ''}
+                    onChange={(e) => onFieldChange({ aboutCompany: e.target.value })}
+                    rows={3}
+                    placeholder="Brief description of the company..."
+                    className="pill-soft w-full resize-none bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground"
+                  />
+                </Field>
+                <Field label="Registration / Apply Link">
+                  <div className="flex gap-2">
+                    <div className="flex-1 min-w-0">
+                      <InlineEdit
+                        value={company.registrationLink ?? ''}
+                        onCommit={(link) => onFieldChange({ registrationLink: link })}
+                        ariaLabel="Registration link"
+                        placeholder="e.g. https://careers.company.com/..."
+                      />
+                    </div>
+                    {company.registrationLink && (
+                      <a
+                        href={company.registrationLink.startsWith('http') ? company.registrationLink : `https://${company.registrationLink}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pill-soft pill-soft-interactive flex items-center justify-center bg-primary/10 px-3 text-xs font-bold text-primary"
+                      >
+                        Visit
+                      </a>
+                    )}
+                  </div>
+                </Field>
+              </div>
+            </Section>
+          </div>
         </div>
 
         {/* Column 3: Details & Duration */}

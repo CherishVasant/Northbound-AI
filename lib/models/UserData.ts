@@ -175,6 +175,8 @@ const PlacementCompanySchema = new Schema(
     notes: { type: Schema.Types.Mixed, default: '' },
     history: { type: [StageEntrySchema], default: [] },
     schedule: { type: [ScheduledEventSchema], default: [] },
+    aboutCompany: { type: String, default: '' },
+    registrationLink: { type: String, default: '' },
 
     // ── Legacy fields, retained so migratePlacementCompanies() can still read
     // them. Mongoose strips unknown paths on read, so removing these before

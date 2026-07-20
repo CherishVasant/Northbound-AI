@@ -170,6 +170,8 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         kind: coerceKind(rec),
         history: (rec.history as any[]).map(coerceEntry).filter(Boolean) as StageEntry[],
         schedule: coerceSchedule(rec.schedule),
+        aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
+        registrationLink: typeof rec.registrationLink === 'string' ? rec.registrationLink : '',
       } as PlacementCompany
     }
 
@@ -203,6 +205,8 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
           : [],
       // Old notes were { content, lastEdited }; the new model is plain text.
       notes: typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? ''),
+      aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
+      registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
       history: Array.isArray(rec?.history) && rec.history.length
         ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
         : historyFromLegacy(rec),

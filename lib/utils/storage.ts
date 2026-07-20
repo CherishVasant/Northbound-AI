@@ -462,6 +462,8 @@ export interface PlacementCompany {
   reason: string;
   skills: string[];
   notes: string;
+  aboutCompany?: string;
+  registrationLink?: string;
   /** Ordered oldest-first; last entry is the current status */
   history: StageEntry[];
   /** Known upcoming rounds, distinct from the history log */

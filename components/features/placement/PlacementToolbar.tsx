@@ -14,6 +14,8 @@ interface PlacementToolbarProps {
   year: OpportunityYear;
   onYearChange: (y: OpportunityYear) => void;
   counts: Record<OpportunityYear, number>;
+  selectionMode: boolean;
+  onSelectionModeChange: (val: boolean) => void;
 }
 
 export function PlacementToolbar({
@@ -26,6 +28,8 @@ export function PlacementToolbar({
   year,
   onYearChange,
   counts,
+  selectionMode,
+  onSelectionModeChange,
 }: PlacementToolbarProps) {
   return (
     <>
@@ -102,18 +106,32 @@ export function PlacementToolbar({
         })}
       </div>
 
-      <button
-        type="button"
-        onClick={onToggleExpandAll}
-        className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground sm:ml-auto"
-      >
-        {allExpanded ? (
-          <ChevronsDownUp className="h-3 w-3" />
-        ) : (
-          <ChevronsUpDown className="h-3 w-3" />
-        )}
-        {allExpanded ? 'Collapse all' : 'Expand all'}
-      </button>
+      <div className="flex items-center gap-2 sm:ml-auto">
+        <button
+          type="button"
+          onClick={() => onSelectionModeChange(!selectionMode)}
+          className={`pill-soft pill-soft-interactive flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold transition-all ${
+            selectionMode
+              ? 'bg-primary/10 text-primary border border-primary/20'
+              : 'bg-secondary/50 text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {selectionMode ? 'Cancel Selection' : 'Select'}
+        </button>
+
+        <button
+          type="button"
+          onClick={onToggleExpandAll}
+          className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          {allExpanded ? (
+            <ChevronsDownUp className="h-3 w-3" />
+          ) : (
+            <ChevronsUpDown className="h-3 w-3" />
+          )}
+          {allExpanded ? 'Collapse all' : 'Expand all'}
+        </button>
+      </div>
     </div>
     </>
   );

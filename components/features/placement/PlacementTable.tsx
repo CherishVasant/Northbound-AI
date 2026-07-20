@@ -15,12 +15,11 @@ interface PlacementTableProps {
   onDeleteHistoryEntry: (id: number, index: number) => void;
   selectedIds: number[];
   onSelectedChange: (ids: number[]) => void;
-  /** Lifted so the toolbar can expand or collapse everything at once. */
   expandedIds: number[];
   onToggleExpand: (id: number) => void;
-  /** Position in the FULL list, so numbering survives filtering. */
   serialOf: (id: number) => number;
   onReorder: (sourceId: number, targetId: number) => void;
+  selectionMode?: boolean;
 }
 
 /**
@@ -33,9 +32,9 @@ export const HEADERS: { id: string; label: string; cls: string }[] = [
   { id: 'serial', label: '#', cls: 'w-10' },
   { id: 'company', label: 'Company', cls: 'w-[120px]' },
   { id: 'role', label: 'Role', cls: 'w-[100px]' },
-  { id: 'package', label: 'Package', cls: 'hidden md:table-cell lg:hidden 2xl:table-cell w-[85px]' },
+  { id: 'package', label: 'Package', cls: 'hidden xl:table-cell w-[85px]' },
   { id: 'status', label: 'Status', cls: 'w-full lg:w-[240px] pl-4' },
-  { id: 'notes', label: 'Notes', cls: 'hidden lg:table-cell lg:w-full 2xl:w-[240px] pl-2' },
+  { id: 'notes', label: 'Notes', cls: 'hidden lg:table-cell w-[180px] xl:w-full pl-2' },
   { id: 'skills', label: 'Skills Required', cls: 'hidden 2xl:table-cell 2xl:w-full pl-2' },
   { id: 'deadline', label: 'Deadline', cls: 'hidden lg:table-cell w-[150px]' },
   { id: 'optedIn', label: 'Opted In', cls: 'hidden xl:table-cell w-[80px]' },
@@ -59,8 +58,10 @@ export function PlacementTable({
   onReorder,
   expandedIds,
   onToggleExpand,
+  selectionMode = false,
 }: PlacementTableProps) {
   const { draggingId, handlePointerDown, rowPointerDown } = useRowReorder(onReorder);
+  const headers = selectionMode ? HEADERS : HEADERS.filter((h) => h.id !== 'select');
 
   if (companies.length === 0) {
     return (
@@ -82,13 +83,13 @@ export function PlacementTable({
         <table className="w-full table-fixed border-collapse text-left min-w-[760px] lg:min-w-[980px] xl:min-w-[1140px]">
           <thead>
             <tr className="border-b border-border">
-              {HEADERS.map((h, i) => (
+              {headers.map((h, i) => (
                 <th
                   key={`${h.label}-${i}`}
                   scope="col"
                   className={`py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${
                     i === 0 ? 'pl-3 sm:pl-4' : ''
-                  } ${i === HEADERS.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'} ${h.cls}`}
+                  } ${i === headers.length - 1 ? 'pr-3 sm:pr-4' : 'pr-2 sm:pr-3'} ${h.cls}`}
                 >
                   {h.label}
                 </th>
@@ -119,6 +120,7 @@ export function PlacementTable({
                       : selectedIds.filter((x) => x !== company.id),
                   )
                 }
+                selectionMode={selectionMode}
               />
             ))}
           </tbody>

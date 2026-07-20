@@ -170,6 +170,7 @@ interface PlacementRowProps {
   onDeleteHistoryEntry: (index: number) => void;
   selected: boolean;
   onSelectedChange: (selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
 export function PlacementRow({
@@ -187,6 +188,7 @@ export function PlacementRow({
   onDeleteHistoryEntry,
   selected,
   onSelectedChange,
+  selectionMode = false,
 }: PlacementRowProps) {
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
@@ -340,20 +342,22 @@ export function PlacementRow({
           />
         </td>
 
-        <td className={`py-2.5 pr-3 align-middle sm:pr-4 ${getColCls('select')}`}>
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={(e) => onSelectedChange(e.target.checked)}
-            aria-label={`Select ${company.name || 'company'}`}
-            className="h-3.5 w-3.5 cursor-pointer accent-[var(--primary)]"
-          />
-        </td>
+        {selectionMode && (
+          <td className={`py-2.5 pr-3 align-middle sm:pr-4 ${getColCls('select')}`}>
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(e) => onSelectedChange(e.target.checked)}
+              aria-label={`Select ${company.name || 'company'}`}
+              className="h-3.5 w-3.5 cursor-pointer accent-[var(--primary)]"
+            />
+          </td>
+        )}
       </tr>
 
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
-          <td colSpan={11} className="p-0">
+          <td colSpan={selectionMode ? 11 : 10} className="p-0">
             <CompanyDetailPanel
               company={company}
               onFieldChange={onFieldChange}

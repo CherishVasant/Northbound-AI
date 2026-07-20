@@ -83,6 +83,7 @@ function AIAssistantInner({
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const adjustTextareaHeight = () => {
@@ -118,11 +119,16 @@ function AIAssistantInner({
     }
   }, [isChatsLoaded, chats, activeChatId]);
 
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      }, 50);
+      scrollToBottom();
+      const timer = setTimeout(scrollToBottom, 100);
       return () => clearTimeout(timer);
     }
   }, [isOpen, chats, activeChatId]);
@@ -750,7 +756,7 @@ function AIAssistantInner({
       </div>
 
       {/* Content Container */}
-      <div className="flex-1 overflow-y-auto bg-background animate-in fade-in-50">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto bg-background animate-in fade-in-50">
         {showChatList ? (
           /* CHATS LIST VIEW */
           <div className="p-4 space-y-4">

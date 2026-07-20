@@ -62,6 +62,14 @@ export default function PlacementPage() {
   // Several rows may stay open at once; expanding one no longer closes another.
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+
+  const handleSelectionModeChange = (val: boolean) => {
+    setSelectionMode(val);
+    if (!val) {
+      setSelectedIds([]);
+    }
+  };
 
   // Persist the migration once so the reshape survives a reload and reaches
   // MongoDB. Rendering already uses the migrated value regardless.
@@ -301,6 +309,8 @@ export default function PlacementPage() {
         onToggleExpandAll={() =>
           setExpandedIds(allExpanded ? [] : visibleCompanies.map((c) => c.id))
         }
+        selectionMode={selectionMode}
+        onSelectionModeChange={handleSelectionModeChange}
       />
 
       {selectedIds.length > 0 && (
@@ -340,6 +350,7 @@ export default function PlacementPage() {
         onSelectedChange={setSelectedIds}
         expandedIds={expandedIds}
         onToggleExpand={handleToggleExpand}
+        selectionMode={selectionMode}
       />
 
       <ConfirmDialog
