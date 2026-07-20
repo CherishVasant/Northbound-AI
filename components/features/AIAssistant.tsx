@@ -427,7 +427,8 @@ function AIAssistantInner({
     messageId: string,
     status: 'approved' | 'cancelled',
     forcedOperation?: 'create' | 'update',
-    targetId?: any
+    targetId?: any,
+    actionIndex?: number
   ) => {
     // Commit approval state locally to message metadata and sync
     setChats((prev) =>
@@ -435,24 +436,38 @@ function AIAssistantInner({
         if (c.id === activeChatId) {
           const nextMsgs = c.messages.map((m) => {
             if (m.id === messageId) {
-              const actionObj = m.payload;
-              if (status === 'approved' && actionObj) {
-                const finalAction = {
-                  ...actionObj,
-                  operation: forcedOperation || actionObj.operation,
-                  payload: {
-                    ...actionObj.payload,
-                    id: targetId !== undefined ? targetId : actionObj.payload?.id,
-                  }
-                };
-                executeOrchestratedAction(finalAction);
+              const payload = m.payload;
+              if (status === 'approved' && payload) {
+                const actionObj = Array.isArray(payload) ? payload[actionIndex!] : payload;
+                if (actionObj) {
+                  const finalAction = {
+                    ...actionObj,
+                    operation: forcedOperation || actionObj.operation,
+                    payload: {
+                      ...actionObj.payload,
+                      id: targetId !== undefined ? targetId : actionObj.payload?.id,
+                    }
+                  };
+                  executeOrchestratedAction(finalAction);
+                }
               }
+              
+              const nextMetadata = { ...m.metadata };
+              if (actionIndex !== undefined && Array.isArray(payload)) {
+                const nextStatuses = [...(nextMetadata.confirmationStatuses || [])];
+                // Make sure array is padded up to actionIndex
+                while (nextStatuses.length <= actionIndex) {
+                  nextStatuses.push('pending');
+                }
+                nextStatuses[actionIndex] = status;
+                nextMetadata.confirmationStatuses = nextStatuses;
+              } else {
+                nextMetadata.confirmationStatus = status;
+              }
+
               return {
                 ...m,
-                metadata: {
-                  ...m.metadata,
-                  confirmationStatus: status,
-                },
+                metadata: nextMetadata,
               };
             }
             return m;
@@ -513,6 +528,45 @@ function AIAssistantInner({
         (m) => !m.metadata?.pageContext || m.metadata.pageContext === currentContext
       );
 
+      // Extract current table data context for the AI Orchestrator
+      let contextData: any = null;
+      if (currentContext === 'placement') {
+        contextData = (placementCompanies || []).map((c, idx) => ({
+          serialNumber: idx + 1,
+          id: c.id,
+          name: c.name,
+          role: c.role,
+          year: c.year,
+          kind: c.kind,
+          compensation: c.compensation,
+          location: c.location,
+          optedIn: c.optedIn,
+          registered: c.registered,
+          status: c.history?.[c.history.length - 1]?.status || 'Preparing',
+          stage: c.history?.[c.history.length - 1]?.stage || 'Resume/CGPA',
+          skills: c.skills || [],
+          aboutCompany: c.aboutCompany || '',
+          jobDescription: c.jobDescription || '',
+        }));
+      } else if (currentContext === 'dsa') {
+        contextData = (dsaProblems || []).map((p, idx) => ({
+          serialNumber: idx + 1,
+          id: p.id,
+          problemName: p.problemName,
+          difficulty: p.difficulty,
+          status: p.status,
+          pattern: p.pattern,
+        }));
+      } else if (currentContext === 'projects') {
+        contextData = (projects || []).map((p, idx) => ({
+          serialNumber: idx + 1,
+          id: p.id,
+          name: p.name,
+          status: p.status,
+          techStack: p.techStack || [],
+        }));
+      }
+
       const response = await fetch(getApiUrl('/api/ai'), {
         method: 'POST',
         headers: {
@@ -523,6 +577,7 @@ function AIAssistantInner({
           pageContext: currentContext,
           history: filteredHistory,
           generateTitle: isNewChat,
+          contextData,
         }),
       });
 
@@ -534,9 +589,17 @@ function AIAssistantInner({
       const conversationalText = data.response || 'I have completed the task.';
       const actionObj = data.action || null;
 
-      // Auto-execute if confirmation is not required
-      if (actionObj && !actionObj.requiresConfirmation) {
-        executeOrchestratedAction(actionObj);
+      // Auto-execute actions that do not require confirmation
+      if (actionObj) {
+        if (Array.isArray(actionObj)) {
+          actionObj.forEach((act: any) => {
+            if (act && !act.requiresConfirmation) {
+              executeOrchestratedAction(act);
+            }
+          });
+        } else if (!actionObj.requiresConfirmation) {
+          executeOrchestratedAction(actionObj);
+        }
       }
 
       const aiMsg: AIMessage = {
@@ -544,12 +607,19 @@ function AIAssistantInner({
         role: 'assistant',
         content: conversationalText,
         timestamp: new Date().toISOString(),
-        action: actionObj ? `${actionObj.entity}:${actionObj.operation}` : undefined,
+        action: actionObj
+          ? (Array.isArray(actionObj)
+              ? actionObj.map((act: any) => act ? `${act.entity}:${act.operation}` : '').join(',')
+              : `${actionObj.entity}:${actionObj.operation}`)
+          : undefined,
         payload: actionObj || undefined,
         metadata: {
           pageContext: currentContext,
-          confirmationStatus: actionObj
+          confirmationStatus: actionObj && !Array.isArray(actionObj)
             ? (actionObj.requiresConfirmation ? 'pending' : 'approved')
+            : undefined,
+          confirmationStatuses: actionObj && Array.isArray(actionObj)
+            ? actionObj.map((act: any) => act && act.requiresConfirmation ? 'pending' : 'approved')
             : undefined,
         },
       };
@@ -700,12 +770,13 @@ function AIAssistantInner({
     );
   };
 
-  const renderConfirmationCard = (message: AIMessage) => {
-    const action = message.payload;
+  const renderSingleActionCard = (message: AIMessage, action: any, actionIndex?: number) => {
     if (!action || !action.preview) return null;
 
     const preview = action.preview;
-    const status = message.metadata?.confirmationStatus || 'pending';
+    const status = actionIndex !== undefined
+      ? (message.metadata?.confirmationStatuses?.[actionIndex] || 'pending')
+      : (message.metadata?.confirmationStatus || 'pending');
 
     // Identify matches to let user pick between create/update
     const entityList =
@@ -755,7 +826,7 @@ function AIAssistantInner({
             <p className="text-[10px] text-muted-foreground">{preview.subtitle}</p>
           </div>
           <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
-            Draft Action
+            Draft Action {actionIndex !== undefined ? `#${actionIndex + 1}` : ''}
           </span>
         </div>
 
@@ -778,14 +849,14 @@ function AIAssistantInner({
           {status === 'pending' ? (
             <>
               <button
-                onClick={() => handleActionResponseState(message.id, 'cancelled')}
+                onClick={() => handleActionResponseState(message.id, 'cancelled', undefined, undefined, actionIndex)}
                 className="px-2 py-1 rounded bg-secondary/50 hover:bg-rose-500/10 text-rose-600 hover:text-rose-700 text-[10.5px] font-semibold transition-colors cursor-pointer"
               >
                 Reject
               </button>
               
               <button
-                onClick={() => handleActionResponseState(message.id, 'approved', 'create')}
+                onClick={() => handleActionResponseState(message.id, 'approved', 'create', undefined, actionIndex)}
                 className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-[10.5px] font-semibold text-white transition-colors cursor-pointer"
               >
                 Create New Entry
@@ -794,7 +865,7 @@ function AIAssistantInner({
               {matches.map((match: any) => (
                 <button
                   key={match.id}
-                  onClick={() => handleActionResponseState(message.id, 'approved', 'update', match.id)}
+                  onClick={() => handleActionResponseState(message.id, 'approved', 'update', match.id, actionIndex)}
                   className="px-2.5 py-1 rounded bg-primary hover:bg-primary/90 text-[10.5px] font-semibold text-primary-foreground flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   Update Row #{match.serial} ({match.details})
@@ -803,7 +874,7 @@ function AIAssistantInner({
 
               {matches.length === 0 && (
                 <button
-                  onClick={() => handleActionResponseState(message.id, 'approved', 'update')}
+                  onClick={() => handleActionResponseState(message.id, 'approved', 'update', undefined, actionIndex)}
                   className="px-2.5 py-1 rounded bg-secondary/80 hover:bg-secondary text-[10.5px] font-semibold text-foreground transition-colors cursor-pointer"
                 >
                   Update Existing
@@ -822,6 +893,25 @@ function AIAssistantInner({
         </div>
       </div>
     );
+  };
+
+  const renderConfirmationCard = (message: AIMessage) => {
+    const payload = message.payload;
+    if (!payload) return null;
+
+    if (Array.isArray(payload)) {
+      return (
+        <div className="space-y-3 w-full">
+          {payload.map((action, idx) => (
+            <div key={idx} className="w-full">
+              {renderSingleActionCard(message, action, idx)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return renderSingleActionCard(message, payload);
   };
 
   if (!isOpen) return null;
@@ -959,7 +1049,9 @@ function AIAssistantInner({
                   {/* Action Confirmation Card */}
                   {message.role === 'assistant' &&
                     message.payload &&
-                    message.payload.requiresConfirmation &&
+                    (Array.isArray(message.payload)
+                      ? message.payload.some((act: any) => act && act.requiresConfirmation)
+                      : message.payload.requiresConfirmation) &&
                     renderConfirmationCard(message)}
                 </div>
               ))}
@@ -1018,6 +1110,7 @@ function AIAssistantContent(props: AIAssistantProps) {
     if (pathname.startsWith('/concepts')) return 'concepts';
     if (pathname.startsWith('/subjects')) return 'subjects';
     if (pathname.startsWith('/projects')) return 'projects';
+    if (pathname.startsWith('/placement')) return 'placement';
     if (pathname.startsWith('/prep')) {
       const tab = searchParams.get('tab') || 'aptitude';
       return `prep_${tab}`;

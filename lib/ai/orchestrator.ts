@@ -54,21 +54,25 @@ CRITICAL RULES:
 Your output format MUST strictly match this JSON schema (and contain no trailing/leading characters or markdown wrapper):
 {
   "response": "Conversational markdown response string",
-  "action": {
-    "entity": "placement" | "leetcode" | "dsa_concept" | "subject" | "project" | "certification" | "hr_question",
-    "operation": "create" | "update" | "delete" | "toggle_complete",
-    "requiresConfirmation": boolean,
-    "preview": {
-      "title": "Short title describing the change",
-      "subtitle": "Short subtitle description",
-      "details": {
-        "Key": "Value",
-        "Another Key": "Value"
-      }
-    },
-    "payload": {
-      // entity-specific key-value fields containing the actual data to save
+  "action": null | ActionObject | Array<ActionObject>
+}
+
+Where ActionObject matches:
+{
+  "entity": "placement" | "leetcode" | "dsa_concept" | "subject" | "project" | "certification" | "hr_question",
+  "operation": "create" | "update" | "delete" | "toggle_complete",
+  "requiresConfirmation": boolean,
+  "preview": {
+    "title": "Short title describing the change",
+    "subtitle": "Short subtitle description",
+    "details": {
+      "Key": "Value",
+      "Another Key": "Value"
     }
+  },
+  "payload": {
+    // entity-specific key-value fields containing the actual data to save
   }
-}`;
+}
+If updating an existing entry, always search the current page context data to find its "id" (e.g. database ID) and include it in payload.id so the update matches the correct row.`;
 }

@@ -92,12 +92,17 @@ The action object must have:
     "reason": "Reason for not opting in (if applicable)",
     "skills": ["skill1", "skill2"],
     "aboutCompany": "2-3 sentences description of what the company does",
+    "jobDescription": "Full job description / responsibilities. For multiple roles offered, format them with headings and bullet points point-wise.",
     "registrationLink": "https://careers.company.com/...",
     "history": [
       { "stage": "Registration", "status": "Preparing", "date": "", "time": "", "notes": "- Register on company portal before the deadline" },
       { "stage": "Resume/CGPA", "status": "Done", "date": "2026-07-10", "time": "", "notes": "- Shortlist by CGPA cutoff 7.5" },
       { "stage": "Online Coding Round", "status": "Preparing", "date": "2026-07-22", "time": "14:00", "notes": "- 90 minutes on HackerRank\\n- 2 DSA questions, medium\\n- Focus: arrays, graphs" }
     ],
-    "notes": "Bullet points only, or \\"\\" when nothing qualifies. See rule 9."
+    "notes": "Bullet points only, or \"\" when nothing qualifies. See rule 9."
   }
+
+Multi-action Support:
+If the user requests to create or update multiple companies or roles in one turn, output an array of action objects under the "action" key.
+When updating an existing company from the table, look at the workspace context provided in system prompt to find its correct "id" (the database ID) and specify it under payload.id so the frontend updates the correct row.
 `;

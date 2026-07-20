@@ -17,7 +17,7 @@ interface HistoryMessage {
 
 export async function POST(req: Request) {
   try {
-    const { prompt, pageContext, history, generateTitle } = await req.json()
+    const { prompt, pageContext, history, generateTitle, contextData } = await req.json()
     const apiKey = process.env.OPENROUTER_API_KEY
 
     if (!apiKey) {
@@ -27,7 +27,10 @@ export async function POST(req: Request) {
       )
     }
 
-    const systemPrompt = getSystemPrompt(pageContext || 'dashboard')
+    const systemPromptBase = getSystemPrompt(pageContext || 'dashboard')
+    const systemPrompt = contextData
+      ? `${systemPromptBase}\n\nWorkspace Context (Current items on active page):\n${JSON.stringify(contextData, null, 2)}`
+      : systemPromptBase;
 
     // Prior turns give the assistant conversational memory. Error bubbles are
     // dropped so a past failure isn't fed back in as if the model had said it.
