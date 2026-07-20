@@ -28,17 +28,18 @@ interface PlacementTableProps {
  * hidden at a breakpoint where its cell is not (or vice versa) shifts the whole
  * row. Columns hidden on small screens remain editable in the detail panel.
  */
-const HEADERS: { label: string; cls: string }[] = [
-  { label: '', cls: 'w-8' },
-  { label: '#', cls: 'w-10' },
-  { label: 'Company', cls: 'w-[120px]' },
-  { label: 'Role', cls: 'hidden w-[100px] sm:table-cell' },
-  { label: 'Package', cls: 'hidden w-[76px] xl:table-cell' },
-  { label: 'Status', cls: 'w-[250px] pl-4' },
-  { label: 'Notes', cls: 'w-full pl-2' },
-  { label: 'Deadline', cls: 'hidden w-[150px] lg:table-cell' },
-  { label: 'Opted In', cls: 'w-[80px]' },
-  { label: '', cls: 'w-9' },
+export const HEADERS: { id: string; label: string; cls: string }[] = [
+  { id: 'expand', label: '', cls: 'w-8' },
+  { id: 'serial', label: '#', cls: 'w-10' },
+  { id: 'company', label: 'Company', cls: 'w-[120px]' },
+  { id: 'role', label: 'Role', cls: 'w-[100px]' },
+  { id: 'package', label: 'Package', cls: 'hidden md:table-cell lg:hidden 2xl:table-cell w-[85px]' },
+  { id: 'status', label: 'Status', cls: 'w-full lg:w-[240px] pl-4' },
+  { id: 'notes', label: 'Notes', cls: 'hidden lg:table-cell lg:w-full 2xl:w-[240px] pl-2' },
+  { id: 'skills', label: 'Skills Required', cls: 'hidden 2xl:table-cell 2xl:w-full pl-2' },
+  { id: 'deadline', label: 'Deadline', cls: 'hidden sm:table-cell w-[150px]' },
+  { id: 'optedIn', label: 'Opted In', cls: 'w-[80px]' },
+  { id: 'select', label: '', cls: 'w-9' },
 ];
 
 /**

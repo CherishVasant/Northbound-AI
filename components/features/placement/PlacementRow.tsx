@@ -10,6 +10,7 @@ import { StatusSelects } from './StatusSelects';
 import { DeadlineCell } from './DeadlineCell';
 import { CompanyDetailPanel } from './CompanyDetailPanel';
 import { InlineEdit } from './InlineEdit';
+import { HEADERS } from './PlacementTable';
 
 interface NotesCellProps {
   value: string;
@@ -27,7 +28,7 @@ function NotesCell({ value, onChange }: NotesCellProps) {
   useEffect(() => {
     const el = areaRef.current;
     if (!el) return;
-    el.style.height = 'auto';
+    el.style.height = '0px';
     el.style.height = `${el.scrollHeight}px`;
   }, [draft]);
 
@@ -54,6 +55,100 @@ function NotesCell({ value, onChange }: NotesCellProps) {
       placeholder="Add stage notes..."
       className="w-full resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
     />
+  );
+}
+
+interface SkillsCellProps {
+  value: string[];
+  onChange: (next: string[]) => void;
+}
+
+function SkillsCell({ value, onChange }: SkillsCellProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value.join(', '));
+  const areaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setDraft(value.join(', '));
+  }, [value]);
+
+  useEffect(() => {
+    if (!editing) return;
+    const el = areaRef.current;
+    if (!el) return;
+    el.style.height = '0px';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft, editing]);
+
+  useEffect(() => {
+    if (!editing) return;
+    const onDown = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        commit();
+        setEditing(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [editing, draft, value]);
+
+  const commit = () => {
+    if (draft !== value.join(', ')) {
+      const next = draft
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      onChange(next);
+    }
+  };
+
+  if (editing) {
+    return (
+      <div ref={containerRef} className="w-full">
+        <textarea
+          ref={areaRef}
+          rows={1}
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              commit();
+              setEditing(false);
+            } else if (e.key === 'Escape') {
+              setDraft(value.join(', '));
+              setEditing(false);
+            }
+          }}
+          placeholder="e.g. Python, SQL..."
+          className="w-full resize-none overflow-hidden bg-secondary/20 hover:bg-secondary/40 focus:bg-secondary/50 rounded px-2 py-1 text-xs text-foreground outline-none transition-all placeholder:text-muted-foreground/30 border border-transparent focus:border-border"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="w-full text-left flex flex-wrap gap-1 min-h-[28px] p-1 rounded hover:bg-secondary/40 transition-colors"
+      title="Click to edit skills"
+    >
+      {value.length > 0 ? (
+        value.map((s) => (
+          <span
+            key={s}
+            className="inline-block rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[9px] font-medium text-primary"
+          >
+            {s}
+          </span>
+        ))
+      ) : (
+        <span className="text-xs text-muted-foreground/30 px-1">—</span>
+      )}
+    </button>
   );
 }
 
@@ -96,6 +191,10 @@ export function PlacementRow({
   // Expanded rows keep the hover background so the pair reads as one unit.
   const rowBg = expanded ? 'bg-secondary/50' : 'hover:bg-secondary/50';
 
+  const getColCls = (id: string) => {
+    return HEADERS.find((h) => h.id === id)?.cls ?? '';
+  };
+
   return (
     <>
       <tr
@@ -105,7 +204,7 @@ export function PlacementRow({
           dragging ? 'relative z-10 opacity-60 shadow-[var(--shadow-card-hover)]' : ''
         }`}
       >
-        <td className="w-8 py-2.5 pl-3 pr-1 align-middle sm:pl-4">
+        <td className={`py-2.5 pl-3 pr-1 align-middle sm:pl-4 ${getColCls('expand')}`}>
           <button
             type="button"
             onClick={onToggleExpand}
@@ -119,7 +218,7 @@ export function PlacementRow({
           </button>
         </td>
 
-        <td className="w-12 py-2.5 pr-2 align-middle">
+        <td className={`py-2.5 pr-2 align-middle ${getColCls('serial')}`}>
           <div className="flex items-center gap-1">
             <span
               onPointerDown={onHandlePointerDown}
@@ -136,7 +235,7 @@ export function PlacementRow({
           </div>
         </td>
 
-        <td className="w-[120px] py-2.5 pr-1 align-top">
+        <td className={`py-2.5 pr-1 align-top ${getColCls('company')}`}>
           <InlineEdit
             value={company.name ?? ''}
             onCommit={(name) => onFieldChange({ name })}
@@ -153,7 +252,7 @@ export function PlacementRow({
         </td>
 
         {/* Role is the bright identity field; package is deliberately muted. */}
-        <td className="hidden w-[100px] py-2.5 pr-1 align-top sm:table-cell">
+        <td className={`py-2.5 pr-1 align-top ${getColCls('role')}`}>
           <InlineEdit
             value={company.role ?? ''}
             onCommit={(role) => onFieldChange({ role })}
@@ -164,7 +263,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="hidden w-[76px] py-2.5 pr-2 align-top xl:table-cell">
+        <td className={`py-2.5 pr-2 align-top ${getColCls('package')}`}>
           <InlineEdit
             value={company.compensation?.amount ? String(company.compensation.amount) : ''}
             onCommit={(v) =>
@@ -185,7 +284,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-[250px] py-2.5 pl-4 pr-3 align-middle">
+        <td className={`py-2.5 pl-4 pr-3 align-middle ${getColCls('status')}`}>
           {company.optedIn ? (
             <StatusSelects history={company.history} onChange={onStatusChange} />
           ) : (
@@ -195,7 +294,7 @@ export function PlacementRow({
           )}
         </td>
 
-        <td className="w-full py-2.5 pl-2 pr-3 align-middle">
+        <td className={`py-2.5 pl-2 pr-3 align-middle ${getColCls('notes')}`}>
           {company.optedIn ? (
             <NotesCell
               value={company.history.length > 0 ? (company.history[company.history.length - 1].notes ?? '') : ''}
@@ -215,7 +314,15 @@ export function PlacementRow({
           )}
         </td>
 
-        <td className="hidden w-[150px] py-2.5 pr-3 align-middle lg:table-cell">
+        <td className={`py-2.5 pl-2 pr-3 align-middle ${getColCls('skills')}`}>
+          {company.optedIn ? (
+            <SkillsCell value={company.skills ?? []} onChange={(skills) => onFieldChange({ skills })} />
+          ) : (
+            <span className="text-xs text-muted-foreground/30">—</span>
+          )}
+        </td>
+
+        <td className={`py-2.5 pr-3 align-middle ${getColCls('deadline')}`}>
           <DeadlineCell
             optedIn={company.optedIn}
             deadlineDate={company.deadlineDate}
@@ -225,7 +332,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-[80px] py-2.5 pr-3 align-middle">
+        <td className={`py-2.5 pr-3 align-middle ${getColCls('optedIn')}`}>
           <ToggleSwitch
             checked={company.optedIn}
             onChange={onOptedInChange}
@@ -233,7 +340,7 @@ export function PlacementRow({
           />
         </td>
 
-        <td className="w-9 py-2.5 pr-3 align-middle sm:pr-4">
+        <td className={`py-2.5 pr-3 align-middle sm:pr-4 ${getColCls('select')}`}>
           <input
             type="checkbox"
             checked={selected}
@@ -246,7 +353,7 @@ export function PlacementRow({
 
       {expanded && (
         <tr className="border-b border-border/60 bg-secondary/50">
-          <td colSpan={10} className="p-0">
+          <td colSpan={11} className="p-0">
             <CompanyDetailPanel
               company={company}
               onFieldChange={onFieldChange}

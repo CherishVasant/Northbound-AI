@@ -33,7 +33,7 @@ interface HistoryMessage {
 
 export async function POST(req: Request) {
   try {
-    const { prompt, systemPrompt, history } = await req.json()
+    const { prompt, systemPrompt, history, generateTitle } = await req.json()
     const apiKey = process.env.OPENROUTER_API_KEY
 
     if (!apiKey) {
@@ -59,6 +59,35 @@ export async function POST(req: Request) {
     ]
 
     let lastError: string | null = null
+
+    // Generate title in parallel if requested
+    let generatedTitle = '';
+    if (generateTitle) {
+      try {
+        const titlePrompt = `Summarize this user request into a short 3-5 word conversation title (do not include quotes, markdown, or punctuation): "${prompt}"`;
+        const titleRes = await fetch(OPENROUTER_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://github.com/user/preptrack',
+            'X-Title': 'PrepTrack Title Generator',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [{ role: 'user', content: titlePrompt }],
+            temperature: 0.1,
+            max_tokens: 20,
+          }),
+        });
+        if (titleRes.ok) {
+          const titleData = await titleRes.json();
+          generatedTitle = (titleData.choices?.[0]?.message?.content || '').trim().replace(/^"(.*)"$/, '$1');
+        }
+      } catch (e) {
+        console.warn('[AI] Failed to generate title:', e);
+      }
+    }
 
     for (const model of MODELS) {
       try {
@@ -95,7 +124,7 @@ export async function POST(req: Request) {
           continue
         }
 
-        return NextResponse.json({ text: replyText, model })
+        return NextResponse.json({ text: replyText, model, title: generatedTitle })
       } catch (err: any) {
         lastError = err?.message ?? String(err)
         console.warn(`[AI] model ${model} threw: ${lastError}`)

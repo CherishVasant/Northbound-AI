@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   CONCEPTS: 'placement_concepts',
   PLACEMENT_COMPANIES: 'placement_companies',
   PLACEMENT_CUSTOM_OPTIONS: 'placement_custom_options',
+  AI_CHATS: 'ai_chats',
 } as const;
 
 // Default syllabuses for core subjects
@@ -471,4 +472,14 @@ export interface PlacementCustomOptions {
   jobRoles: string[];
   locations: string[];
   skills: string[];
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  pageContext: string;
+  agent: string;
+  messages: AIMessage[];
+  createdAt: string;
+  updatedAt: string;
 }

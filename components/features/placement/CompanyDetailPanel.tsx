@@ -214,260 +214,308 @@ export function CompanyDetailPanel({
     });
 
   return (
-    <div className="flex flex-col gap-3 px-3 py-4 sm:px-5">
-      {/* Row 1 — where it stands, and what's due */}
-      <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr]">
-        <Section icon={Route} title="Journey">
-          {timeline.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              {company.optedIn
-                ? 'No stages recorded yet — set the stage and state in the row above.'
-                : 'Not applying to this company.'}
-            </p>
-          ) : (
-            <ol className="relative flex flex-col gap-3">
-              <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
-              {timeline.map((entry, i) => {
-                const color = `var(${stateColorVar(entry.stage, entry.status)})`;
-                const rejected = isRejected(entry.stage, entry.status);
-                const isCurrent = i === 0;
-                // Displayed newest-first; convert back to the stored index.
-                const storedIndex = timeline.length - 1 - i;
-                return (
-                  <li key={`${entry.stage}-${entry.date}-${i}`} className="group/entry relative flex gap-3">
-                    <span
-                      className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{
-                        ...(rejected
-                          ? { backgroundImage: 'var(--aurora-solid)' }
-                          : { backgroundColor: color }),
-                        // Only the newest entry is live; halo it so the current
-                        // position is findable without reading dates.
-                        boxShadow: isCurrent
-                          ? `0 0 0 3px color-mix(in srgb, ${
-                              rejected ? 'var(--lavender)' : color
-                            } 25%, transparent)`
-                          : undefined,
-                      }}
-                    />
-                    <div className="flex min-w-0 flex-col gap-0.5 pb-0.5">
-                      <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-foreground">
-                        {entry.stage}
-                        {isCurrent && (
-                          <span
-                            className="rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
-                            style={{
-                              color,
-                              backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
-                            }}
-                          >
-                            now
+    <div className="px-3 py-4 sm:px-5">
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        {/* Column 1: Journey */}
+        <div className="md:col-span-2 xl:col-span-1">
+          <Section icon={Route} title="Journey">
+            {timeline.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                {company.optedIn
+                  ? 'No stages recorded yet — set the stage and state in the row above.'
+                  : 'Not applying to this company.'}
+              </p>
+            ) : (
+              <ol className="relative flex flex-col gap-3">
+                <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
+                {timeline.map((entry, i) => {
+                  const color = `var(${stateColorVar(entry.stage, entry.status)})`;
+                  const rejected = isRejected(entry.stage, entry.status);
+                  const isCurrent = i === 0;
+                  // Displayed newest-first; convert back to the stored index.
+                  const storedIndex = timeline.length - 1 - i;
+                  return (
+                    <li key={`${entry.stage}-${entry.date}-${i}`} className="group/entry relative flex gap-3">
+                      <span
+                        className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{
+                          ...(rejected
+                            ? { backgroundImage: 'var(--aurora-solid)' }
+                            : { backgroundColor: color }),
+                          // Only the newest entry is live; halo it so the current
+                          // position is findable without reading dates.
+                          boxShadow: isCurrent
+                            ? `0 0 0 3px color-mix(in srgb, ${
+                                rejected ? 'var(--lavender)' : color
+                              } 25%, transparent)`
+                            : undefined,
+                        }}
+                      />
+                      <div className="flex min-w-0 flex-col gap-0.5 pb-0.5">
+                        <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-foreground">
+                          {entry.stage}
+                          {isCurrent && (
+                            <span
+                              className="rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
+                              style={{
+                                color,
+                                backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+                              }}
+                            >
+                              now
+                            </span>
+                          )}
+                        </span>
+                        {rejected ? (
+                          <span className="aurora-text text-[11px] font-semibold">
+                            {STATE_LABEL[entry.status]}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium" style={{ color }}>
+                            {STATE_LABEL[entry.status]}
                           </span>
                         )}
-                      </span>
-                      {rejected ? (
-                        <span className="aurora-text text-[11px] font-semibold">
-                          {STATE_LABEL[entry.status]}
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {formatDate(entry.date)}
+                          {relativeDate(entry.date) && (
+                            <span className="text-muted-foreground/70">
+                              {' · '}
+                              {relativeDate(entry.date)}
+                            </span>
+                          )}
                         </span>
-                      ) : (
-                        <span className="text-[11px] font-medium" style={{ color }}>
-                          {STATE_LABEL[entry.status]}
-                        </span>
-                      )}
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        {formatDate(entry.date)}
-                        {relativeDate(entry.date) && (
-                          <span className="text-muted-foreground/70">
-                            {' · '}
-                            {relativeDate(entry.date)}
-                          </span>
+                        {entry.notes && (
+                          <p className="mt-1 max-w-[280px] sm:max-w-md rounded bg-secondary/30 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 font-sans">
+                            {entry.notes}
+                          </p>
                         )}
-                      </span>
-                      {entry.notes && (
-                        <p className="mt-1 max-w-[280px] sm:max-w-md rounded bg-secondary/30 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 font-sans">
-                          {entry.notes}
-                        </p>
-                      )}
-                    </div>
+                      </div>
 
+                      <button
+                        type="button"
+                        onClick={() => onDeleteHistoryEntry(storedIndex)}
+                        title="Remove this entry"
+                        aria-label={`Remove ${entry.stage} entry`}
+                        className="ml-auto mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-100 transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2 sm:opacity-0 sm:group-hover/entry:opacity-100 sm:focus-visible:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </Section>
+        </div>
+
+        {/* Column 2: Scheduled Rounds */}
+        <div>
+          <Section icon={CalendarRange} title="Scheduled rounds">
+            {(company.schedule ?? []).length === 0 ? (
+              <p className="mb-2 text-xs text-muted-foreground">
+                Nothing scheduled yet. Add a round once they give you a date.
+              </p>
+            ) : (
+              <ul className="mb-2 flex flex-col gap-2">
+                {(company.schedule ?? []).map((ev) => (
+                  <li key={ev.id} className="flex flex-wrap items-center gap-1.5">
+                    <select
+                      aria-label="Stage for scheduled round"
+                      value={ev.stage}
+                      onChange={(e) => updateEvent(ev.id, { stage: e.target.value as PipelineStage })}
+                      className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-1 text-[10px] font-semibold"
+                      style={{ color: `var(${STAGE_COLOR_VAR[ev.stage]})` }}
+                    >
+                      {PIPELINE_STAGES.map((st) => (
+                        <option key={st} value={st} style={{ color: `var(${STAGE_COLOR_VAR[st]})` }}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={ev.date}
+                      onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
+                      aria-label="Scheduled date"
+                      className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                    />
+                    <input
+                      type="time"
+                      value={ev.time}
+                      onChange={(e) => updateEvent(ev.id, { time: e.target.value })}
+                      aria-label="Scheduled time"
+                      className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
+                    />
                     <button
                       type="button"
-                      onClick={() => onDeleteHistoryEntry(storedIndex)}
-                      title="Remove this entry"
-                      aria-label={`Remove ${entry.stage} entry`}
-                      className="ml-auto mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-100 transition-colors hover:bg-destructive/15 hover:text-destructive focus-visible:outline-2 sm:opacity-0 sm:group-hover/entry:opacity-100 sm:focus-visible:opacity-100"
+                      onClick={() =>
+                        onFieldChange({
+                          schedule: (company.schedule ?? []).filter((x) => x.id !== ev.id),
+                        })
+                      }
+                      aria-label="Remove scheduled round"
+                      className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </li>
-                );
-              })}
-            </ol>
-          )}
-        </Section>
+                ))}
+              </ul>
+            )}
+            <button
+              type="button"
+              onClick={() =>
+                onFieldChange({ schedule: [...(company.schedule ?? []), makeScheduledEvent()] })
+              }
+              className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="h-3 w-3" />
+              Add round
+            </button>
+          </Section>
+        </div>
 
-        <Section icon={CalendarRange} title="Scheduled rounds">
-          {(company.schedule ?? []).length === 0 ? (
-            <p className="mb-2 text-xs text-muted-foreground">
-              Nothing scheduled yet. Add a round once they give you a date.
-            </p>
-          ) : (
-            <ul className="mb-2 flex flex-col gap-2">
-              {(company.schedule ?? []).map((ev) => (
-                <li key={ev.id} className="flex flex-wrap items-center gap-1.5">
+        {/* Column 3: Details & Duration */}
+        <div>
+          <Section icon={Building2} title="Details & Duration">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Location">
+                <InlineEdit
+                  value={company.location ?? ''}
+                  onCommit={(location) => onFieldChange({ location })}
+                  ariaLabel="Location"
+                  placeholder="e.g. Bangalore"
+                />
+              </Field>
+              <Field label="Type">
+                <select
+                  aria-label="Opportunity type"
+                  value={company.kind ?? 'placement'}
+                  onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
+                  className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
+                >
+                  {KINDS.map((k) => (
+                    <option key={k.value} value={k.value}>
+                      {k.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              
+              <Field label="Compensation">
+                <div className="flex items-center gap-1.5">
+                  <InlineEdit
+                    value={company.compensation?.amount ? String(company.compensation.amount) : ''}
+                    onCommit={(v) =>
+                      onFieldChange({
+                        compensation: {
+                          amount: Number(v) || 0,
+                          unit: company.compensation?.unit ?? 'LPA',
+                        },
+                      })
+                    }
+                    ariaLabel="Compensation amount"
+                    placeholder="0"
+                    type="number"
+                    mono
+                  />
                   <select
-                    aria-label="Stage for scheduled round"
-                    value={ev.stage}
-                    onChange={(e) => updateEvent(ev.id, { stage: e.target.value as PipelineStage })}
-                    className="pill-soft cursor-pointer bg-secondary/40 px-1.5 py-1 text-[10px] font-semibold"
-                    style={{ color: `var(${STAGE_COLOR_VAR[ev.stage]})` }}
+                    aria-label="Compensation unit"
+                    value={company.compensation?.unit ?? 'LPA'}
+                    onChange={(e) =>
+                      onFieldChange({
+                        compensation: {
+                          amount: company.compensation?.amount ?? 0,
+                          unit: e.target.value as CompensationUnit,
+                        },
+                      })
+                    }
+                    className="pill-soft shrink-0 cursor-pointer bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
                   >
-                    {PIPELINE_STAGES.map((st) => (
-                      <option key={st} value={st} style={{ color: `var(${STAGE_COLOR_VAR[st]})` }}>
-                        {st}
+                    {COMPENSATION_UNITS.map((u) => (
+                      <option key={u.value} value={u.value}>
+                        {u.label}
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="date"
-                    value={ev.date}
-                    onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
-                    aria-label="Scheduled date"
-                    className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-                  />
-                  <input
-                    type="time"
-                    value={ev.time}
-                    onChange={(e) => updateEvent(ev.id, { time: e.target.value })}
-                    aria-label="Scheduled time"
-                    className="pill-soft bg-secondary/40 px-1.5 py-1 font-mono text-[10px] text-foreground"
-                  />
+                </div>
+              </Field>
+
+              {company.optedIn ? (
+                <Field label="Registered">
                   <button
                     type="button"
-                    onClick={() =>
-                      onFieldChange({
-                        schedule: (company.schedule ?? []).filter((x) => x.id !== ev.id),
-                      })
-                    }
-                    aria-label="Remove scheduled round"
-                    className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                    onClick={() => onFieldChange({ registered: !company.registered })}
+                    aria-pressed={company.registered}
+                    className="pill-soft pill-soft-interactive w-full bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
                   >
-                    <X className="h-3 w-3" />
+                    {company.registered ? 'Yes' : 'Not yet'}
                   </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <button
-            type="button"
-            onClick={() =>
-              onFieldChange({ schedule: [...(company.schedule ?? []), makeScheduledEvent()] })
-            }
-            className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/60 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-          >
-            <Plus className="h-3 w-3" />
-            Add round
-          </button>
-        </Section>
-      </div>
+                </Field>
+              ) : (
+                <div className="col-span-2">
+                  <Field label="Reason for not opting in">
+                    <InlineEdit
+                      value={company.reason ?? ''}
+                      onCommit={(reason) => onFieldChange({ reason })}
+                      ariaLabel="Reason for not opting in"
+                      placeholder="e.g. Package below target"
+                    />
+                  </Field>
+                </div>
+              )}
+            </div>
 
-      {/* Row 2 — Skills and Details */}
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Section icon={GraduationCap} title="Skills required">
-          <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
-        </Section>
-
-        <Section icon={Building2} title="Details & Duration">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Location">
-              <InlineEdit
-                value={company.location ?? ''}
-                onCommit={(location) => onFieldChange({ location })}
-                ariaLabel="Location"
-                placeholder="e.g. Bangalore"
-              />
-            </Field>
-            <Field label="Type">
-              <select
-                aria-label="Opportunity type"
-                value={company.kind ?? 'placement'}
-                onChange={(e) => onFieldChange({ kind: e.target.value as OpportunityKind })}
-                className="pill-soft w-full cursor-pointer bg-secondary/40 px-2 py-1 text-xs text-foreground"
-              >
-                {KINDS.map((k) => (
-                  <option key={k.value} value={k.value}>
-                    {k.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {company.optedIn ? (
-              <Field label="Registered">
-                <button
-                  type="button"
-                  onClick={() => onFieldChange({ registered: !company.registered })}
-                  aria-pressed={company.registered}
-                  className="pill-soft pill-soft-interactive w-full bg-secondary/50 px-2 py-1 text-[11px] font-medium text-foreground"
-                >
-                  {company.registered ? 'Yes' : 'Not yet'}
-                </button>
-              </Field>
-            ) : (
-              <div className="col-span-2">
-                <Field label="Reason for not opting in">
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Duration
+              </h5>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Start">
+                  <input
+                    type="date"
+                    value={company.startDate ?? ''}
+                    onChange={(e) => onFieldChange({ startDate: e.target.value })}
+                    aria-label="Start date"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                  />
+                </Field>
+                <Field label="End">
+                  <input
+                    type="date"
+                    value={company.endDate ?? ''}
+                    onChange={(e) => onFieldChange({ endDate: e.target.value })}
+                    aria-label="End date"
+                    className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
+                  />
+                </Field>
+                <Field label="Months">
                   <InlineEdit
-                    value={company.reason ?? ''}
-                    onCommit={(reason) => onFieldChange({ reason })}
-                    ariaLabel="Reason for not opting in"
-                    placeholder="e.g. Package below target"
+                    value={
+                      derivedMonths
+                        ? String(derivedMonths)
+                        : company.durationMonths
+                          ? String(company.durationMonths)
+                          : ''
+                    }
+                    onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
+                    ariaLabel="Duration in months"
+                    placeholder="0"
+                    type="number"
+                    mono
                   />
                 </Field>
               </div>
-            )}
-          </div>
-
-          <div className="mt-4 border-t border-border/60 pt-4">
-            <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Duration
-            </h5>
-            <div className="grid grid-cols-3 gap-3">
-              <Field label="Start">
-                <input
-                  type="date"
-                  value={company.startDate ?? ''}
-                  onChange={(e) => onFieldChange({ startDate: e.target.value })}
-                  aria-label="Start date"
-                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                />
-              </Field>
-              <Field label="End">
-                <input
-                  type="date"
-                  value={company.endDate ?? ''}
-                  onChange={(e) => onFieldChange({ endDate: e.target.value })}
-                  aria-label="End date"
-                  className="pill-soft w-full bg-secondary/40 px-2 py-1 font-mono text-xs text-foreground"
-                />
-              </Field>
-              <Field label="Months">
-                <InlineEdit
-                  value={
-                    derivedMonths
-                      ? String(derivedMonths)
-                      : company.durationMonths
-                        ? String(company.durationMonths)
-                        : ''
-                  }
-                  onCommit={(v) => onFieldChange({ durationMonths: Number(v) || 0 })}
-                  ariaLabel="Duration in months"
-                  placeholder="0"
-                  type="number"
-                  mono
-                />
-              </Field>
             </div>
-          </div>
-        </Section>
+
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Skills Required
+              </h5>
+              <SkillsEditor skills={skills} onChange={(s) => onFieldChange({ skills: s })} />
+            </div>
+          </Section>
+        </div>
       </div>
     </div>
   );

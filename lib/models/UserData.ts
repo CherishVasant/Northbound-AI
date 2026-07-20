@@ -232,6 +232,29 @@ const ConceptTopicSchema = new Schema({
   subTopics: { type: [ConceptSubTopicSchema], default: [] },
 })
 
+const AIMessageSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    role: { type: String, enum: ['user', 'assistant'], required: true },
+    content: { type: String, required: true },
+    timestamp: { type: String, required: true },
+    metadata: { type: Schema.Types.Mixed },
+    action: { type: String },
+    payload: { type: Schema.Types.Mixed },
+  },
+  { _id: false }
+)
+
+const ChatSessionSchema = new Schema({
+  id: { type: String, required: true },
+  title: { type: String, default: 'New Chat' },
+  pageContext: { type: String, default: '' },
+  agent: { type: String, default: '' },
+  messages: { type: [AIMessageSchema], default: [] },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+  updatedAt: { type: String, default: () => new Date().toISOString() },
+})
+
 const UserDataSchema = new Schema(
   {
     username: { type: String, required: true, unique: true, index: true },
@@ -250,6 +273,7 @@ const UserDataSchema = new Schema(
     dsaConcepts: { type: [ConceptTopicSchema], default: [] },
     placementCompanies: { type: [PlacementCompanySchema], default: [] },
     placementCustomOptions: { type: PlacementCustomOptionsSchema, default: () => ({}) },
+    chats: { type: [ChatSessionSchema], default: [] },
     /**
      * Per-storage-key last-write timestamps, used to reject writes based on a
      * stale copy. Mixed because the key set is the client's STORAGE_KEYS map.

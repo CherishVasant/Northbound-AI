@@ -15,6 +15,7 @@ const KEY_MAP: Record<string, string> = {
   placement_concepts: 'dsaConcepts',
   placement_companies: 'placementCompanies',
   placement_custom_options: 'placementCustomOptions',
+  ai_chats: 'chats',
 }
 
 /**
