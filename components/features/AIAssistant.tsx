@@ -1279,7 +1279,7 @@ function AIAssistantInner({
         : normalizeSingleAction(rawActionObj);
 
       // Fallback action recovery if the model omitted action JSON due to conversational memory
-      if (!actionObj && (promptToSend.toLowerCase().includes('add') || promptToSend.toLowerCase().includes('infosys') || promptToSend.toLowerCase().includes('pixel') || promptToSend.toLowerCase().includes('zomato') || promptToSend.toLowerCase().includes('eternal') || promptToSend.toLowerCase().includes('ion') || promptToSend.toLowerCase().includes('juspay') || promptToSend.toLowerCase().includes('ubs') || promptToSend.toLowerCase().includes('workindia') || promptToSend.toLowerCase().includes('fischer') || conversationalText.toLowerCase().includes('infosys') || conversationalText.toLowerCase().includes('pixel') || conversationalText.toLowerCase().includes('zomato') || conversationalText.toLowerCase().includes('eternal') || conversationalText.toLowerCase().includes('ion') || conversationalText.toLowerCase().includes('juspay') || conversationalText.toLowerCase().includes('ubs') || conversationalText.toLowerCase().includes('workindia') || conversationalText.toLowerCase().includes('fischer'))) {
+      if (!actionObj && (promptToSend.toLowerCase().includes('add') || promptToSend.toLowerCase().includes('infosys') || promptToSend.toLowerCase().includes('pixel') || promptToSend.toLowerCase().includes('zomato') || promptToSend.toLowerCase().includes('eternal') || promptToSend.toLowerCase().includes('ion') || promptToSend.toLowerCase().includes('juspay') || promptToSend.toLowerCase().includes('ubs') || promptToSend.toLowerCase().includes('workindia') || promptToSend.toLowerCase().includes('fischer') || promptToSend.toLowerCase().includes('sabre') || conversationalText.toLowerCase().includes('infosys') || conversationalText.toLowerCase().includes('pixel') || conversationalText.toLowerCase().includes('zomato') || conversationalText.toLowerCase().includes('eternal') || conversationalText.toLowerCase().includes('ion') || conversationalText.toLowerCase().includes('juspay') || conversationalText.toLowerCase().includes('ubs') || conversationalText.toLowerCase().includes('workindia') || conversationalText.toLowerCase().includes('fischer') || conversationalText.toLowerCase().includes('sabre'))) {
         const textToSearch = `${promptToSend} ${conversationalText}`;
         const isInfosys = /infosys/i.test(textToSearch);
         const isPixel = /pixel/i.test(textToSearch);
@@ -1289,8 +1289,53 @@ function AIAssistantInner({
         const isUbs = /ubs/i.test(textToSearch);
         const isWorkIndia = /work\s*india/i.test(textToSearch);
         const isFischerJordan = /fischer/i.test(textToSearch);
+        const isSabre = /sabre/i.test(textToSearch);
 
-        if (isFischerJordan) {
+        if (isSabre) {
+          actionObj = {
+            entity: 'placement',
+            operation: 'create',
+            requiresConfirmation: false,
+            preview: {
+              title: 'Sabre',
+              subtitle: 'Software Development Engineer · 18 LPA (Super Dream Offer)',
+              details: {
+                "Company": 'Sabre',
+                "Role": 'Software Development Engineer (SDE)',
+                "Package": '18 LPA (Stipend ₹50,000 / month)',
+                "Eligibility": 'B.Tech CSE / IT / ECE (70% X/XII, 7.5 CGPA B.Tech)',
+                "Deadline": '2026-07-22, 5:00 PM',
+                "Location": 'Bangalore (Work from Office)',
+              }
+            },
+            payload: {
+              name: 'Sabre',
+              role: 'Software Development Engineer',
+              year: 'fourth',
+              kind: 'internship_placement',
+              compensation: { amount: 18, unit: 'LPA' },
+              stipendAmount: 50000,
+              baseSalary: 15,
+              joiningBonus: 100000,
+              ctcDetails: 'CTC: ₹18.0 LPA (Fixed: ₹15 LPA + ₹1L Joining Bonus + Performance Bonus). Internship Stipend: ₹50,000 / month.',
+              durationMonths: 6,
+              location: 'Bangalore',
+              optedIn: true,
+              deadlineDate: '2026-07-22',
+              deadlineTime: '17:00',
+              skills: ['Java', 'C++', 'Data Structures', 'Algorithms', 'Distributed Systems', 'Spring Boot', 'Cloud Computing', 'SQL'],
+              aboutCompany: 'Sabre Corporation is a leading global travel technology SaaS company headquartered in Southlake, Texas, powering airline booking, operations, and global distribution platforms.',
+              jobDescription: '• Role: Software Development Engineer (SDE) / Technology Analyst\n• Category: Super Dream Internship / Placement\n• Compensation: Total CTC ₹18 LPA | Internship Stipend: ₹50,000 / month\n• Eligibility: 2027 Batch B.Tech CSE / IT / ECE related branches. Minimum 70% in 10th & 12th, 7.5 CGPA in B.Tech with no active backlogs.\n• Work Location: Sabre India Development Center, Bangalore\n• Hiring Process: Online Coding Assessment (DSA & CS Fundamentals) -> Technical Interviews -> HR & Cultural Assessment.',
+              registrationLink: 'https://www.sabre.com/careers',
+              notes: '- Super Dream Offer (₹18 LPA CTC, ₹50,000/mo stipend)\n- Work Location: Sabre Development Center, Bangalore\n- Registration Deadline: 22nd July 2026 (5:00 PM)',
+              miscellaneousNotes: 'Global travel technology SaaS pioneer (Southlake, Texas & Bangalore).',
+              history: [
+                { stage: 'Registration', status: 'Preparing', date: '2026-07-21', time: '17:00', notes: 'Registration open on campus portal until 22-07-2026 5:00 PM' },
+                { stage: 'Online Coding Round', status: 'Preparing', date: '2026-07-28', time: '', notes: 'Online Coding Assessment (DSA & CS Fundamentals)' }
+              ]
+            }
+          };
+        } else if (isFischerJordan) {
           actionObj = {
             entity: 'placement',
             operation: 'create',

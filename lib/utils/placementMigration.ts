@@ -455,6 +455,37 @@ export const DEFAULT_PLACEMENT_SEED: PlacementCompany[] = [
   },
   {
     id: 106,
+    name: 'UBS',
+    role: 'Software Engineer Intern / Technology',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 12, unit: 'LPA' },
+    stipendAmount: 45000,
+    baseSalary: 12,
+    joiningBonus: 0,
+    ctcDetails: 'CTC: ₹12 LPA. Internship Stipend: ₹45,000 / month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Pune / Hyderabad',
+    optedIn: true,
+    registered: true,
+    deadlineDate: '2026-06-15',
+    deadlineTime: '18:00',
+    reason: '',
+    skills: ['Java', 'Python', 'SQL', 'Data Structures', 'Financial Systems'],
+    aboutCompany: 'UBS is a premier global financial services firm headquartered in Switzerland.',
+    jobDescription: 'Technology Intern / Graduate Analyst role working on enterprise financial technology systems.',
+    registrationLink: 'https://ubs.com/careers',
+    notes: 'Original UBS Campus Drive Entry.',
+    miscellaneousNotes: 'Locations: Pune / Hyderabad',
+    history: [
+      { stage: 'Registration', status: 'Done', date: '2026-06-10', time: '18:00', notes: 'Registered' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 109,
     name: 'UBS (2027 Batch)',
     role: 'Technology Intern / Full-Time Graduate',
     year: 'fourth',
@@ -550,6 +581,38 @@ export const DEFAULT_PLACEMENT_SEED: PlacementCompany[] = [
       { stage: 'Technical Interview', status: 'Preparing', date: '', time: '', notes: '3 rounds of Personal Interview via Google Meet' }
     ],
     schedule: [],
+  },
+  {
+    id: 110,
+    name: 'Sabre',
+    role: 'Software Development Engineer',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 18, unit: 'LPA' },
+    stipendAmount: 50000,
+    baseSalary: 15,
+    joiningBonus: 100000,
+    ctcDetails: 'CTC: ₹18.0 LPA (Fixed: ₹15 LPA + ₹1L Joining Bonus + Performance Bonus). Internship Stipend: ₹50,000 / month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Bangalore',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-22',
+    deadlineTime: '17:00',
+    reason: '',
+    skills: ['Java', 'C++', 'Data Structures', 'Algorithms', 'Distributed Systems', 'Spring Boot', 'Cloud Computing', 'SQL'],
+    aboutCompany: 'Sabre Corporation is a leading global travel technology SaaS company headquartered in Southlake, Texas, powering airline booking, operations, and global distribution platforms.',
+    jobDescription: '• Role: Software Development Engineer (SDE) / Technology Analyst\n• Category: Super Dream Internship / Placement\n• Compensation: Total CTC ₹18 LPA | Internship Stipend: ₹50,000 / month\n• Eligibility: 2027 Batch B.Tech CSE / IT / ECE related branches. Minimum 70% in 10th & 12th, 7.5 CGPA in B.Tech with no active backlogs.\n• Work Location: Sabre India Development Center, Bangalore\n• Hiring Process: Online Coding Assessment (DSA & CS Fundamentals) -> Technical Interviews -> HR & Cultural Assessment.',
+    registrationLink: 'https://www.sabre.com/careers',
+    notes: '- Super Dream Offer (₹18 LPA CTC, ₹50,000/mo stipend)\n- Work Location: Sabre Development Center, Bangalore\n- Registration Deadline: 22nd July 2026 (5:00 PM)',
+    miscellaneousNotes: 'Global travel technology SaaS pioneer (Southlake, Texas & Bangalore).',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-21', time: '17:00', notes: 'Registration open on campus portal until 22-07-2026 5:00 PM' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '2026-07-28', time: '', notes: 'Online Coding Assessment (DSA & CS Fundamentals)' }
+    ],
+    schedule: [],
   }
 ];
 
@@ -563,8 +626,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
     DEFAULT_PLACEMENT_SEED.forEach((seed) => {
       const exists = list.some(
         (c: any) =>
-          c.name?.toLowerCase().trim().includes(seed.name.toLowerCase().trim()) ||
-          seed.name.toLowerCase().trim().includes(c.name?.toLowerCase().trim() || 'xyz123')
+          c.name?.toLowerCase().trim() === seed.name.toLowerCase().trim()
       );
       if (!exists) {
         list.push(seed);
@@ -588,15 +650,21 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       // Still normalise history and id — a record can be new-shape but carry a
       // string id from an interrupted migration.
       const id = typeof rec.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId()
-      const history = buildJourney(rec, [], '')
+      const { deadlineDate: parsedDDate, deadlineTime: parsedDTime } = splitDeadline(rec?.applicationDeadline)
+      const dDate = typeof rec.deadlineDate === 'string' && rec.deadlineDate ? rec.deadlineDate : parsedDDate
+      const dTime = typeof rec.deadlineTime === 'string' && rec.deadlineTime ? rec.deadlineTime : parsedDTime
+      const history = Array.isArray(rec.history) && rec.history.length > 0 ? rec.history : buildJourney(rec, [], '')
+
       return {
         ...rec,
         id,
         year: coerceYear(rec),
         kind: coerceKind(rec),
+        deadlineDate: dDate,
+        deadlineTime: dTime,
         history,
-        schedule: [],
-        notes: '',
+        schedule: Array.isArray(rec.schedule) ? rec.schedule : [],
+        notes: typeof rec.notes === 'string' ? rec.notes : '',
         miscellaneousNotes: typeof rec.miscellaneousNotes === 'string' ? rec.miscellaneousNotes : '',
         aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
         jobDescription: typeof rec.jobDescription === 'string' ? rec.jobDescription : '',
@@ -604,7 +672,9 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       } as PlacementCompany
     }
 
-    const { deadlineDate, deadlineTime } = splitDeadline(rec?.applicationDeadline)
+    const { deadlineDate: parsedDDate, deadlineTime: parsedDTime } = splitDeadline(rec?.applicationDeadline)
+    const dDate = typeof rec?.deadlineDate === 'string' && rec.deadlineDate ? rec.deadlineDate : parsedDDate
+    const dTime = typeof rec?.deadlineTime === 'string' && rec.deadlineTime ? rec.deadlineTime : parsedDTime
     const legacyNotes =
       typeof rec?.notes === 'string' ? rec.notes : String(rec?.notes?.content ?? '')
     const journey = buildJourney(rec, historyFromLegacy(rec), legacyNotes)
@@ -613,11 +683,6 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       id: typeof rec?.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId(),
       name: String(rec?.company ?? rec?.name ?? ''),
       role: String(rec?.jobRole ?? rec?.role ?? ''),
-      /**
-       * Splits the old single `track` into two axes. Everything previously
-       * marked 'internship' was a 3rd-year internship drive; everything else
-       * was a 4th-year placement. Both are then editable independently.
-       */
       year: coerceYear(rec),
       kind: coerceKind(rec),
       compensation: coerceCompensation(rec),
@@ -627,20 +692,20 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       location: String(rec?.location ?? ''),
       optedIn: Boolean(rec?.optedIn),
       registered: Boolean(rec?.registrationCompleted ?? rec?.registered),
-      deadlineDate,
-      deadlineTime,
+      deadlineDate: dDate,
+      deadlineTime: dTime,
       reason: String(rec?.reason ?? ''),
       skills: Array.isArray(rec?.skillsRequired)
         ? rec.skillsRequired.map(String)
         : Array.isArray(rec?.skills)
           ? rec.skills.map(String)
           : [],
-      // Old notes were { content, lastEdited }, then a plain company-level
-      // string. Both are folded into the first round by buildJourney.
-      notes: '',
+      notes: typeof rec?.notes === 'string' ? rec.notes : legacyNotes,
+      miscellaneousNotes: typeof rec?.miscellaneousNotes === 'string' ? rec.miscellaneousNotes : '',
       aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
       jobDescription: typeof rec?.jobDescription === 'string' ? rec.jobDescription : '',
-      registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
+      history: Array.isArray(rec?.history) && rec.history.length > 0 ? rec.history : journey,
+      schedule: Array.isArray(rec?.schedule) ? rec.schedule : [],
       panelHeights: rec?.panelHeights && typeof rec.panelHeights === 'object' ? rec.panelHeights : undefined,
       /**
        * Carried through verbatim. This branch rebuilds the record from an
@@ -655,9 +720,6 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       joiningBonus: rec?.joiningBonus,
       relocationBonus: rec?.relocationBonus,
       ctcDetails: rec?.ctcDetails,
-      miscellaneousNotes: typeof rec?.miscellaneousNotes === 'string' ? rec.miscellaneousNotes : '',
-      history: journey,
-      schedule: [],
     }
   })
 }

@@ -107,6 +107,32 @@ export function StatusSelects({ history, onChange, stacked = false, activeRoundI
         triggerStyle={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar) }}
       />
 
+      {entries.length > 1 && (
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-secondary/40 border border-border/40">
+          {entries.map((entry, idx) => {
+            const isCurr = idx === activeIdx;
+            const dotColor = `var(${stateColorVar(entry.stage, entry.status)})`;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setStage(entry.stage);
+                  setState(entry.status);
+                }}
+                title={`Round ${idx + 1}: ${entry.stage} (${entry.status}) — Click to view NOW status`}
+                className={`h-2.5 w-2.5 rounded-full transition-all border-0 outline-none ${
+                  isCurr
+                    ? 'ring-2 ring-indigo-500 ring-offset-1 ring-offset-[var(--surface-1)] scale-125 shadow-sm shadow-indigo-500/50'
+                    : 'opacity-50 hover:opacity-100 hover:scale-110'
+                }`}
+                style={{ backgroundColor: dotColor }}
+              />
+            );
+          })}
+        </div>
+      )}
+
       {isUnreachedPostRejection ? (
         <span className="text-[10px] font-semibold text-muted-foreground/50 bg-secondary/40 px-2 py-0.5 rounded border border-border/40 select-none">
           Not Reached

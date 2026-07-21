@@ -375,9 +375,9 @@ export function CompanyDetailPanel({
                 : 'Not applying to this company.'}
             </p>
           ) : (
-            <div className="relative flex flex-col gap-6 pl-5">
-              {/* Connecting line */}
-              <span aria-hidden className="absolute left-[4px] top-2 bottom-2 w-px bg-border" />
+            <div className="relative flex flex-col gap-6 pl-6">
+              {/* Connecting straight line down */}
+              <span aria-hidden className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-border/70 rounded-full" />
               
               {timeline.map((entry, i) => {
                 const isCurrent = i === nowIndex;
@@ -404,14 +404,26 @@ export function CompanyDetailPanel({
                 return (
                   <div
                     key={`${entry.stage}-${entry.date}-${i}`}
-                    className={`relative flex flex-col gap-3 p-4 rounded-xl border border-border bg-[var(--surface-2)] max-w-full overflow-hidden ${
-                      isUnreachedPostRejection ? 'opacity-70' : ''
-                    }`}
+                    onClick={() => onSelectRoundIndex?.(i)}
+                    className={`relative flex flex-col gap-3 p-4 rounded-xl border transition-all cursor-pointer max-w-full overflow-hidden ${
+                      isCurrent
+                        ? 'border-indigo-500/60 bg-indigo-500/[0.08] ring-1 ring-indigo-500/30 shadow-lg shadow-indigo-500/10'
+                        : 'border-border bg-[var(--surface-2)] hover:border-border/80 hover:bg-[var(--surface-2)]/80'
+                    } ${isUnreachedPostRejection ? 'opacity-65' : ''}`}
                   >
-                    {/* Circle dot on the timeline line */}
-                    <span
-                      className="absolute left-[-21px] top-[24px] z-10 h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform"
-                      onClick={() => onSelectRoundIndex?.(i)}
+                    {/* Highlighted Dot sitting precisely ON the straight line */}
+                    <button
+                      type="button"
+                      className={`absolute left-[-20px] top-[20px] z-10 h-4 w-4 rounded-full cursor-pointer transition-all flex items-center justify-center border-0 outline-none ${
+                        isCurrent
+                          ? 'ring-4 ring-indigo-500/50 ring-offset-2 ring-offset-[var(--surface-1)] shadow-lg shadow-indigo-500/60 scale-125'
+                          : 'hover:scale-125 hover:ring-2 hover:ring-indigo-400/60 opacity-90 hover:opacity-100'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectRoundIndex?.(i);
+                      }}
+                      title={isCurrent ? 'Current NOW status stage' : 'Click to highlight and set this stage as NOW status'}
                       style={
                         rejected
                           ? { backgroundImage: 'var(--aurora-solid)' }
@@ -419,7 +431,11 @@ export function CompanyDetailPanel({
                           ? { backgroundColor: 'var(--muted-foreground)' }
                           : { backgroundColor: color }
                       }
-                    />
+                    >
+                      {isCurrent && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                      )}
+                    </button>
 
                     {/* Row 1 — Status */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -458,8 +474,9 @@ export function CompanyDetailPanel({
                       )}
 
                       {isCurrent && !isUnreachedPostRejection && (
-                        <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-indigo-400">
-                          NOW
+                        <span className="rounded-full border border-indigo-500/50 bg-indigo-500/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-indigo-200 shadow-md shadow-indigo-500/20 flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-ping" />
+                          NOW STATUS
                         </span>
                       )}
 
