@@ -193,6 +193,7 @@ export async function POST(
       userData[dbField] = value
     }
 
+    userData.markModified(dbField)
     const now = new Date().toISOString()
     userData.syncMeta = { ...meta, [key]: now }
     userData.markModified('syncMeta')
@@ -209,6 +210,9 @@ export async function POST(
     })
   } catch (error) {
     console.error('[sync/POST] error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: (error as Error)?.message || 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

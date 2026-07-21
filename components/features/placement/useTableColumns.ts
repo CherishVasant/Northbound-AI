@@ -65,14 +65,14 @@ export interface ColumnSpec {
  * columns past the point where extra width helps.
  */
 export const COLUMN_SPECS: ColumnSpec[] = [
-  { id: 'expand', label: '', min: 36, max: 40, priority: 0, flex: 0 },
-  { id: 'serial', label: '#', min: 44, max: 54, priority: 0, flex: 0.2 },
-  { id: 'company', label: 'Company', min: 120, max: 240, priority: 0, flex: 1.2 },
-  { id: 'role', label: 'Role', min: 120, max: 220, priority: 0, flex: 1 },
+  { id: 'expand', label: '', min: 34, max: 38, priority: 0, flex: 0 },
+  { id: 'serial', label: '#', min: 38, max: 48, priority: 0, flex: 0.2 },
+  { id: 'company', label: 'Company', min: 110, max: 220, priority: 0, flex: 1.2 },
+  { id: 'role', label: 'Role', min: 110, max: 200, priority: 0, flex: 1 },
   { id: 'package', label: 'Package', min: 100, max: 160, priority: 4, flex: 0.6 },
-  { id: 'status', label: 'Status', min: 175, max: 375, priority: 0, flex: 1.8 },
-  { id: 'notes', label: 'Notes', min: 150, max: 540, priority: 2, flex: 3.8 },
-  { id: 'deadline', label: 'Deadline', min: 120, max: 200, priority: 1, flex: 1.2 },
+  { id: 'status', label: 'Status', min: 160, max: 340, priority: 0, flex: 1.8 },
+  { id: 'notes', label: 'Notes', min: 180, max: 540, priority: 3, flex: 3.8 },
+  { id: 'deadline', label: 'Deadline', min: 125, max: 200, priority: 2, flex: 1.2 },
   { id: 'optedIn', label: 'Opted In', min: 70, max: 100, priority: 5, flex: 0.3 },
   { id: 'select', label: '', min: 30, max: 34, priority: 0, flex: 0 },
 ];

@@ -134,7 +134,7 @@ export function AddCompanyModal({ defaultKind, onCreate, onClose }: AddCompanyMo
 
           <div className="flex flex-col gap-1">
             <span className={labelClass}>Type</span>
-            <div className="flex items-center gap-1">
+            <div className="grid grid-cols-2 gap-1.5">
               {KINDS.map((k) => (
                 <button
                   key={k.value}
@@ -143,9 +143,9 @@ export function AddCompanyModal({ defaultKind, onCreate, onClose }: AddCompanyMo
                     setKind(k.value);
                     setUnit(k.value === 'internship' ? 'per-month' : 'LPA');
                   }}
-                  className={`flex-1 rounded-[10px] px-2 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`rounded-[10px] px-2 py-1.5 text-[11.5px] font-semibold transition-colors text-center ${
                     kind === k.value
-                      ? 'bg-[var(--nav-active-bg)] text-primary'
+                      ? 'bg-[var(--nav-active-bg)] text-primary border border-primary/30'
                       : 'bg-secondary/50 text-muted-foreground hover:text-foreground'
                   }`}
                 >

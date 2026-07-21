@@ -313,15 +313,42 @@ export interface ConceptTopic {
   subTopics?: ConceptSubTopic[]
 }
 
+// AI Assistant Artifact types
+export interface ArtifactVersion {
+  version: number;
+  content: string;
+  timestamp: string;
+  summary?: string;
+}
+
+export interface ArtifactItem {
+  id: string;
+  title: string;
+  type: 'markdown' | 'code' | 'table' | 'text';
+  content: string;
+  currentVersion: number;
+  versions: ArtifactVersion[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // AI Assistant types
 export interface AIMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: string
+  artifactId?: string
+  artifactVersion?: number
   metadata?: {
     problemId?: string
+    pageContext?: string
     type?: 'generate' | 'explain' | 'debug'
+    confirmationStatus?: 'pending' | 'approved' | 'cancelled'
+    confirmationStatuses?: ('pending' | 'approved' | 'cancelled')[]
+    isArtifact?: boolean
+    artifactTitle?: string
+    attachments?: any[]
   }
   action?: string
   payload?: any
@@ -473,6 +500,17 @@ export interface PlacementCompany {
   aboutCompany?: string;
   jobDescription?: string;
   registrationLink?: string;
+  stipendAmount?: number;
+  baseSalary?: number;
+  joiningBonus?: string | number;
+  relocationBonus?: string | number;
+  ctcDetails?: string;
+  miscellaneousNotes?: string;
+  panelHeights?: {
+    jobDescription?: number;
+    aboutCompany?: number;
+    miscellaneousNotes?: number;
+  };
   /**
    * The company's whole journey, ordered oldest-first: rounds already done AND
    * rounds merely announced. The last entry is the current status.
@@ -494,6 +532,8 @@ export interface ChatSession {
   pageContext: string;
   agent: string;
   messages: AIMessage[];
+  artifacts?: ArtifactItem[];
+  activeArtifactId?: string | null;
   createdAt: string;
   updatedAt: string;
 }

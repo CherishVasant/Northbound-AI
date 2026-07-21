@@ -85,14 +85,6 @@ export function DeadlineCell({
     };
   }, [editing]);
 
-  if (!optedIn) {
-    return (
-      <span className="block w-full truncate text-[14px] italic text-muted-foreground" title={reason}>
-        {reason?.trim() ? reason : '—'}
-      </span>
-    );
-  }
-
   if (editing) {
     return (
       <div ref={wrapRef} className="flex flex-col gap-1 py-1">

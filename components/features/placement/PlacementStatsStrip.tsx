@@ -32,7 +32,7 @@ export function PlacementStatsStrip({ companies }: { companies: PlacementCompany
       {
         label: 'Online Test',
         value: opted.filter((c) =>
-          (c.history ?? []).some((h) => h.stage === 'OA'),
+          (c.history ?? []).some((h) => (h.stage as string) === 'OA' || h.stage === 'Online Coding Round'),
         ).length,
         color: '--stage-oa',
       },

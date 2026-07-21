@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getSystemPrompt } from '@/lib/ai/orchestrator'
 
+import { safeParseLLMJson } from '@/lib/ai/jsonSanitizer'
+
 export const maxDuration = 60
 
 const MODELS = [
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
         let contentText = m.content;
         try {
           if (m.content.startsWith('{') || m.content.includes('"response"')) {
-            const parsed = JSON.parse(m.content);
+            const parsed = safeParseLLMJson<any>(m.content);
             if (parsed && typeof parsed.response === 'string') {
               contentText = parsed.response;
             }
@@ -106,7 +108,7 @@ export async function POST(req: Request) {
             model,
             messages,
             temperature: 0.2,
-            max_tokens: 1500,
+            max_tokens: 4096,
           }),
         })
 
@@ -127,32 +129,14 @@ export async function POST(req: Request) {
           continue
         }
 
-        let replyJson: any = null;
-        let cleanText = replyText.trim();
-        
-        // Find JSON block using regex matching curly braces
-        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try {
-            replyJson = JSON.parse(jsonMatch[0]);
-          } catch (e) {
-            console.warn('[AI] Failed to parse matched JSON block:', e);
-          }
-        }
+        let replyJson: any = safeParseLLMJson(replyText);
 
         if (!replyJson) {
-          if (cleanText.startsWith('```')) {
-            cleanText = cleanText.replace(/^```(json)?\n/, '').replace(/\n```$/, '').trim();
-          }
-          try {
-            replyJson = JSON.parse(cleanText);
-          } catch (e) {
-            console.warn('[AI] Failed to parse reply as JSON:', cleanText);
-            replyJson = {
-              response: replyText,
-              action: null
-            };
-          }
+          console.warn('[AI] Failed to parse reply as JSON, falling back to raw response text.');
+          replyJson = {
+            response: replyText,
+            action: null
+          };
         }
 
         return NextResponse.json({ ...replyJson, model, title: generatedTitle })

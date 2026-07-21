@@ -13,9 +13,25 @@ import {
   Plus,
   ThumbsUp,
   AlertTriangle,
+  Maximize2,
+  Minimize2,
+  FileText,
+  FileCode,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  Table,
+  ExternalLink,
+  Download,
+  GripVertical,
+  Sparkles,
+  Edit3,
+  Save,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AIMessage, STORAGE_KEYS, generateId, ChatSession } from '@/lib/utils/storage';
+import { AIMessage, STORAGE_KEYS, generateId, ChatSession, ArtifactItem, ArtifactVersion } from '@/lib/utils/storage';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import {
   SEED_HR_QUESTIONS,
@@ -28,6 +44,7 @@ import { getApiUrl } from '@/lib/api';
 interface AIAssistantProps {
   isOpen: boolean;
   onClose: () => void;
+  currentProblem?: any;
 }
 
 // Code Block Component
@@ -68,8 +85,503 @@ function CodeBlock({ language, content }: { language: string; content: string })
   );
 }
 
+// Interactive Artifact Modal with live editing options
+interface ArtifactModalProps {
+  content: string;
+  title?: string;
+  onClose: () => void;
+  onSave?: (updatedContent: string) => void;
+}
+
+function ArtifactModal({ content: initialContent, title: initialTitle, onClose, onSave }: ArtifactModalProps) {
+  const [content, setContent] = useState(initialContent);
+  const [isEditing, setIsEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const lines = content.split('\n');
+  const lineCount = lines.length;
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+  const charCount = content.length;
+
+  const rawFirstLine = (lines[0] || '').replace(/^[#*`\s-]+/, '').trim();
+  const artifactTitle = initialTitle || (rawFirstLine && rawFirstLine.length < 45 ? rawFirstLine : 'Pasted Text Document');
+  const isCode = content.includes('function ') || content.includes('const ') || content.includes('import ') || (content.includes('{') && content.includes('}')) || content.includes('class ');
+  const docType = isCode ? 'Code Snippet' : 'Markdown Document';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${artifactTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}.${isCode ? 'txt' : 'md'}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSave = () => {
+    setIsSaved(true);
+    setIsEditing(false);
+    if (onSave) onSave(content);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        {/* Modal Header */}
+        <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-card/90 backdrop-blur shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              {isCode ? <FileCode className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span>{artifactTitle}</span>
+                {isEditing && (
+                  <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Editing Mode
+                  </span>
+                )}
+                {isSaved && (
+                  <span className="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Saved
+                  </span>
+                )}
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                {docType} • {lineCount} lines • {wordCount} words ({charCount} characters)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-colors cursor-pointer shadow-sm"
+              >
+                <Save className="w-3.5 h-3.5" /> Save Changes
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors cursor-pointer border border-primary/20"
+              >
+                <Pencil className="w-3.5 h-3.5" /> Edit Content
+              </button>
+            )}
+
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground transition-colors cursor-pointer"
+              title="Copy text"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-500" /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" /> Copy
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground transition-colors cursor-pointer"
+              title="Download file"
+            >
+              <Download className="w-3.5 h-3.5" /> Download
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer ml-1"
+              title="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-4 bg-background/50 font-mono text-xs leading-relaxed">
+          {isEditing ? (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-full p-4 bg-background text-foreground font-mono text-xs leading-relaxed resize-none focus:outline-none rounded-xl border border-primary/30"
+              placeholder="Edit your document or text content..."
+            />
+          ) : (
+            <div className="table w-full">
+              {lines.map((line, idx) => (
+                <div key={idx} className="table-row hover:bg-secondary/20">
+                  <span className="table-cell pr-4 text-right text-muted-foreground/40 select-none w-10 text-[10px] py-0.5">
+                    {idx + 1}
+                  </span>
+                  <span className="table-cell whitespace-pre-wrap break-words text-foreground py-0.5">
+                    {line || ' '}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// User Artifact Card for large pasted content or code
+function UserArtifactCard({ content }: { content: string }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentContent, setCurrentContent] = useState(content);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setCurrentContent(content);
+  }, [content]);
+
+  const lines = currentContent.split('\n');
+  const lineCount = lines.length;
+  const wordCount = currentContent.trim().split(/\s+/).filter(Boolean).length;
+
+  const rawFirstLine = (lines[0] || '').replace(/^[#*`\s-]+/, '').trim();
+  const artifactTitle = rawFirstLine && rawFirstLine.length < 45 ? rawFirstLine : 'Pasted Text Document';
+  const isCode = currentContent.includes('function ') || currentContent.includes('const ') || currentContent.includes('import ') || (currentContent.includes('{') && currentContent.includes('}'));
+  const docType = isCode ? 'Code Snippet' : 'Markdown Document';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(currentContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <>
+      <div className="w-full bg-card border border-primary/30 rounded-xl overflow-hidden shadow-md my-2 transition-all hover:border-primary/50 text-xs">
+        <div className="bg-primary/10 px-3.5 py-2.5 border-b border-primary/20 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-md bg-primary/15 text-primary shrink-0">
+              {isCode ? <FileCode className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+            </div>
+            <div className="min-w-0 flex flex-col">
+              <span className="font-bold text-foreground truncate text-xs leading-tight">
+                {artifactTitle}
+              </span>
+              <span className="text-[9.5px] text-muted-foreground font-semibold flex items-center gap-1.5 mt-0.5">
+                <span>{docType}</span>
+                <span>•</span>
+                <span>{lineCount} lines</span>
+                <span>•</span>
+                <span>{wordCount} words</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={handleCopy}
+              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Copy artifact content"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Edit artifact"
+            >
+              <Pencil className="w-3.5 h-3.5 text-primary" />
+            </button>
+          </div>
+        </div>
+
+        {/* Snippet Preview */}
+        <div className="p-3 bg-secondary/15 text-[11px] font-mono text-muted-foreground border-b border-border/40">
+          <div className="line-clamp-3 leading-relaxed whitespace-pre-wrap">
+            {currentContent.substring(0, 180)}...
+          </div>
+        </div>
+
+        {/* Click to open Full Artifact Popup */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full py-2 px-3 bg-primary/5 hover:bg-primary/15 text-primary text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-t border-primary/10"
+        >
+          <span>Click to View & Edit Artifact</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {isModalOpen && (
+        <ArtifactModal
+          content={currentContent}
+          title={artifactTitle}
+          onClose={() => setIsModalOpen(false)}
+          onSave={(updated) => setCurrentContent(updated)}
+        />
+      )}
+    </>
+  );
+}
+
+// Detail Artifact Item for long text fields in preview cards
+function DetailArtifactItem({ content }: { content: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="bg-secondary/30 border border-border/60 rounded-md p-2 text-[10.5px] mt-0.5">
+      <div className="flex items-center justify-between gap-1 text-[9.5px] font-semibold text-muted-foreground mb-1">
+        <span className="truncate">{content.length} characters</span>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleCopy}
+            className="hover:text-foreground transition-colors p-0.5 cursor-pointer"
+            title="Copy text"
+          >
+            {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+          </button>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-primary hover:underline font-bold flex items-center gap-0.5 cursor-pointer"
+          >
+            {isExpanded ? (
+              <>Less <ChevronUp className="w-2.5 h-2.5" /></>
+            ) : (
+              <>Expand Artifact <ChevronDown className="w-2.5 h-2.5" /></>
+            )}
+          </button>
+        </div>
+      </div>
+      <div className={`whitespace-pre-wrap break-words leading-relaxed text-foreground font-mono text-[10px] bg-background/60 p-2 rounded border border-border/30 ${isExpanded ? 'max-h-[350px] overflow-y-auto' : 'line-clamp-3'}`}>
+        {content}
+      </div>
+    </div>
+  );
+}
+
+// Side Window Component for active artifact (Dual-Pane View)
+interface ArtifactSideWindowProps {
+  artifact: ArtifactItem;
+  onClose: () => void;
+  onVersionSelect?: (versionNum: number) => void;
+}
+
+function ArtifactSideWindow({ artifact, onClose, onVersionSelect }: ArtifactSideWindowProps) {
+  const [selectedVersionNum, setSelectedVersionNum] = useState<number>(artifact.currentVersion);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setSelectedVersionNum(artifact.currentVersion);
+  }, [artifact.currentVersion, artifact.versions?.length]);
+
+  const activeVersion = artifact.versions?.find((v) => v.version === selectedVersionNum) || {
+    version: artifact.currentVersion,
+    content: artifact.content,
+    timestamp: artifact.updatedAt,
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(activeVersion.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([activeVersion.content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${artifact.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_v${activeVersion.version}.${
+      artifact.type === 'code' ? 'txt' : 'md'
+    }`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const lines = activeVersion.content.split('\n');
+  const wordCount = activeVersion.content.trim().split(/\s+/).filter(Boolean).length;
+  const isTable = artifact.type === 'table' || (activeVersion.content.includes('|') && activeVersion.content.includes('-|-'));
+
+  return (
+    <div className="h-full flex flex-col bg-card border-l border-border animate-in slide-in-from-right-20 duration-200">
+      {/* Artifact Header */}
+      <div className="p-3.5 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
+            {isTable ? (
+              <Table className="w-4 h-4" />
+            ) : artifact.type === 'code' ? (
+              <FileCode className="w-4 h-4" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+          </div>
+          <div className="min-w-0 flex flex-col">
+            <h4 className="font-bold text-xs text-foreground truncate">{artifact.title}</h4>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+              <span className="capitalize">{artifact.type}</span>
+              <span>•</span>
+              <span>{lines.length} lines</span>
+              <span>•</span>
+              <span>{wordCount} words</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Version Step Navigator & Controls */}
+        <div className="flex items-center gap-2 shrink-0">
+          {artifact.versions && artifact.versions.length > 1 && (
+            <div className="flex items-center gap-1 bg-secondary/50 border border-border/60 rounded-lg p-1 text-[11px] font-semibold">
+              <button
+                disabled={selectedVersionNum <= 1}
+                onClick={() => {
+                  const nextV = Math.max(1, selectedVersionNum - 1);
+                  setSelectedVersionNum(nextV);
+                  if (onVersionSelect) onVersionSelect(nextV);
+                }}
+                className="p-0.5 rounded hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                title="Previous version"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="px-1 text-[10.5px]">
+                v{selectedVersionNum} / v{artifact.versions.length}
+              </span>
+              <button
+                disabled={selectedVersionNum >= artifact.versions.length}
+                onClick={() => {
+                  const nextV = Math.min(artifact.versions.length, selectedVersionNum + 1);
+                  setSelectedVersionNum(nextV);
+                  if (onVersionSelect) onVersionSelect(nextV);
+                }}
+                className="p-0.5 rounded hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                title="Next version"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            title="Copy content"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+          </button>
+
+          <button
+            onClick={handleDownload}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            title="Download document"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer border-l border-border/60 pl-2 ml-1"
+            title="Close artifact side window"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Artifact Body Viewer with line numbers */}
+      <div className="flex-1 overflow-y-auto p-4 bg-background/50 font-mono text-xs leading-relaxed">
+        <div className="table w-full">
+          {lines.map((line, idx) => (
+            <div key={idx} className="table-row hover:bg-secondary/20">
+              <span className="table-cell pr-4 text-right text-muted-foreground/35 select-none w-8 text-[10px] py-0.5">
+                {idx + 1}
+              </span>
+              <span className="table-cell whitespace-pre-wrap break-words text-foreground py-0.5">
+                {line || ' '}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Inline Reference Pill for Chat feed
+interface InlineArtifactRefPillProps {
+  artifact: ArtifactItem;
+  version?: number;
+  onClick: () => void;
+}
+
+function InlineArtifactRefPill({ artifact, version, onClick }: InlineArtifactRefPillProps) {
+  const displayVersion = version || artifact.currentVersion;
+  const isTable = artifact.type === 'table' || artifact.content.includes('|');
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left my-1.5 bg-card hover:bg-secondary/30 border border-primary/30 hover:border-primary/60 rounded-xl p-3 shadow-sm transition-all group cursor-pointer flex items-center justify-between gap-3"
+    >
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:scale-105 transition-transform shrink-0">
+          {isTable ? (
+            <Table className="w-4 h-4" />
+          ) : artifact.type === 'code' ? (
+            <FileCode className="w-4 h-4" />
+          ) : (
+            <FileText className="w-4 h-4" />
+          )}
+        </div>
+        <div className="min-w-0 flex flex-col">
+          <span className="font-bold text-foreground truncate text-xs group-hover:text-primary transition-colors">
+            {artifact.title}
+          </span>
+          <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1.5 mt-0.5">
+            <span className="bg-primary/15 text-primary text-[9px] font-bold px-1.5 py-0.2 rounded">
+              v{displayVersion}
+            </span>
+            <span>•</span>
+            <span>Open in artifact window ▸</span>
+          </span>
+        </div>
+      </div>
+      <div className="text-muted-foreground group-hover:text-primary transition-colors shrink-0">
+        <ChevronRight className="w-4 h-4" />
+      </div>
+    </button>
+  );
+}
+
 interface AIAssistantInnerProps extends AIAssistantProps {
   agentKey: string;
+}
+
+export interface PreSendArtifact {
+  id: string;
+  title: string;
+  type: 'markdown' | 'code' | 'table' | 'text';
+  content: string;
+  wordCount: number;
+  lineCount: number;
 }
 
 function AIAssistantInner({
@@ -82,6 +594,82 @@ function AIAssistantInner({
 
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [panelWidth, setPanelWidth] = useState<number>(460);
+  const [isResizing, setIsResizing] = useState(false);
+  const isResizingRef = useRef(false);
+  const [attachments, setAttachments] = useState<PreSendArtifact[]>([]);
+  const [activeModalArtifact, setActiveModalArtifact] = useState<PreSendArtifact | null>(null);
+
+  const updatePanelWidth = (newWidth: number) => {
+    const clamped = Math.max(340, Math.min(typeof window !== 'undefined' ? window.innerWidth * 0.85 : 1200, newWidth));
+    setPanelWidth(clamped);
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--ai-panel-width', `${clamped}px`);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePanelWidth(panelWidth);
+    }
+  }, [isOpen]);
+
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    setIsResizing(true);
+
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const deltaX = startX - moveEvent.clientX;
+      updatePanelWidth(startWidth + deltaX);
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (!pastedText) return;
+
+    const words = pastedText.trim().split(/\s+/).filter(Boolean).length;
+    const lines = pastedText.split('\n');
+
+    if (words > 30 || lines.length > 3 || pastedText.length > 180) {
+      e.preventDefault();
+
+      const rawFirstLine = (lines[0] || '').replace(/^[#*`\s-]+/, '').trim();
+      const derivedTitle = rawFirstLine && rawFirstLine.length < 40
+        ? rawFirstLine
+        : `Attachment ${attachments.length + 1}`;
+
+      const isCode = pastedText.includes('function ') || pastedText.includes('const ') || pastedText.includes('import ') || (pastedText.includes('{') && pastedText.includes('}'));
+      const artType = isCode ? 'code' : 'markdown';
+
+      const newAttachment: PreSendArtifact = {
+        id: generateId(),
+        title: derivedTitle,
+        type: artType,
+        content: pastedText,
+        wordCount: words,
+        lineCount: lines.length,
+      };
+
+      setAttachments((prev) => [...prev, newAttachment]);
+    }
+  };
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -215,15 +803,28 @@ function AIAssistantInner({
                   }
                 });
               }
+              const mergedMiscNotes = payload.miscellaneousNotes
+                ? (existing.miscellaneousNotes && existing.miscellaneousNotes.trim()
+                    ? (existing.miscellaneousNotes.includes(payload.miscellaneousNotes.trim())
+                        ? existing.miscellaneousNotes
+                        : `${existing.miscellaneousNotes.trim()}\n${payload.miscellaneousNotes.trim()}`)
+                    : payload.miscellaneousNotes)
+                : existing.miscellaneousNotes;
+
+              const mergedNotes = payload.notes
+                ? (existing.notes && existing.notes.trim()
+                    ? (existing.notes.includes(payload.notes.trim())
+                        ? existing.notes
+                        : `${existing.notes.trim()}\n${payload.notes.trim()}`)
+                    : payload.notes)
+                : existing.notes;
+
               updated[existingIdx] = {
                 ...existing,
                 ...payload,
                 skills: mergedSkills,
-                notes: payload.notes
-                  ? (existing.notes && !existing.notes.includes(payload.notes)
-                      ? `${existing.notes}\n${payload.notes}`
-                      : payload.notes)
-                  : existing.notes,
+                notes: mergedNotes,
+                miscellaneousNotes: mergedMiscNotes,
                 history: mergedHistory,
               };
             } else {
@@ -484,16 +1085,27 @@ function AIAssistantInner({
   };
 
   const handleSendMessage = async () => {
-    if (!chatInput.trim()) return;
+    if (isLoading || (!chatInput.trim() && attachments.length === 0)) return;
 
     const currentContext = getPageContextKey();
+    const currentAttachments = [...attachments];
+
+    let fullPromptText = chatInput.trim();
+    if (currentAttachments.length > 0) {
+      const attText = currentAttachments
+        .map((att, idx) => `--- ATTACHED DOCUMENT ${idx + 1}: ${att.title} ---\n${att.content}`)
+        .join('\n\n');
+      fullPromptText = fullPromptText ? `${fullPromptText}\n\n${attText}` : attText;
+    }
+
     const userMsg: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: chatInput,
+      content: chatInput.trim() || (currentAttachments.length > 0 ? 'Pasted attachment for review' : ''),
       timestamp: new Date().toISOString(),
       metadata: {
         pageContext: currentContext,
+        attachments: currentAttachments,
       },
     };
 
@@ -501,7 +1113,8 @@ function AIAssistantInner({
     let isNewChat = false;
 
     if (!currentChatId) {
-      const newChat = createNewChat(chatInput);
+      const chatTitleHint = chatInput.trim() || currentAttachments[0]?.title || 'New Chat';
+      const newChat = createNewChat(chatTitleHint);
       currentChatId = newChat.id;
       isNewChat = true;
     }
@@ -519,8 +1132,9 @@ function AIAssistantInner({
       })
     );
 
-    const promptToSend = chatInput;
+    const promptToSend = fullPromptText;
     setChatInput('');
+    setAttachments([]);
     setIsLoading(true);
 
     try {
@@ -832,16 +1446,31 @@ function AIAssistantInner({
 
         {preview.details && Object.keys(preview.details).length > 0 && (
           <div className="flex flex-col gap-2.5 text-[10.5px] py-1.5 border-b border-border/40 max-h-[300px] overflow-y-auto pr-1">
-            {Object.entries(preview.details).map(([key, val]) => (
-              <div key={key} className="flex flex-col gap-0.5">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">
-                  {key}
-                </span>
-                <span className="text-foreground font-medium whitespace-pre-wrap break-words leading-relaxed">
-                  {String(val) || '—'}
-                </span>
-              </div>
-            ))}
+            {Object.entries(preview.details).map(([key, val]) => {
+              const strVal = String(val || '—');
+              const isLongText = strVal.length > 180 || strVal.includes('\n');
+              return (
+                <div key={key} className="flex flex-col gap-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">
+                      {key}
+                    </span>
+                    {isLongText && (
+                      <span className="text-[8.5px] bg-primary/10 text-primary font-bold px-1 rounded">
+                        Document Artifact
+                      </span>
+                    )}
+                  </div>
+                  {isLongText ? (
+                    <DetailArtifactItem content={strVal} />
+                  ) : (
+                    <span className="text-foreground font-medium whitespace-pre-wrap break-words leading-relaxed">
+                      {strVal}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -862,9 +1491,9 @@ function AIAssistantInner({
                 Create New Entry
               </button>
 
-              {matches.map((match: any) => (
+              {matches.map((match: any, idx: number) => (
                 <button
-                  key={match.id}
+                  key={match.id ? `${match.id}-${idx}` : `match-${match.serial || idx}`}
                   onClick={() => handleActionResponseState(message.id, 'approved', 'update', match.id, actionIndex)}
                   className="px-2.5 py-1 rounded bg-primary hover:bg-primary/90 text-[10.5px] font-semibold text-primary-foreground flex items-center gap-1 transition-colors cursor-pointer"
                 >
@@ -917,7 +1546,24 @@ function AIAssistantInner({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed right-0 top-0 h-screen w-[420px] bg-card overlay-soft flex flex-col z-40 animate-in slide-in-from-right-96 border-l border-border">
+    <div
+      style={{
+        width: typeof window !== 'undefined' && window.innerWidth < 640 ? '100%' : `${panelWidth}px`,
+      }}
+      className={`fixed right-0 top-0 h-screen bg-card overlay-soft flex flex-col z-40 animate-in slide-in-from-right-96 border-l border-border ${
+        isResizing ? 'select-none transition-none' : 'transition-[width] duration-150 ease-out'
+      }`}
+    >
+      {/* Draggable Resize Handle on Left Edge */}
+      <div
+        onMouseDown={startResizing}
+        onDoubleClick={() => updatePanelWidth(panelWidth > 550 ? 460 : 850)}
+        className="absolute left-0 top-0 bottom-0 w-3 -ml-1.5 cursor-ew-resize group z-50 flex items-center justify-center hover:bg-primary/20 transition-colors"
+        title="Click and drag left/right to resize panel (Double click to reset)"
+      >
+        <div className="w-1 h-14 rounded-full bg-border/80 group-hover:bg-primary group-active:bg-primary transition-colors shadow-sm" />
+      </div>
+
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between shrink-0 bg-card/60 backdrop-blur">
         <div className="flex items-center gap-2">
@@ -927,6 +1573,17 @@ function AIAssistantInner({
           </h3>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              const targetWidth = panelWidth > 550 ? 460 : 850;
+              updatePanelWidth(targetWidth);
+              setIsExpanded(targetWidth > 550);
+            }}
+            className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            title={panelWidth > 550 ? "Collapse Width" : "Expand Width"}
+          >
+            {panelWidth > 550 ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
           <button
             onClick={() => setShowChatList(!showChatList)}
             className={`p-1.5 rounded transition-colors cursor-pointer ${
@@ -1034,14 +1691,33 @@ function AIAssistantInner({
                   className={`flex flex-col space-y-2 ${message.role === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[90%] rounded-xl px-3.5 py-2.5 text-[11.5px] leading-relaxed shadow-sm ${
+                    className={`max-w-[92%] rounded-xl px-3.5 py-2.5 text-[11.5px] leading-relaxed shadow-sm ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground font-medium rounded-tr-none'
                         : 'bg-card text-foreground rounded-tl-none markdown'
                     }`}
                   >
                     {message.role === 'user' ? (
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <div className="space-y-2">
+                        {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+
+                        {/* Pre-Send Attached Artifacts rendered in chat feed */}
+                        {message.metadata?.attachments && message.metadata.attachments.length > 0 ? (
+                          <div className="space-y-1.5 pt-1">
+                            {message.metadata.attachments.map((att: any) => (
+                              <UserArtifactCard key={att.id || att.title} content={att.content} />
+                            ))}
+                          </div>
+                        ) : (
+                          (() => {
+                            const wordCount = message.content.trim().split(/\s+/).filter(Boolean).length;
+                            const isArtifact = wordCount > 30 || message.content.length > 180 || message.content.split('\n').length > 3;
+                            return isArtifact ? (
+                              <UserArtifactCard key={message.id} content={message.content} />
+                            ) : null;
+                          })()
+                        )}
+                      </div>
                     ) : (
                       renderMarkdown(message.content)
                     )}
@@ -1071,31 +1747,86 @@ function AIAssistantInner({
       {/* Chat input box */}
       {!showChatList && (
         <div className="border-t border-border p-3.5 bg-card shrink-0 space-y-2">
+          {/* Pre-Send Attachment Chips Bar */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pb-1">
+              {attachments.map((att) => (
+                <div
+                  key={att.id}
+                  className="flex items-center gap-1.5 bg-primary/10 border border-primary/30 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-primary shadow-sm group transition-all"
+                >
+                  <FileText className="w-3.5 h-3.5 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => setActiveModalArtifact(att)}
+                    className="hover:underline truncate max-w-[150px] cursor-pointer"
+                    title="Click to view & edit attachment before sending"
+                  >
+                    {att.title} ({att.wordCount} words)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                    className="p-0.5 rounded hover:bg-primary/20 text-muted-foreground hover:text-destructive transition-colors cursor-pointer ml-1"
+                    title="Remove attachment"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <textarea
               ref={textareaRef}
               rows={1}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
+              onPaste={handlePaste}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
-              placeholder="Ask Northbound AI anything..."
+              placeholder={attachments.length > 0 ? "Type your prompt instruction..." : "Ask Northbound AI anything or paste document..."}
               className="flex-1 px-3 py-2 bg-secondary/80 text-foreground placeholder-muted-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary resize-none overflow-y-auto max-h-[120px] rounded-lg leading-normal"
               disabled={isLoading}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={isLoading || !chatInput.trim()}
+              disabled={isLoading || (!chatInput.trim() && attachments.length === 0)}
               className="h-8 w-8 p-0 shrink-0 cursor-pointer"
             >
               <SendHorizontal className="w-4 h-4" />
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Artifact Modal for Pre-Send Attachment Preview / Edit */}
+      {activeModalArtifact && (
+        <ArtifactModal
+          content={activeModalArtifact.content}
+          title={activeModalArtifact.title}
+          onClose={() => setActiveModalArtifact(null)}
+          onSave={(updatedContent) => {
+            setAttachments((prev) =>
+              prev.map((att) =>
+                att.id === activeModalArtifact.id
+                  ? {
+                      ...att,
+                      content: updatedContent,
+                      wordCount: updatedContent.trim().split(/\s+/).filter(Boolean).length,
+                      lineCount: updatedContent.split('\n').length,
+                    }
+                  : att
+              )
+            );
+            setActiveModalArtifact(null);
+          }}
+        />
       )}
     </div>
   );

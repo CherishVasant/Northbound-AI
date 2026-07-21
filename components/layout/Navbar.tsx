@@ -24,8 +24,10 @@ export function Navbar() {
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showSettings, setShowSettings] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const storedTheme = window.localStorage.getItem('northbound-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const nextTheme = storedTheme === 'dark' || storedTheme === 'light'
@@ -163,9 +165,14 @@ export function Navbar() {
           <button
             onClick={toggleTheme}
             className="pill-soft pill-soft-interactive bg-background/70 p-2 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={mounted ? `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode` : 'Toggle theme'}
+            suppressHydrationWarning
           >
-            {theme === 'dark' ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+            {mounted && theme === 'dark' ? (
+              <SunMedium className="h-4 w-4" />
+            ) : (
+              <MoonStar className="h-4 w-4" />
+            )}
           </button>
 
           {/* AI Toggle Action */}
@@ -173,6 +180,7 @@ export function Navbar() {
             onClick={handleToggleAI}
             className="p-2 pill-soft pill-soft-interactive hover:bg-primary/5 text-muted-foreground hover:text-primary flex items-center justify-center relative shrink-0"
             title="Open AI Copilot Panel"
+            suppressHydrationWarning
           >
             <Bot className="w-4 h-4" />
             <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
@@ -185,6 +193,7 @@ export function Navbar() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 pill-soft pill-soft-interactive hover:bg-accent md:hidden text-muted-foreground hover:text-foreground"
+            suppressHydrationWarning
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>

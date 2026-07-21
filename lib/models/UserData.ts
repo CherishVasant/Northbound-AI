@@ -169,12 +169,12 @@ const PlacementCompanySchema = new Schema(
     kind: { type: String, default: 'placement' },
     // Superseded by year+kind; kept readable so migration can still see it.
     track: { type: String },
-    compensation: { type: CompensationSchema, default: () => ({ amount: 0, unit: 'LPA' }) },
+    compensation: { type: Schema.Types.Mixed, default: () => ({ amount: 0, unit: 'LPA' }) },
     startDate: { type: String, default: '' },
     endDate: { type: String, default: '' },
     durationMonths: { type: Number, default: 0 },
     // Legacy bare number, kept readable so migration can still see it.
-    package: { type: Number },
+    package: { type: Schema.Types.Mixed },
     location: { type: String, default: '' },
     optedIn: { type: Boolean, default: false },
     registered: { type: Boolean, default: false },
@@ -191,6 +191,13 @@ const PlacementCompanySchema = new Schema(
     aboutCompany: { type: String, default: '' },
     jobDescription: { type: String, default: '' },
     registrationLink: { type: String, default: '' },
+    stipendAmount: { type: Schema.Types.Mixed },
+    baseSalary: { type: Schema.Types.Mixed },
+    joiningBonus: { type: Schema.Types.Mixed },
+    relocationBonus: { type: Schema.Types.Mixed },
+    ctcDetails: { type: Schema.Types.Mixed },
+    miscellaneousNotes: { type: Schema.Types.Mixed, default: '' },
+    panelHeights: { type: Schema.Types.Mixed },
 
     // ── Legacy fields, retained so migratePlacementCompanies() can still read
     // them. Mongoose strips unknown paths on read, so removing these before
@@ -199,7 +206,7 @@ const PlacementCompanySchema = new Schema(
     company: { type: String },
     jobRole: { type: String },
     skillsRequired: { type: [String] },
-    packageCTC: { type: Number },
+    packageCTC: { type: Schema.Types.Mixed },
     registrationCompleted: { type: Boolean },
     applicationDeadline: { type: Date },
     currentStage: { type: String },
@@ -208,7 +215,7 @@ const PlacementCompanySchema = new Schema(
     archived: { type: Boolean },
     createdAt: { type: Date },
   },
-  { _id: false },
+  { _id: false, strict: false },
 )
 
 const PlacementCustomOptionsSchema = new Schema({
@@ -254,6 +261,8 @@ const AIMessageSchema = new Schema(
     role: { type: String, enum: ['user', 'assistant'], required: true },
     content: { type: String, required: true },
     timestamp: { type: String, required: true },
+    artifactId: { type: String },
+    artifactVersion: { type: Number },
     metadata: { type: Schema.Types.Mixed },
     action: { type: String },
     payload: { type: Schema.Types.Mixed },
@@ -267,6 +276,8 @@ const ChatSessionSchema = new Schema({
   pageContext: { type: String, default: '' },
   agent: { type: String, default: '' },
   messages: { type: [AIMessageSchema], default: [] },
+  artifacts: { type: [Schema.Types.Mixed], default: [] },
+  activeArtifactId: { type: Schema.Types.Mixed },
   createdAt: { type: String, default: () => new Date().toISOString() },
   updatedAt: { type: String, default: () => new Date().toISOString() },
 })

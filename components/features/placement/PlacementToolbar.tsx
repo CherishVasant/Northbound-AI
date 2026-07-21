@@ -50,6 +50,7 @@ export function PlacementToolbar({
                 role="tab"
                 aria-selected={active}
                 onClick={() => onYearChange(t.value)}
+                suppressHydrationWarning
                 className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors ${active
                     ? 'bg-[var(--nav-active-bg)] text-primary'
                     : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
@@ -70,6 +71,7 @@ export function PlacementToolbar({
         <button
           type="button"
           onClick={onAddCompany}
+          suppressHydrationWarning
           className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground cursor-pointer"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -104,6 +106,7 @@ export function PlacementToolbar({
                 role="tab"
                 aria-selected={active}
                 onClick={() => onOptedFilterChange(f.value)}
+                suppressHydrationWarning
                 className={`rounded-[8px] px-2.5 py-1 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${active
                     ? 'bg-[var(--nav-active-bg)] text-primary'
                     : 'text-muted-foreground hover:text-foreground'
@@ -119,6 +122,7 @@ export function PlacementToolbar({
           <button
             type="button"
             onClick={() => onSelectionModeChange(!selectionMode)}
+            suppressHydrationWarning
             className={`pill-soft pill-soft-interactive flex items-center gap-1.5 px-2.5 py-1 text-[14px] font-semibold transition-all ${selectionMode
                 ? 'bg-primary/10 text-primary border border-primary/20'
                 : 'bg-secondary/50 text-muted-foreground hover:text-foreground'
@@ -130,6 +134,7 @@ export function PlacementToolbar({
           <button
             type="button"
             onClick={onToggleExpandAll}
+            suppressHydrationWarning
             className="pill-soft pill-soft-interactive flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 text-[14px] font-semibold text-muted-foreground hover:text-foreground"
           >
             {allExpanded ? (

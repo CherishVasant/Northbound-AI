@@ -49,7 +49,10 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <Suspense fallback={<div className="w-64 border-r border-border bg-sidebar" />}>
         <Sidebar />
       </Suspense>
-      <main className={`flex-1 overflow-y-auto transition-all duration-300 ${aiOpen ? 'mr-[420px]' : ''}`}>
+      <main
+        className={`flex-1 overflow-y-auto transition-all duration-150 ${aiOpen ? 'hidden sm:block' : ''}`}
+        style={{ marginRight: aiOpen && typeof window !== 'undefined' && window.innerWidth >= 640 ? 'var(--ai-panel-width, 460px)' : '0px' }}
+      >
         {children}
       </main>
       <AIAssistant

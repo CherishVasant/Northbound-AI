@@ -5,6 +5,7 @@ import {
   PIPELINE_STATES,
   type PipelineStage,
   type PipelineState,
+  type OpportunityKind,
 } from '@/lib/constants/placement'
 
 /**
@@ -92,9 +93,16 @@ function coerceYear(rec: any): 'third' | 'fourth' {
   return rec?.track === 'internship' ? 'third' : 'fourth'
 }
 
-function coerceKind(rec: any): 'placement' | 'internship' {
-  if (rec?.kind === 'internship' || rec?.kind === 'placement') return rec.kind
-  return rec?.track === 'internship' ? 'internship' : 'placement'
+function coerceKind(rec: any): OpportunityKind {
+  if (
+    rec?.kind === 'internship' ||
+    rec?.kind === 'placement' ||
+    rec?.kind === 'internship_placement' ||
+    rec?.kind === 'internship_ppo'
+  ) {
+    return rec.kind;
+  }
+  return rec?.track === 'internship' ? 'internship' : 'placement';
 }
 
 /**
@@ -189,18 +197,14 @@ function buildJourney(rec: any, fallback: StageEntry[], companyNotes: string): S
   const fromHistory = Array.isArray(rec?.history)
     ? (rec.history.map(coerceEntry).filter(Boolean) as StageEntry[])
     : []
-  const base = fromHistory.length ? fromHistory : fallback
+  if (fromHistory.length > 0) {
+    return fromHistory
+  }
   const merged = dedupeJourney(
-    sortJourney([...base, ...scheduleAsHistory(rec?.schedule)]),
+    sortJourney([...fallback, ...scheduleAsHistory(rec?.schedule)]),
   )
   const journey = sortJourney([...registrationAsHistory(rec, merged), ...merged])
-
-  const note = (companyNotes ?? '').trim()
-  if (!note || journey.length === 0) return journey
-  // Only when nothing already carries it, so this can't duplicate on re-run.
-  if (journey.some((e) => (e.notes ?? '').trim() === note)) return journey
-  const [first, ...rest] = journey
-  return [{ ...first, notes: first.notes?.trim() ? first.notes : note }, ...rest]
+  return journey
 }
 
 
@@ -299,7 +303,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       // Still normalise history and id — a record can be new-shape but carry a
       // string id from an interrupted migration.
       const id = typeof rec.id === 'number' && Number.isFinite(rec.id) ? rec.id : takeId()
-      const history = buildJourney(rec, [], typeof rec.notes === 'string' ? rec.notes : '')
+      const history = buildJourney(rec, [], '')
       return {
         ...rec,
         id,
@@ -307,9 +311,8 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
         kind: coerceKind(rec),
         history,
         schedule: [],
-        // Consumed into the first round's notes above; the column reads the
-        // CURRENT round now, so leaving a copy here would show stale text.
         notes: '',
+        miscellaneousNotes: typeof rec.miscellaneousNotes === 'string' ? rec.miscellaneousNotes : '',
         aboutCompany: typeof rec.aboutCompany === 'string' ? rec.aboutCompany : '',
         jobDescription: typeof rec.jobDescription === 'string' ? rec.jobDescription : '',
         registrationLink: typeof rec.registrationLink === 'string' ? rec.registrationLink : '',
@@ -353,6 +356,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       aboutCompany: typeof rec?.aboutCompany === 'string' ? rec.aboutCompany : '',
       jobDescription: typeof rec?.jobDescription === 'string' ? rec.jobDescription : '',
       registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
+      panelHeights: rec?.panelHeights && typeof rec.panelHeights === 'object' ? rec.panelHeights : undefined,
       history: journey,
       schedule: [],
     }
@@ -400,7 +404,7 @@ export function makeRound(stage: PipelineStage = FIRST_STAGE): StageEntry {
 
 /** Re-sorts a journey after an edit changed a date. Exported for the panel. */
 export function orderJourney(entries: StageEntry[]): StageEntry[] {
-  return sortJourney(entries)
+  return entries;
 }
 
 /**
@@ -413,6 +417,10 @@ export function orderJourney(entries: StageEntry[]): StageEntry[] {
  */
 export function currentRoundIndex(history: StageEntry[]): number {
   if (!Array.isArray(history) || history.length === 0) return -1
+  const rejectedIdx = history.findIndex((e) => e.status === 'Rejected');
+  if (rejectedIdx !== -1) {
+    return rejectedIdx;
+  }
   // Find the latest stage that has moved past 'Preparing'
   for (let i = history.length - 1; i >= 0; i--) {
     if (history[i].status !== 'Preparing') {

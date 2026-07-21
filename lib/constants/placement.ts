@@ -135,11 +135,13 @@ export const YEARS: { value: OpportunityYear; label: string }[] = [
   { value: 'fourth', label: '4th Year' },
 ];
 
-export type OpportunityKind = 'placement' | 'internship';
+export type OpportunityKind = 'placement' | 'internship' | 'internship_placement' | 'internship_ppo';
 
 export const KINDS: { value: OpportunityKind; label: string }[] = [
   { value: 'placement', label: 'Placement' },
   { value: 'internship', label: 'Internship' },
+  { value: 'internship_placement', label: 'Internship + Placement' },
+  { value: 'internship_ppo', label: 'Internship to Placement (PPO)' },
 ];
 
 /** New entries are placements unless said otherwise. */

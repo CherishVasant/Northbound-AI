@@ -90,6 +90,8 @@ export function StatusSelects({ history, onChange, stacked = false, activeRoundI
 
   const fill = stacked ? 'w-full' : '';
 
+  const isUnreachedPostRejection = entries.slice(0, activeIdx).some((e) => e.status === 'Rejected');
+
   return (
     <div
       className={`flex min-w-0 gap-1.5 ${
@@ -105,23 +107,29 @@ export function StatusSelects({ history, onChange, stacked = false, activeRoundI
         triggerStyle={{ color: `var(${stageVar})`, backgroundColor: tint(stageVar) }}
       />
 
-      <ColorSelect
-        value={state}
-        options={stateOptions}
-        onChange={setState}
-        ariaLabel="Stage status"
-        className={`${ring} ${fill}`}
-        triggerStyle={
-          rejected
-            ? {
-                backgroundImage: 'var(--aurora-soft)',
-                backgroundSize: 'cover',
-                color: 'var(--foreground)',
-                fontWeight: 700,
-              }
-            : { color: `var(${stateVar})`, backgroundColor: tint(stateVar) }
-        }
-      />
+      {isUnreachedPostRejection ? (
+        <span className="text-[10px] font-semibold text-muted-foreground/50 bg-secondary/40 px-2 py-0.5 rounded border border-border/40 select-none">
+          Not Reached
+        </span>
+      ) : (
+        <ColorSelect
+          value={state}
+          options={stateOptions}
+          onChange={setState}
+          ariaLabel="Stage status"
+          className={`${ring} ${fill}`}
+          triggerStyle={
+            rejected
+              ? {
+                  backgroundImage: 'var(--aurora-soft)',
+                  backgroundSize: 'cover',
+                  color: 'var(--foreground)',
+                  fontWeight: 700,
+                }
+              : { color: `var(${stateVar})`, backgroundColor: tint(stateVar) }
+          }
+        />
+      )}
 
       {canLog && (
         <div className="flex items-center gap-1">

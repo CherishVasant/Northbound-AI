@@ -74,7 +74,6 @@ export function PlacementTable({
     package: 'pl-3 pr-4',
     status: 'pl-1 pr-1',
     notes: 'pl-0.5 pr-2',
-    skills: 'pl-2 pr-3',
     deadline: 'pl-2 pr-3',
     optedIn: 'pl-2 pr-2',
     select: 'pl-2 pr-3',

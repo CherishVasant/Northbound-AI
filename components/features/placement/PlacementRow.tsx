@@ -336,10 +336,17 @@ export function PlacementRow({
            * from its "LPA" suffix.
            */
           display={
-            formatPackage(
-              company.compensation?.amount ?? 0,
-              company.compensation?.unit ?? 'LPA',
-            ) || '—'
+            (() => {
+              const mainPkg = formatPackage(
+                company.compensation?.amount ?? 0,
+                company.compensation?.unit ?? (company.kind === 'internship' ? 'per-month' : 'LPA'),
+              ) || '—';
+              if ((company.kind === 'internship_placement' || company.kind === 'internship_ppo') && company.stipendAmount) {
+                const stipendStr = formatPackage(company.stipendAmount, 'per-month');
+                return `${mainPkg} (+ ${stipendStr})`;
+              }
+              return mainPkg;
+            })()
           }
           suffix={packageSuffix(company.compensation?.unit ?? 'LPA')}
           className="text-[14px] placeholder:text-[12px] text-muted-foreground"
@@ -368,15 +375,20 @@ export function PlacementRow({
       cls: 'py-2.5 pl-0.5 pr-2 align-middle',
       content: company.optedIn && nowIndex >= 0 ? (
         <NotesCell
-          value={company.history[nowIndex].notes ?? ''}
-          onChange={(notes) =>
+          value={company.history[nowIndex].notes || company.reason || ''}
+          onChange={(notes) => {
+            const isRej = company.history[nowIndex]?.status === 'Rejected';
             onFieldChange({
+              reason: isRej ? notes : company.reason,
               history: company.history.map((e, i) => (i === nowIndex ? { ...e, notes } : e)),
-            })
-          }
+            });
+          }}
         />
       ) : (
-        <span className="text-xs text-muted-foreground/30">—</span>
+        <NotesCell
+          value={company.reason || (typeof company.notes === 'string' ? company.notes : '')}
+          onChange={(val) => onFieldChange({ reason: val, notes: val })}
+        />
       ),
     },
 
@@ -391,15 +403,32 @@ export function PlacementRow({
 
     deadline: {
       cls: 'py-2.5 pl-2 pr-3 align-middle',
-      content: (
-        <DeadlineCell
-          optedIn={company.optedIn}
-          deadlineDate={company.deadlineDate}
-          deadlineTime={company.deadlineTime}
-          reason={company.reason}
-          onChange={onDeadlineChange}
-        />
-      ),
+      content: (() => {
+        const activeEntry = nowIndex >= 0 ? company.history[nowIndex] : null;
+        const isRej = activeEntry?.status === 'Rejected';
+        const displayDate = (isRej && activeEntry?.date) ? activeEntry.date : company.deadlineDate;
+        const displayTime = (isRej && activeEntry?.time) ? activeEntry.time : company.deadlineTime;
+
+        return (
+          <DeadlineCell
+            optedIn={company.optedIn}
+            deadlineDate={displayDate}
+            deadlineTime={displayTime}
+            reason={company.reason}
+            onChange={(dDate, dTime) => {
+              if (isRej && activeEntry) {
+                onFieldChange({
+                  history: company.history.map((e, i) => (i === nowIndex ? { ...e, date: dDate, time: dTime } : e)),
+                  deadlineDate: dDate,
+                  deadlineTime: dTime,
+                });
+              } else {
+                onDeadlineChange(dDate, dTime);
+              }
+            }}
+          />
+        );
+      })(),
     },
 
     optedIn: {

@@ -117,10 +117,10 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
                   if (key === 'ai_chats' && Array.isArray(valueToStore) && Array.isArray(body.serverValue)) {
                     try {
                       const mergedMap = new Map<string, any>();
-                      body.serverValue.forEach((c) => {
+                      body.serverValue.forEach((c: any) => {
                         if (c && c.id) mergedMap.set(c.id, c);
                       });
-                      valueToStore.forEach((c) => {
+                      valueToStore.forEach((c: any) => {
                         if (c && c.id) {
                           const existing = mergedMap.get(c.id);
                           if (existing) {
