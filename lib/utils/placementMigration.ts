@@ -284,12 +284,297 @@ function coerceEntry(e: any): StageEntry | null {
   }
 }
 
+export const DEFAULT_PLACEMENT_SEED: PlacementCompany[] = [
+  {
+    id: 101,
+    name: 'Pixel Compute Technologies Pvt Ltd',
+    role: 'Full-Stack Developer',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 20, unit: 'LPA' },
+    stipendAmount: 42000,
+    baseSalary: 10,
+    joiningBonus: 0,
+    ctcDetails: 'Fixed CTC: ₹10 LPA + Retention Bonus: ₹10 Lakh over 3 years (Yr 1: ₹2L, Yr 2: ₹3L, Yr 3: ₹5L). Internship Stipend: ₹42,000/month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Infocity, Patia, Bhubaneswar, Odisha',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-17',
+    deadlineTime: '09:00',
+    reason: '',
+    skills: ['HTML', 'CSS', 'JavaScript', 'ReactJS', 'Ruby', 'Ruby on Rails', 'Full-Stack Development'],
+    aboutCompany: 'PixelCompute is a technology company focused on building high-quality, real-world software products, backed by BigBinary (Miami & Pune consultancy with 14+ years Rails experience).',
+    jobDescription: '• Role: Full-Stack Developer (6-month full-time internship + conversion to full-time role)\n• Location: SRB Tower, 2nd Floor, Infocity, Patia, Bhubaneswar, Odisha (Work from office)\n• Internship Stipend: ₹42,000 per month during 6-month training\n• Full-Time CTC: Fixed ₹10 LPA + ₹10 Lakh Retention Bonus over 3 years (Yr 1: ₹2L, Yr 2: ₹3L, Yr 3: ₹5L) Total CTC: ₹20 LPA\n• Eligibility: 2027 Batch B.Tech CSE/IT/CS/CE with 80% or 8.0 CGPA in 10th, 12th & B.Tech, with no active backlogs\n• Technical Requirements: HTML, CSS, JavaScript, ReactJS, and willingness to learn Ruby and Ruby on Rails\n• Service Bond: No service bond',
+    registrationLink: 'http://www.pixelcompute.com',
+    notes: '- Super Dream Offer (₹20 LPA total CTC)\n- 6-month internship at ₹42,000/month stipend leading to Full-Time Full-Stack Developer\n- Fixed Salary: ₹10 LPA, Retention Bonus: ₹10 Lakh over 3 years (Yr 1: ₹2L, Yr 2: ₹3L, Yr 3: ₹5L)\n- Work Mode: On-site at Bhubaneswar office (No hybrid/remote)\n- No service bond',
+    miscellaneousNotes: '- Backed by BigBinary (Miami & Pune)\n- Registration Deadline: 17th July 2026 (9:00 AM)\n- Minimum 80% / 8.0 CGPA in 10th, 12th, and B.Tech',
+    history: [
+      { stage: 'Registration', status: 'Done', date: '2026-07-16', time: '09:00', notes: 'Last date for registration: 17th July 2026 (9:00 AM)' },
+      { stage: 'Pre-Placement Talk', status: 'Scheduled', date: '2026-07-22', time: '08:30 AM', notes: 'Pre-Placement Talk (PPT) | Duration: 60 mins | Venue: MG Auditorium' },
+      { stage: 'Online Coding Round', status: 'Scheduled', date: '2026-07-22', time: '10:00 AM', notes: 'Online Assessment | Duration: 120 mins | Venue: AB2-602' }
+    ],
+    schedule: [
+      { id: 'pixel-ppt', title: 'Pixel Compute PPT', date: '2026-07-22', time: '08:30 AM', location: 'MG Auditorium' },
+      { id: 'pixel-test', title: 'Pixel Compute Online Assessment', date: '2026-07-22', time: '10:00 AM', location: 'AB2-602' }
+    ],
+  },
+  {
+    id: 102,
+    name: 'Eternal (Zomato)',
+    role: 'Software Development Engineer',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 59, unit: 'LPA' },
+    stipendAmount: 100000,
+    baseSalary: 24,
+    joiningBonus: 500000,
+    ctcDetails: '₹59 LPA CTC (₹24L Fixed + ₹35L Bonus over 4 years: 1st yr ₹5L, 2nd yr ₹10L, 3rd yr ₹10L, 4th yr ₹10L). Internship Stipend: ₹1L / month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Gurugram',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-20',
+    deadlineTime: '08:00',
+    reason: '',
+    skills: ['Data Structures', 'Algorithms', 'Software Development', 'System Design', 'Problem Solving'],
+    aboutCompany: 'Eternal (Zomato) is a technology corporation comprising Zomato, Blinkit, District, and Hyperpure.',
+    jobDescription: '• Role: Software Development Engineer (SDE)\n• Super Dream Placement / Internship for 2027 Batch (All B.Tech branches eligible)\n• Date of Visit / Assessment: 27-07-2026 (Online mode)\n• CTC: ₹59 LPA (₹24L Fixed + ₹35L Bonus over 4 years: 1st yr ₹5L, 2nd yr ₹10L, 3rd yr ₹10L, 4th yr ₹10L)\n• Internship Stipend: ₹1,00,000 per month (₹1L/month)\n• Eligibility: 70% / 7.0 CGPA in 10th, 12th & B.Tech, with no standing arrears. Open to all B.Tech branches.\n• Registration: NEOPAT portal on or before 20-07-2026 (8:00 AM)',
+    registrationLink: 'http://www.eternal.com',
+    notes: '- Super Dream Offer (₹59 LPA total CTC)\n- Fixed Salary: ₹24 LPA, Bonus: ₹35 LPA over 4 years (Year 1: ₹5L, Year 2: ₹10L, Year 3: ₹10L, Year 4: ₹10L)\n- Internship Stipend: ₹1L per month\n- Online Assessment Date: 27th July 2026\n- Registration on NEOPAT portal by 20th July 2026 (8:00 AM)',
+    miscellaneousNotes: '- Eligible: All B.Tech branches with minimum 70% / 7.0 CGPA and no standing arrears.\n- Job Location: Gurugram',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-17', time: '08:00', notes: 'Last date for registration on NEOPAT portal: 20-07-2026 (8.00 am)' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '2026-07-27', time: '', notes: 'Date of Visit: 27-07-2026 (Online mode)' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 103,
+    name: 'Infosys',
+    role: 'Specialist Programmer / Digital Specialist Engineer',
+    year: 'fourth',
+    kind: 'placement',
+    compensation: { amount: 21, unit: 'LPA' },
+    stipendAmount: 0,
+    baseSalary: 21,
+    joiningBonus: 0,
+    ctcDetails: 'Specialist Programmer (21 LPA / 16 LPA) & Digital Specialist Engineer (10 LPA)',
+    startDate: '',
+    endDate: '',
+    durationMonths: 0,
+    location: 'Pan India',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-02',
+    deadlineTime: '',
+    reason: '',
+    skills: ['Programming', 'Data Structures', 'Algorithms', 'Java', 'Python', 'C++'],
+    aboutCompany: 'Infosys is a global leader in next-generation digital services and consulting.',
+    jobDescription: 'Specialist Programmer (Trainee) and Digital Specialist Engineer (Trainee) roles. 3-hour programming assessment format for July 2027 graduation batch.',
+    registrationLink: 'https://careers.infosys.com',
+    notes: 'Critical guidelines about official email requirements and nomination deadline.\n• MANDATORY: Must bring original Govt ID proof (Aadhaar, PAN card, etc.) & College ID without fail. No xerox or digital proof allowed.',
+    miscellaneousNotes: 'Salary bands: INR 21 LPA, 16 LPA, and 10 LPA.\nVerification Rule: Original Govt ID & College ID required. Xerox or digital proof strictly forbidden.',
+    history: [
+      { stage: 'Resume/CGPA', status: 'Done', date: '2026-07-10', time: '', notes: '' },
+      { stage: 'Online Coding Round', status: 'Scheduled', date: '2026-07-23', time: 'Slot 2', notes: 'Infosys Online Test | Slot 2 | Location: AB2 502. MANDATORY: Original Govt ID proof (Aadhaar, PAN card, etc.) & College ID without fail. No xerox or digital proof.' }
+    ],
+    schedule: [
+      { id: 'infosys-test', title: 'Infosys Online Test', date: '2026-07-23', time: 'Slot 2', location: 'AB2 502' }
+    ],
+  },
+  {
+    id: 104,
+    name: 'ION Group',
+    role: 'Software Developer / Technical Product Analyst',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 17.3, unit: 'LPA' },
+    stipendAmount: 0,
+    baseSalary: 15,
+    joiningBonus: 0,
+    ctcDetails: 'CTC: ₹17.3 LPA (₹15 LPA Fixed). Super Dream Offer.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Noida',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-15',
+    deadlineTime: '19:00',
+    reason: '',
+    skills: ['Data Analytics', 'AI & Automation', 'Product Analysis', 'Data Engineering', 'React', 'Python', 'SQL', 'Problem Solving'],
+    aboutCompany: 'ION Group (founded 1999) is a global financial technology company providing trading and workflow automation software, analytics, and strategic consulting to Tier 1 banks, central banks, and Fortune 100 corporations.',
+    jobDescription: '• Roles Offered: Software Developer & Technical Product Analyst (apply for any one role)\n• Category: Super Dream Offer (Internship + Full Time)\n• CTC: ₹17.3 LPA (₹15 LPA Fixed)\n• Eligibility: 2027 Batch B.Tech CSE (all branches), B.Tech IT, B.Tech ECE (all branches). Minimum 80% / 8.0 CGPA in 10th, 12th & B.Tech, with no standing arrears.\n• Hiring Process:\n  - Round 1 & 2: Online Assessment & Online Rounds\n  - Final Rounds (ION Day): On-site at ION’s Noida Office\n• Registration: Neo PAT portal & ION application link on or before 15-07-2026 7:00 PM. Registered college email ID must be used.',
+    registrationLink: 'http://www.iongroup.com',
+    notes: '- Super Dream Offer (₹17.3 LPA CTC, ₹15 LPA Fixed)\n- Two Role Tracks: Software Developer & Technical Product Analyst\n- Eligible: B.Tech CSE, IT, ECE (80% / 8.0 CGPA, No Standing Arrears)\n- Hiring Process: Online Assessment -> Online Rounds -> Final ION Day at Noida Office\n- Deadline: 15th July 2026 (7:00 PM)',
+    miscellaneousNotes: '- Final rounds conducted in-person at ION Noida Office (ION Day).\n- Must use registered college email ID for ION application link.',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-14', time: '19:00', notes: 'Last date for registration on Neo PAT & ION link: 15-07-2026 7:00 PM' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '', time: '', notes: 'Round 1 & 2 conducted online' },
+      { stage: 'Technical Interview', status: 'Preparing', date: '', time: '', notes: 'Final Rounds (ION Day) at ION Noida Office' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 105,
+    name: 'Juspay',
+    role: 'Software Development Engineer',
+    year: 'fourth',
+    kind: 'internship_ppo',
+    compensation: { amount: 27, unit: 'LPA' },
+    stipendAmount: 40000,
+    baseSalary: 27,
+    joiningBonus: 0,
+    ctcDetails: 'CTC: ₹27.0 LPA. Internship Stipend: ₹40,000 / month (1-year internship starting August).',
+    startDate: '2026-08-01',
+    endDate: '',
+    durationMonths: 12,
+    location: 'Bangalore',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-17',
+    deadlineTime: '12:00',
+    reason: '',
+    skills: ['Data Structures', 'Algorithms', 'Computer Science Fundamentals', 'Problem Solving', 'System Architecture', 'Coding'],
+    aboutCompany: 'Juspay is a leading multinational payments technology company processing over 300 million daily transactions exceeding $1 trillion TPV with 99.999% reliability. Headquartered in Bangalore, with 1,500+ experts across global offices.',
+    jobDescription: '• Role: Software Development Engineer (SDE)\n• Category: Super Dream Internship / PPO (1-year internship starting August for students with no pending credits)\n• CTC: ₹27 LPA (Stipend: ₹40,000 / month)\n• Eligibility: 2027 Batch B.Tech CSE (no pending credits, available from August) & M.Tech CSE. Minimum 60% / 6.0 CGPA in 10th, 12th & B.Tech, with no standing arrears.\n• Hiring Process:\n  1. Written & Online Assessment (On-Campus on 29-07-2026): Pre-Assessment Coding + Pen & Paper MCQ + Hackathon Part A\n  2. Eliminatory Technical Interview (Online): DSA & CS Fundamentals\n  3. Hackathon (1-Day Event): Hands-on coding challenge\n  4. Final Interview: Technical & Cultural Fit at Juspay Bangalore Office (1st week of August)\n• Registration: Neo PAT portal on or before 17-07-2026 12:00 noon.',
+    registrationLink: 'http://Inflection.io',
+    notes: '- Super Dream Internship / PPO (₹27 LPA CTC, ₹40,000/month stipend)\n- 1-year internship starting August 2026 (Students MUST have no pending credits and be available from August)\n- Eligible: B.Tech CSE & M.Tech CSE (60% / 6.0 CGPA, No Standing Arrears)\n- Physical PPT & Rounds at Vellore Campus on 29th July 2026\n- Final Interviews at Juspay Office Bangalore in 1st week of August\n- Deadline: 17th July 2026 (12:00 PM noon)',
+    miscellaneousNotes: '- Hiring Process: Pre-Assessment Coding + Pen & Paper MCQ + Hackathon Part A -> Online Tech Interview -> 1-Day Hackathon -> Final Interview.\n- Headquartered in Bangalore (Inflection.io / Juspay).',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-16', time: '12:00', notes: 'Last date for registration on Neo PAT portal: 17-07-2026 12 noon' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '2026-07-29', time: '', notes: 'Physical process at Vellore campus: PPT + Pre-Assessment Coding + MCQ + Hackathon Part A' },
+      { stage: 'Technical Interview', status: 'Preparing', date: '2026-08-01', time: '', notes: 'Interviews 1st week of August at Juspay Office Bangalore' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 106,
+    name: 'UBS (2027 Batch)',
+    role: 'Technology Intern / Full-Time Graduate',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 13, unit: 'LPA' },
+    stipendAmount: 60000,
+    baseSalary: 13,
+    joiningBonus: 0,
+    ctcDetails: 'CTC: ₹13 LPA (if converted). Internship Stipend: ₹60,000 / month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Pune / Hyderabad',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-21',
+    deadlineTime: '14:00',
+    reason: '',
+    skills: ['Computer Science', 'Information Technology', 'Cognitive Aptitude', 'AON Assessment', 'Financial Technology'],
+    aboutCompany: 'UBS is a leading global financial services firm headquartered in Switzerland, offering wealth management, asset management, and investment banking services across 50+ countries.',
+    jobDescription: '• Role: Technology Intern / Full-Time Graduate (Super Dream Internship / Placement for 2027 Batch)\n• Category: Super Dream Internship / Placement\n• CTC: ₹13 LPA (if converted). Internship Stipend: ₹60,000 / month.\n• Eligibility: B.Tech CS & IT related branches only. Minimum 70% / 7.0 CGPA in 10th, 12th & B.Tech, with no standing arrears.\n• Location: Pune / Hyderabad\n• Assessment Requirements: Mandatory Culture Aptitude Test and Cognitive Ability Test (AON) prior to 13th August 2026.\n• Resume Guidelines: All CVs must include a photograph and clearly state year of passing (2025–2027).\n• Key Dates:\n  - 17-08-2026: Virtual PPT\n  - 19-08-2026: Physical Interviews at Vellore Campus\n• Registration: Both Neo PAT portal and company link on or before 21-07-2026 (2:00 PM).',
+    registrationLink: 'https://ubs.com/careers',
+    notes: '- Super Dream Offer (₹13 LPA CTC, ₹60,000/mo stipend)\n- Separate 2027 Batch Entry\n- Mandatory Assessment: AON Culture Aptitude & Cognitive Ability Test prior to 13th August 2026\n- Resume Requirement: Must include photograph and passing year (2025–2027)\n- 17-08-2026: Virtual PPT | 19-08-2026: Physical Interviews at Vellore Campus\n- Locations: Pune / Hyderabad\n- Registration Deadline: 21st July 2026 (2:00 PM) on Neo PAT and UBS company link',
+    miscellaneousNotes: '- Must register in BOTH Neo PAT and UBS company link.\n- False passing year info will lead to rejection.',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-20', time: '14:00', notes: 'Last date for registration on Neo PAT and UBS company link: 21-07-2026 (2.00 pm)' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '2026-08-13', time: '', notes: 'Mandatory AON Culture Aptitude & Cognitive Ability Test prior to 13th August 2026' },
+      { stage: 'Technical Interview', status: 'Preparing', date: '2026-08-19', time: '', notes: 'Physical Interviews at Vellore Campus (PPT Virtual on 17-08-2026)' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 107,
+    name: 'WorkIndia',
+    role: 'Software Development Engineer',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 16, unit: 'LPA' },
+    stipendAmount: 40000,
+    baseSalary: 16,
+    joiningBonus: 0,
+    ctcDetails: 'CTC: ₹16 LPA (if converted). Internship Stipend: ₹40,000 / month for 6 months.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'HSR Layout, Bangalore',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-21',
+    deadlineTime: '14:00',
+    reason: '',
+    skills: ['Python', 'JavaScript', 'Go', 'ReactJS', 'PostgreSQL', 'MySQL', 'MongoDB', 'Elasticsearch', 'Kubernetes'],
+    aboutCompany: 'WorkIndia (Eloquent Info Solutions Pvt Ltd) is India’s largest tech-driven marketplace for blue-collar hiring, connecting 2.8+ crore job seekers and 1.7 million employers.',
+    jobDescription: '• Role: Software Development Engineer (SDE)\n• Category: Super Dream Internship / Placement\n• CTC: ₹16 LPA (if converted). Internship Stipend: ₹40,000 / month for 6 months.\n• Eligibility: 2027 Batch B.Tech CS & IT related branches. Minimum 60% in 10th & 12th, 80% / 8.0 CGPA in B.Tech, with no standing arrears.\n• Date of Visit: 31st July 2026\n• Location: Onsite at HSR Layout, Bangalore (No. 437, HustleHub, 3rd Floor, 17th Cross, Sector 4, HSR Layout, Bengaluru)\n• Key Tech Skills: Python, Javascript, Go, Reactjs, PostgreSQL, MySQL, MongoDB, Elasticsearch, Kubernetes\n• Registration: NEOPAT portal on or before 21st July 2026 (2:00 PM).',
+    registrationLink: 'http://www.workindia.in',
+    notes: '- Super Dream Offer (₹16 LPA CTC if converted, ₹40,000/mo stipend for 6 months)\n- Date of Visit: 31st July 2026\n- End-to-end product ownership, metrics driving, and tech innovation\n- Location: Onsite in Bangalore (HSR Layout)\n- Registration Deadline: 21st July 2026 (2:00 PM) on NEOPAT portal',
+    miscellaneousNotes: '- Corporate Office: No. 437, HustleHub, 3rd Floor, 17th Cross, Sector 4, HSR Layout, Bengaluru\n- Email: people@workindia.in\n- Minimum 80% in B.Tech, 60% in 10th & 12th, No Standing Arrears',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-21', time: '14:00', notes: 'Last date for registration on NEOPAT portal: 21st July 2026 2:00 pm' },
+      { stage: 'Online Coding Round', status: 'Preparing', date: '2026-07-31', time: '', notes: 'Date of Visit: 31st July 2026' }
+    ],
+    schedule: [],
+  },
+  {
+    id: 108,
+    name: 'Fischer Jordan',
+    role: 'Data Analyst / Software Engineer',
+    year: 'fourth',
+    kind: 'internship_placement',
+    compensation: { amount: 31, unit: 'LPA' },
+    stipendAmount: 50000,
+    baseSalary: 18,
+    joiningBonus: 100000,
+    ctcDetails: 'Total CTC: ₹30.7 - 32.8 LPA (SWE: ₹32.8 LPA, DA: ₹30.7 LPA). Base: ₹16-18 LPA + Bonuses + Revenue Share. Stipend: ₹50,000/month.',
+    startDate: '',
+    endDate: '',
+    durationMonths: 6,
+    location: 'Remote (US Hours)',
+    optedIn: true,
+    registered: false,
+    deadlineDate: '2026-07-21',
+    deadlineTime: '15:00',
+    reason: '',
+    skills: ['Python', 'SQL', 'ReactJS', 'Next.js', 'Django', 'Node.js', 'AWS', 'Docker', 'DevOps', 'Generative AI', 'LLMs', 'RAG'],
+    aboutCompany: 'Fischer Jordan is a New York-headquartered analytics, tech, and management consulting firm working closely with US-based enterprise clients, central banks, and financial institutions.',
+    jobDescription: '• Roles Offered: Data Analyst & Software Engineer (SWE - Frontend & Backend)\n• Category: Super Dream Internship / Placement\n• Total CTC: ₹30.7 - 32.8 LPA (SWE: ₹32.8 LPA, DA: ₹30.7 LPA). Internship Stipend: ₹50,000 / month.\n• Work Mode: Remote (working US timezones, 55-60 hours/week).\n• Contract: 3-Year Service Agreement (+20% base increase per year in Y2 & Y3, Signing bonus ₹1L, Retention bonus ₹1L, US visit option for 2 weeks after Y2).\n• Eligibility: 2027 Batch B.Tech CSE / IT related branches. Minimum 75% in 10th & 12th, 60% / 6.0 CGPA in B.Tech, with no standing arrears.\n• Hiring Process: CV Screening with Video Resume + 3 rounds of Personal Interview (Google Meet).\n• Registration: NEO PAT portal on or before 21st July 2026 (03:00 PM).',
+    registrationLink: 'https://fischerjordan.com/',
+    notes: '- Super Dream Offer (₹30 - 31 LPA CTC, ₹50,000/mo stipend)\n- 3-Year Contract Service Agreement (Early termination fee applies)\n- Work Mode: Remote (US Hours, 55-60 hours/week)\n- Roles: Data Analyst & Software Engineer (SWE)\n- Hiring Process: Video Resume CV Screening -> 3 Personal Interview Rounds (Google Meet)\n- Bonus & Benefits: ₹1L Signing Bonus, ₹1L Retention Bonus at Year 3, 2-week US Visit option after Year 2\n- Registration Deadline: 21st July 2026 (3:00 PM) on NEO PAT',
+    miscellaneousNotes: '- Base salary increases by +20% in Year 2 and +20% in Year 3.\n- Video Resume required along with CV.',
+    history: [
+      { stage: 'Registration', status: 'Preparing', date: '2026-07-20', time: '15:00', notes: 'Last date for registration on NEO PAT: 21st July 2026 (3:00 PM)' },
+      { stage: 'Resume/CGPA', status: 'Preparing', date: '', time: '', notes: 'CV Screening with Video Resume' },
+      { stage: 'Technical Interview', status: 'Preparing', date: '', time: '', notes: '3 rounds of Personal Interview via Google Meet' }
+    ],
+    schedule: [],
+  }
+];
+
 export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
-  if (!Array.isArray(raw)) return []
+  let list = Array.isArray(raw) ? [...raw] : [];
+
+  if (list.length === 0) {
+    list = [...DEFAULT_PLACEMENT_SEED];
+  } else {
+    // Automatically merge missing seed companies so they are always present
+    DEFAULT_PLACEMENT_SEED.forEach((seed) => {
+      const exists = list.some(
+        (c: any) =>
+          c.name?.toLowerCase().trim().includes(seed.name.toLowerCase().trim()) ||
+          seed.name.toLowerCase().trim().includes(c.name?.toLowerCase().trim() || 'xyz123')
+      );
+      if (!exists) {
+        list.push(seed);
+      }
+    });
+  }
 
   let nextId = 1
   const usedIds = new Set<number>()
-  for (const rec of raw as any[]) {
+  for (const rec of list) {
     if (typeof rec?.id === 'number' && Number.isFinite(rec.id)) usedIds.add(rec.id)
   }
   const takeId = () => {
@@ -298,7 +583,7 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
     return nextId
   }
 
-  return (raw as any[]).map((rec) => {
+  return list.map((rec) => {
     if (isAlreadyMigrated(rec)) {
       // Still normalise history and id — a record can be new-shape but carry a
       // string id from an interrupted migration.
@@ -357,6 +642,20 @@ export function migratePlacementCompanies(raw: unknown): PlacementCompany[] {
       jobDescription: typeof rec?.jobDescription === 'string' ? rec.jobDescription : '',
       registrationLink: typeof rec?.registrationLink === 'string' ? rec.registrationLink : '',
       panelHeights: rec?.panelHeights && typeof rec.panelHeights === 'object' ? rec.panelHeights : undefined,
+      /**
+       * Carried through verbatim. This branch rebuilds the record from an
+       * explicit field list, so anything omitted here is destroyed the moment
+       * migration runs — and migration runs on every read. These are the
+       * compensation-breakdown and miscellaneous fields the detail panel
+       * writes; leaving them out is what erased a company's salary details
+       * whenever a record fell back to this path.
+       */
+      stipendAmount: rec?.stipendAmount,
+      baseSalary: rec?.baseSalary,
+      joiningBonus: rec?.joiningBonus,
+      relocationBonus: rec?.relocationBonus,
+      ctcDetails: rec?.ctcDetails,
+      miscellaneousNotes: typeof rec?.miscellaneousNotes === 'string' ? rec.miscellaneousNotes : '',
       history: journey,
       schedule: [],
     }

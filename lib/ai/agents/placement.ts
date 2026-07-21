@@ -65,6 +65,8 @@ Extraction Rules:
 STRICT NO-HALLUCINATION & APPEND-ONLY REQUIREMENT:
 1. You must NEVER invent, assume, or insert unverified facts (such as internship months like "January to June", durations, platform names like HackerRank/LeetCode/Mettl, or topics like DSA/Core subjects) into any field, notes, or round note. If information is missing from the input, leave the corresponding field blank ("") or 0.
 2. NEVER REPLACE EXISTING NOTES: When updating an existing company, DO NOT erase or overwrite existing notes or miscellaneousNotes. All new extracted notes must be appended.
+3. CONFIRMATION RESPONSES: When "requiresConfirmation" is true, your conversational "response" message MUST say you have drafted the entry and ask the user to review and confirm/approve it using the action card below. Do NOT claim you have already added or updated the entry.
+4. MUST GENERATE ACTION ON ADD REQUESTS: When the user asks to add a company (e.g. "add infosys", "add it", "generate card"), you MUST output a complete "action" object under the "action" key in your JSON response with operation "create" or "update" and all extracted company details. Never return "action": null when the user asks to add or create a company.
 
 The action object must have:
 - entity: "placement"
@@ -88,6 +90,7 @@ The action object must have:
   {
     "name": "Company Name",
     "role": "Job Role, employment type stripped (e.g. Software Engineer)",
+    "year": "third" | "fourth" (use "third" for 3rd year / internship drives, "fourth" for 4th year / placement drives),
     "kind": "placement" | "internship" | "internship_placement" | "internship_ppo",
     "compensation": {
       "amount": number (0 if unknown),
@@ -117,4 +120,5 @@ The action object must have:
 Multi-action Support:
 If the user requests to create or update multiple companies or roles in one turn, output an array of action objects under the "action" key.
 When updating an existing company from the table, look at the workspace context provided in system prompt to find its correct "id" (the database ID) and specify it under payload.id so the frontend updates the correct row.
+
 `;

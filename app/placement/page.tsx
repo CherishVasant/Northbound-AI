@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Plus, Trash2, X, Building2 } from 'lucide-react';
+import { Plus, Trash2, X, Building2, RotateCcw } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { STORAGE_KEYS, type PlacementCompany } from '@/lib/utils/storage';
@@ -22,6 +22,13 @@ import {
   todayISO,
   orderJourney,
 } from '@/lib/utils/placementMigration';
+import { deepMerge } from '@/lib/utils/merge';
+import {
+  backupCompaniesSoon,
+  fetchRestorePoint,
+  fetchRestorePoints,
+  type RestorePoint,
+} from '@/lib/utils/archiveClient';
 import { PlacementStatsStrip } from '@/components/features/placement/PlacementStatsStrip';
 import { PlacementToolbar } from '@/components/features/placement/PlacementToolbar';
 import { PlacementTable } from '@/components/features/placement/PlacementTable';
@@ -47,10 +54,23 @@ export default function PlacementPage() {
    */
   const companies = useMemo(() => migratePlacementCompanies(stored), [stored]);
 
-  /** Always writes the migrated shape back to storage. */
+  /**
+   * Always writes the migrated shape back to storage, and mirrors the result
+   * into the secondary store.
+   *
+   * The whole list goes across, not just the record that changed, so the backup
+   * also sees deletions — it keeps the row of a company that vanished, which is
+   * what makes one recoverable. The call is debounced and fire-and-forget: the
+   * backup is a safety net, so it must never block or fail an edit the user has
+   * already made.
+   */
   const setCompanies = useCallback(
     (updater: (prev: PlacementCompany[]) => PlacementCompany[]) => {
-      setStored((prev) => updater(migratePlacementCompanies(prev)));
+      setStored((prev) => {
+        const next = updater(migratePlacementCompanies(prev));
+        backupCompaniesSoon(next);
+        return next;
+      });
     },
     [setStored],
   );
@@ -169,11 +189,18 @@ export default function PlacementPage() {
    * screens), and the AI writes the field directly. Centralising it means a
    * company can't end up opted in with an empty journey depending on which
    * control was used.
+   *
+   * The patch is deep-merged rather than spread. A shallow spread replaces
+   * nested objects wholesale, so a partial patch like
+   * `{ panelHeights: { aboutCompany: 120 } }` silently dropped the other saved
+   * heights; deepMerge only overwrites the keys the patch actually names, which
+   * is what makes switching `kind` non-destructive for salary, stipend and
+   * miscellaneous notes.
    */
   const handleFieldChange = useCallback(
     (id: number, patch: Partial<PlacementCompany>) => {
       updateCompany(id, (c) => {
-        const next = { ...c, ...patch };
+        const next = deepMerge(c, patch);
         if (next.optedIn && next.history.length === 0) {
           next.history = [makeStageEntry(FIRST_STAGE, 'Preparing')];
         }
@@ -235,6 +262,45 @@ export default function PlacementPage() {
       }));
     },
     [updateCompany],
+  );
+
+  /**
+   * Companies the backup still holds but this list no longer does — deleted
+   * here, or dropped by an AI edit that rewrote the array. Fetched once: the
+   * backup rows outlive the companies, so a deletion made later this session is
+   * still covered by what was loaded at mount.
+   */
+  const [restorePoints, setRestorePoints] = useState<RestorePoint[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetchRestorePoints()
+      .then((points) => {
+        if (!cancelled) setRestorePoints(points);
+      })
+      .catch(() => {
+        /* the banner is optional; a failed lookup must not break the page */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const recoverable = useMemo(
+    () => restorePoints.filter((p) => !companies.some((c) => c.id === p.companyId)),
+    [restorePoints, companies],
+  );
+
+  /** Pulls a deleted company's backed-up copy back into the live list. */
+  const handleRecover = useCallback(
+    async (companyId: number) => {
+      const point = await fetchRestorePoint(companyId).catch(() => null);
+      if (!point?.snapshot) return;
+      setCompanies((prev) =>
+        prev.some((c) => c.id === companyId) ? prev : [...prev, point.snapshot!],
+      );
+      setRestorePoints((prev) => prev.filter((p) => p.companyId !== companyId));
+    },
+    [setCompanies],
   );
 
   /** Deletes every selected company. Only ever called from the confirm dialog. */
@@ -313,6 +379,28 @@ export default function PlacementPage() {
           onSelectionModeChange={handleSelectionModeChange}
           onAddCompany={() => setShowAddModal(true)}
         />
+
+        {recoverable.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-[var(--surface-2)] px-3 py-2.5">
+            <RotateCcw className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              {recoverable.length} compan{recoverable.length === 1 ? 'y is' : 'ies are'} in
+              your backup but not here:
+            </span>
+            {recoverable.map((p) => (
+              <button
+                key={String(p.companyId)}
+                type="button"
+                onClick={() => handleRecover(p.companyId)}
+                title={`Restore ${p.name || 'this company'} from the backup store`}
+                className="pill-soft pill-soft-interactive flex items-center gap-1.5 border border-border/60 px-2.5 py-1 text-xs font-semibold text-foreground cursor-pointer"
+              >
+                <RotateCcw className="h-3 w-3" />
+                {p.name || `Company ${String(p.companyId)}`}
+              </button>
+            ))}
+          </div>
+        )}
 
         {selectedIds.length > 0 && (
           <div className="mb-2 flex flex-wrap items-center gap-2 px-1">

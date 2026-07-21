@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { X, Plus, Building2, Link as LinkIcon, Route, Sparkles, Briefcase, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Plus, Building2, Link as LinkIcon, Route, Sparkles, Briefcase, ChevronUp, ChevronDown, History } from 'lucide-react';
 import type { PlacementCompany, StageEntry } from '@/lib/utils/storage';
 import {
   STATE_LABEL,
@@ -28,6 +28,7 @@ import {
 } from '@/lib/utils/placementMigration';
 import { ToggleSwitch } from './ToggleSwitch';
 import { ColorSelect, type ColorOption } from './ColorSelect';
+import { RestoreBackupModal } from './RestoreBackupModal';
 
 interface CompanyDetailPanelProps {
   company: PlacementCompany;
@@ -273,6 +274,7 @@ export function CompanyDetailPanel({
   const derivedMonths = monthsBetween(company.startDate ?? '', company.endDate ?? '');
   const [openNoteIndices, setOpenNoteIndices] = useState<Set<number>>(new Set());
   const [durationOpen, setDurationOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const updateHeight = (key: 'jobDescription' | 'aboutCompany' | 'miscellaneousNotes', height: number) => {
     onFieldChange({
@@ -320,6 +322,31 @@ export function CompanyDetailPanel({
       onPointerDown={(e) => e.stopPropagation()}
       className="px-4 py-5 bg-[var(--surface)] rounded-b-xl border-t border-border/40 text-foreground"
     >
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHistoryOpen(true);
+          }}
+          title="Undo recent changes to this company from the backup store"
+          className="pill-soft pill-soft-interactive flex items-center gap-1.5 border border-border/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
+        >
+          <History className="h-3 w-3" />
+          Restore from backup
+        </button>
+      </div>
+
+      {historyOpen && (
+        <RestoreBackupModal
+          company={company}
+          onRestore={(snapshot) => onFieldChange(snapshot)}
+          onClose={() => setHistoryOpen(false)}
+        />
+      )}
+
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         
         {/* Column 1: Journey */}

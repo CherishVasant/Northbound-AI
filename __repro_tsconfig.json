@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "module": "commonjs", "target": "es2020", "moduleResolution": "node",
+    "esModuleInterop": true, "skipLibCheck": true, "outDir": ".repro_out",
+    "baseUrl": ".", "paths": { "@/*": ["./*"] }
+  },
+  "files": ["__repro_tmp.ts"]
+}
